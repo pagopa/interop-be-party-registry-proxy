@@ -28,5 +28,5 @@ object Main extends App {
 
   val controller = new Controller(api)
 
-  val bindingFuture = Http().newServerAt("0.0.0.0", 8088, ).bind(controller.routes)
+  val bindingFuture = Http().newServerAt("0.0.0.0", 8088).bind(controller.routes)
 }

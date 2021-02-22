@@ -37,7 +37,8 @@ out/
 
 .openapi-generator
 
-
+generated
+client
 .bsp
 openapitools.json
 .DS_Store
