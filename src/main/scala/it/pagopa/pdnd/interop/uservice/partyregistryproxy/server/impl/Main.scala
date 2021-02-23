@@ -16,7 +16,7 @@ object Main extends App {
 
   Kamon.init()
 
-  val api = new OrganizationApi(
+  val api: OrganizationApi = new OrganizationApi(
     new OrganizationApiServiceImpl(),
     new OrganizationApiMarshallerImpl(),
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
