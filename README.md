@@ -1,1 +1,1 @@
-# PDND Micro Service REST Template
+# PDND Interoperability - Party Registry Proxy Micro Service

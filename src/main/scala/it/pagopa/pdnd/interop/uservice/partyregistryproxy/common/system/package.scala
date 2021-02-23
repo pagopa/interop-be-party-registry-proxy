@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext
 package object system {
 
   implicit val actorSystem: ActorSystem[Nothing] =
-    ActorSystem[Nothing](Behaviors.empty, "pdnd-uservice-user-management-system")
+    ActorSystem[Nothing](Behaviors.empty, "pdnd-interop-uservice-party-registry-proxy")
 
   implicit val executionContext: ExecutionContext = actorSystem.executionContext
 
