@@ -45,6 +45,8 @@ class ServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with 
 
   val organizationMarshaller: OrganizationApiMarshaller = new OrganizationApiMarshallerImpl
 
+  val url: String = "http://localhost:8088/pdnd-interop-uservice-party-registry-proxy/0.0.1/organizations"
+
   import organizationMarshaller._
 
   var controller: Option[Controller]                 = None
@@ -91,12 +93,7 @@ class ServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with 
 
       val body = Await.result(
         Http()
-          .singleRequest(
-            HttpRequest(
-              uri = s"http://localhost:8088/pdnd-interop-uservice-party-registry-proxy/0.0.1/organizations/$validOrdId",
-              method = HttpMethods.GET
-            )
-          )
+          .singleRequest(HttpRequest(uri = s"$url/$validOrdId", method = HttpMethods.GET))
           .flatMap { response =>
             Unmarshal(response.entity).to[Organization]
           },
@@ -117,21 +114,12 @@ class ServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with 
         .returning(complete(StatusCodes.NotFound, responseNotFound))
       val body = Await.result(
         Http()
-          .singleRequest(
-            HttpRequest(
-              uri =
-                s"http://localhost:8088/pdnd-interop-uservice-party-registry-proxy/0.0.1/organizations/$notFoundOrdId",
-              method = HttpMethods.GET
-            )
-          )
+          .singleRequest(HttpRequest(uri = s"$url/$notFoundOrdId", method = HttpMethods.GET))
           .flatMap { response =>
             Unmarshal(response.entity).to[OrganizationError].map((response.status, _))
           },
         Duration.Inf
       )
-      println("*******************")
-      println(body)
-      println("*******************")
 
       body must be((StatusCodes.NotFound, responseNotFound))
 
@@ -147,19 +135,11 @@ class ServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with 
         .returning(complete(StatusCodes.BadRequest, responseInvalid))
       val body = Await.result(
         Http()
-          .singleRequest(
-            HttpRequest(
-              uri =
-                s"http://localhost:8088/pdnd-interop-uservice-party-registry-proxy/0.0.1/organizations/$invalidOrdId",
-              method = HttpMethods.GET
-            )
-          )
+          .singleRequest(HttpRequest(uri = s"$url/$invalidOrdId", method = HttpMethods.GET))
           .flatMap(response => Unmarshal(response.entity).to[OrganizationError].map((response.status, _))),
         Duration.Inf
       )
-      println("*******************")
-      println(body)
-      println("*******************")
+
       body must be((StatusCodes.BadRequest, responseInvalid))
 
     }
