@@ -10,8 +10,10 @@ project/target
 target
 .idea
 .openapi-generator
-generated/
-client/
+generated/target
+generated/src
+client/target
+client/src
 .bsp
 openapitools.json
 .DS_Store
