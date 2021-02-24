@@ -8,18 +8,19 @@ import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.OrganizationApiMarshallerImpl
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.InstitutionApiMarshallerImpl
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{
-  OrganizationApi,
-  OrganizationApiMarshaller,
-  OrganizationApiService
+  HealthApi,
+  InstitutionApi,
+  InstitutionApiMarshaller,
+  InstitutionApiService
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   Authenticator,
   classicActorSystem,
   executionContext
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Organization, OrganizationError}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Institution, ErrorResponse}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
@@ -27,8 +28,8 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import spray.json.DefaultJsonProtocol.{jsonFormat4, _}
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
 @SuppressWarnings(
@@ -36,30 +37,35 @@ import scala.language.postfixOps
     "org.wartremover.warts.Var",
     "org.wartremover.warts.Any",
     "org.wartremover.warts.NonUnitStatements",
-    "org.wartremover.warts.OptionPartial"
+    "org.wartremover.warts.OptionPartial",
+    "org.wartremover.warts.Null"
   )
 )
-class ServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with MockFactory {
+class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with MockFactory {
 
   import ServiceSpecSupport._
 
-  val organizationMarshaller: OrganizationApiMarshaller = new OrganizationApiMarshallerImpl
+  val institutionApiMarshaller: InstitutionApiMarshaller = new InstitutionApiMarshallerImpl
 
-  val url: String = "http://localhost:8088/pdnd-interop-uservice-party-registry-proxy/0.0.1/organizations"
+  val url: String = "http://localhost:8088/pdnd-interop-uservice-party-registry-proxy/0.0.1/institutions"
 
-  import organizationMarshaller._
+  import institutionApiMarshaller._
 
   var controller: Option[Controller]                 = None
   var bindServer: Option[Future[Http.ServerBinding]] = None
 
-  val organizationApiService: OrganizationApiService = mock[OrganizationApiService]
+  val institutionApiService: InstitutionApiService = mock[InstitutionApiService]
 
   override def beforeAll(): Unit = {
 
     val wrappingDirective: Directive1[Unit] = SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
-    val api: OrganizationApi                = new OrganizationApi(organizationApiService, organizationMarshaller, wrappingDirective)
 
-    controller = Some(new Controller(api))
+    val institutionApi: InstitutionApi =
+      new InstitutionApi(institutionApiService, institutionApiMarshaller, wrappingDirective)
+
+    val healthApi: HealthApi = mock[HealthApi]
+
+    controller = Some(new Controller(healthApi, institutionApi))
 
     controller foreach { controller =>
       bindServer = Some(
@@ -79,14 +85,14 @@ class ServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with 
 
   }
 
-  "Asking for an organization" must {
+  "Asking for an institutions" must {
     "work successfully" in {
 
-      implicit val unmarshaller: FromEntityUnmarshaller[Organization] =
-        sprayJsonUnmarshaller(jsonFormat4(Organization.apply))
+      implicit val unmarshaller: FromEntityUnmarshaller[Institution] =
+        sprayJsonUnmarshaller(jsonFormat4(Institution.apply))
       (
-        organizationApiService
-          .getOrganizationById(_: String)(_: ToEntityMarshaller[Organization], _: ToEntityMarshaller[OrganizationError])
+        institutionApiService
+          .getInstitutionById(_: String)(_: ToEntityMarshaller[Institution], _: ToEntityMarshaller[ErrorResponse])
         )
         .expects(validOrdId, *, *)
         .returning(complete(StatusCodes.OK, responseOk))
@@ -95,7 +101,7 @@ class ServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with 
         Http()
           .singleRequest(HttpRequest(uri = s"$url/$validOrdId", method = HttpMethods.GET))
           .flatMap { response =>
-            Unmarshal(response.entity).to[Organization]
+            Unmarshal(response.entity).to[Institution]
           },
         Duration.Inf
       )
@@ -104,11 +110,11 @@ class ServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with 
     }
 
     "return 404 for an organization not found" in {
-      implicit val unmarshaller: FromEntityUnmarshaller[OrganizationError] =
-        sprayJsonUnmarshaller(jsonFormat4(OrganizationError.apply))
+      implicit val unmarshaller: FromEntityUnmarshaller[ErrorResponse] =
+        sprayJsonUnmarshaller(jsonFormat4(ErrorResponse.apply))
       (
-        organizationApiService
-          .getOrganizationById(_: String)(_: ToEntityMarshaller[Organization], _: ToEntityMarshaller[OrganizationError])
+        institutionApiService
+          .getInstitutionById(_: String)(_: ToEntityMarshaller[Institution], _: ToEntityMarshaller[ErrorResponse])
         )
         .expects(notFoundOrdId, *, *)
         .returning(complete(StatusCodes.NotFound, responseNotFound))
@@ -116,7 +122,7 @@ class ServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with 
         Http()
           .singleRequest(HttpRequest(uri = s"$url/$notFoundOrdId", method = HttpMethods.GET))
           .flatMap { response =>
-            Unmarshal(response.entity).to[OrganizationError].map((response.status, _))
+            Unmarshal(response.entity).to[ErrorResponse].map((response.status, _))
           },
         Duration.Inf
       )
@@ -125,18 +131,18 @@ class ServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with 
 
     }
     "return 400 fo an invalid request" in {
-      implicit val unmarshaller: FromEntityUnmarshaller[OrganizationError] =
-        sprayJsonUnmarshaller(jsonFormat4(OrganizationError.apply))
+      implicit val unmarshaller: FromEntityUnmarshaller[ErrorResponse] =
+        sprayJsonUnmarshaller(jsonFormat4(ErrorResponse.apply))
       (
-        organizationApiService
-          .getOrganizationById(_: String)(_: ToEntityMarshaller[Organization], _: ToEntityMarshaller[OrganizationError])
+        institutionApiService
+          .getInstitutionById(_: String)(_: ToEntityMarshaller[Institution], _: ToEntityMarshaller[ErrorResponse])
         )
         .expects(invalidOrdId, *, *)
         .returning(complete(StatusCodes.BadRequest, responseInvalid))
       val body = Await.result(
         Http()
           .singleRequest(HttpRequest(uri = s"$url/$invalidOrdId", method = HttpMethods.GET))
-          .flatMap(response => Unmarshal(response.entity).to[OrganizationError].map((response.status, _))),
+          .flatMap(response => Unmarshal(response.entity).to[ErrorResponse].map((response.status, _))),
         Duration.Inf
       )
 
@@ -154,7 +160,7 @@ object ServiceSpecSupport {
   final lazy val notFoundOrdId = "id2"
   final lazy val invalidOrdId  = "id3"
 
-  final lazy val responseOk       = Organization("id", "dn", "description", "pec")
-  final lazy val responseNotFound = OrganizationError("not found", "Bad request", "Error", "404")
-  final lazy val responseInvalid  = OrganizationError("invalid id", "Bad request", "Error", "400")
+  final lazy val responseOk       = Institution("id", "dn", "description", "pec")
+  final lazy val responseNotFound = ErrorResponse("not found", "Bad request", "Error", "404")
+  final lazy val responseInvalid  = ErrorResponse("invalid id", "Bad request", "Error", "400")
 }

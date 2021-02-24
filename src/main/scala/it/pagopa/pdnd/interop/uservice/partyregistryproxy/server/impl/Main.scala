@@ -4,10 +4,13 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.management.scaladsl.AkkaManagement
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
-  OrganizationApiMarshallerImpl,
-  OrganizationApiServiceImpl
+  InstitutionApiMarshallerImpl,
+  HealthApiServiceImpl,
+  HealthApiMarshallerImpl,
+  InstitutionApiServiceImpl
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.OrganizationApi
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.HealthApi
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.InstitutionApi
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{Authenticator, classicActorSystem}
 import kamon.Kamon
@@ -16,9 +19,15 @@ object Main extends App {
 
   Kamon.init()
 
-  val api: OrganizationApi = new OrganizationApi(
-    new OrganizationApiServiceImpl(),
-    new OrganizationApiMarshallerImpl(),
+  val healthApi: HealthApi = new HealthApi(
+    new HealthApiServiceImpl(),
+    new HealthApiMarshallerImpl(),
+    SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
+  )
+
+  val institutionApi: InstitutionApi = new InstitutionApi(
+    new InstitutionApiServiceImpl(),
+    new InstitutionApiMarshallerImpl(),
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
@@ -26,7 +35,7 @@ object Main extends App {
     val _ = AkkaManagement.get(classicActorSystem).start()
   }
 
-  val controller = new Controller(api)
+  val controller = new Controller(healthApi, institutionApi)
 
   val bindingFuture = Http().newServerAt("0.0.0.0", 8088).bind(controller.routes)
 }

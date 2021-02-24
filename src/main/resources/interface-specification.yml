@@ -14,23 +14,64 @@ servers:
   - url: https://localhost/pdnd-interop-uservice-party-registry-proxy/v0.0.1
     description: This service is the proxy to the party registry
 tags:
-  - name: organization
-    description: Retrieve information about organization
+  - name: institution
+    description: Retrieve information about institution
     externalDocs:
       description: Find out more
       url: http://swagger.io
 paths:
-  /organizations/{orgId}:
+  /institutions:
     get:
       tags:
-        - organization
-      summary: Find organization by ID
-      description: Returns a single organization
-      operationId: getOrganizationById
+        - institution
+      summary: Retriev all the institutions paginated
+      description: Returns institutions paginated
+      operationId: getInstitutions
       parameters:
-        - name: orgId
+        - name: limit
+          in: query
+          description: limit for pagination
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: offset
+          in: query
+          description: for pagination
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paginated'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Institution not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /institutions/{institutionId}:
+    get:
+      tags:
+        - institution
+      summary: Find institution by ID
+      description: Returns a single institution
+      operationId: getInstitutionById
+      parameters:
+        - name: institutionId
           in: path
-          description: ID of organization to return
+          description: ID of institution to return
           required: true
           schema:
             type: string
@@ -40,22 +81,36 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Organization'
+                $ref: '#/components/schemas/Institution'
         '400':
           description: Invalid ID supplied
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/OrganizationError'
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Organization not found
+          description: Institution not found
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/OrganizationError'
+                $ref: '#/components/schemas/ErrorResponse'
+  /status:
+    get:
+      tags:
+        - health
+      summary: Health status endpoint
+      description: Return ok
+      operationId: getStatus
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Status'
 components:
   schemas:
-    Organization:
+    Institution:
       required:
         - id
         - dn
@@ -75,7 +130,20 @@ components:
         pec:
           type: string
           example: mail@pec.mail.org
-    OrganizationError:
+    Paginated:
+      required:
+        - items
+        - totalCount
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Institution'
+        totalCount:
+          type: integer
+          format: int32
+    ErrorResponse:
       required:
         - detail
         - type
@@ -89,5 +157,11 @@ components:
           type: string
         title:
           type: string
+        status:
+          type: string
+    Status:
+      required:
+        - status
+      properties:
         status:
           type: string
