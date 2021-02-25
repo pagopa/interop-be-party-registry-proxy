@@ -2,13 +2,14 @@ package it.pagopa.pdnd.interop.uservice.partyregistryproxy
 
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directive1
-import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.InstitutionApiMarshallerImpl
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
+  InstitutionApiMarshallerImpl,
+  InstitutionApiServiceImpl
+}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{
   HealthApi,
   InstitutionApi,
@@ -20,7 +21,7 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   classicActorSystem,
   executionContext
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Institution, ErrorResponse}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{ErrorResponse, Institution}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
@@ -49,17 +50,13 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
 
   val url: String = "http://localhost:8088/pdnd-interop-uservice-party-registry-proxy/0.0.1/institutions"
 
-  import institutionApiMarshaller._
-
   var controller: Option[Controller]                 = None
   var bindServer: Option[Future[Http.ServerBinding]] = None
 
-  val institutionApiService: InstitutionApiService = mock[InstitutionApiService]
-
   override def beforeAll(): Unit = {
 
-    val wrappingDirective: Directive1[Unit] = SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
-
+    val wrappingDirective: Directive1[Unit]          = SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
+    val institutionApiService: InstitutionApiService = new InstitutionApiServiceImpl()
     val institutionApi: InstitutionApi =
       new InstitutionApi(institutionApiService, institutionApiMarshaller, wrappingDirective)
 
@@ -90,12 +87,6 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
 
       implicit val unmarshaller: FromEntityUnmarshaller[Institution] =
         sprayJsonUnmarshaller(jsonFormat4(Institution.apply))
-      (
-        institutionApiService
-          .getInstitutionById(_: String)(_: ToEntityMarshaller[Institution], _: ToEntityMarshaller[ErrorResponse])
-        )
-        .expects(validOrdId, *, *)
-        .returning(complete(StatusCodes.OK, responseOk))
 
       val body = Await.result(
         Http()
@@ -112,12 +103,7 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
     "return 404 for an organization not found" in {
       implicit val unmarshaller: FromEntityUnmarshaller[ErrorResponse] =
         sprayJsonUnmarshaller(jsonFormat4(ErrorResponse.apply))
-      (
-        institutionApiService
-          .getInstitutionById(_: String)(_: ToEntityMarshaller[Institution], _: ToEntityMarshaller[ErrorResponse])
-        )
-        .expects(notFoundOrdId, *, *)
-        .returning(complete(StatusCodes.NotFound, responseNotFound))
+
       val body = Await.result(
         Http()
           .singleRequest(HttpRequest(uri = s"$url/$notFoundOrdId", method = HttpMethods.GET))
@@ -133,12 +119,7 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
     "return 400 fo an invalid request" in {
       implicit val unmarshaller: FromEntityUnmarshaller[ErrorResponse] =
         sprayJsonUnmarshaller(jsonFormat4(ErrorResponse.apply))
-      (
-        institutionApiService
-          .getInstitutionById(_: String)(_: ToEntityMarshaller[Institution], _: ToEntityMarshaller[ErrorResponse])
-        )
-        .expects(invalidOrdId, *, *)
-        .returning(complete(StatusCodes.BadRequest, responseInvalid))
+
       val body = Await.result(
         Http()
           .singleRequest(HttpRequest(uri = s"$url/$invalidOrdId", method = HttpMethods.GET))
