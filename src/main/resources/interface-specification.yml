@@ -19,6 +19,12 @@ tags:
     externalDocs:
       description: Find out more
       url: http://swagger.io
+  - name: health
+    description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+
 paths:
   /institutions:
     get:
@@ -107,15 +113,10 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Status'
+                $ref: 'https://teamdigitale.github.io/openapi/0.0.7/definitions.yaml#/schemas/Problem'
 components:
   schemas:
     Institution:
-      required:
-        - id
-        - dn
-        - description
-        - pec
       type: object
       properties:
         id:
@@ -130,10 +131,12 @@ components:
         pec:
           type: string
           example: mail@pec.mail.org
-    Paginated:
       required:
-        - items
-        - totalCount
+        - id
+        - dn
+        - description
+        - pec
+    Paginated:
       type: object
       properties:
         items:
@@ -143,12 +146,10 @@ components:
         totalCount:
           type: integer
           format: int32
-    ErrorResponse:
       required:
-        - detail
-        - type
-        - title
-        - status
+        - items
+        - totalCount
+    ErrorResponse:
       type: object
       properties:
         detail:
@@ -159,9 +160,8 @@ components:
           type: string
         status:
           type: string
-    Status:
       required:
+        - detail
+        - type
+        - title
         - status
-      properties:
-        status:
-          type: string
