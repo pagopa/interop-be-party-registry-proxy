@@ -144,17 +144,17 @@ components:
         managerName:
           type: string
           example: Mario
-          format: 'ˆ[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
+          format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
           maxLength: 30
         managerSurname:
           type: string
           example: Rossi
-          format: 'ˆ[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
+          format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
           maxLength: 30
         description:
           type: string
           example: AGENCY X
-          format: 'ˆ[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
+          format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
           maxLength: 30
         digitalHome:
           type: string
