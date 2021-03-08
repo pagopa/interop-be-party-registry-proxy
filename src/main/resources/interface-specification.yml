@@ -86,6 +86,7 @@ paths:
           schema:
             type: string
             maxLength: 32
+            format: uuid
       responses:
         '200':
           description: successful operation
@@ -127,13 +128,9 @@ components:
       properties:
         id:
           type: string
-          example: age
-          format: 'ˆ[a-z]{1,3}$'
-          maxLength: 3
-        dn:
-          type: string
-          example: aoo=agd_DG,o=agd,c=it
-          maxLength: 32
+          example: 123e4567-e89b-12d3-a456-426614174000
+          format:  uuid
+          maxLength: 36
         taxCode:
           type: string
           example: '00000000000'
@@ -174,7 +171,6 @@ components:
           format: date
       required:
         - id
-        - dn
         - taxCode
         - managerTaxCode
         - description

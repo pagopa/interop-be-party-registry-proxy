@@ -5,13 +5,30 @@ import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat, RootJsonF
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 package object impl extends DefaultJsonProtocol {
 
   final val formatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE
 
-  implicit val localDateTimeFormat: JsonFormat[LocalDate] =
+  implicit val uuidFormat: JsonFormat[UUID] =
+    new JsonFormat[UUID] {
+      override def write(obj: UUID): JsValue = JsString(obj.toString)
+
+      override def read(json: JsValue): UUID = json match {
+        case JsString(s) =>
+          Try(UUID.fromString(s)) match {
+            case Success(result) => result
+            case Failure(exception) =>
+              deserializationError(s"could not parse $s as UUID", exception)
+          }
+        case notAJsString =>
+          deserializationError(s"expected a String but got a ${notAJsString.compactPrint}")
+      }
+    }
+
+  implicit val localDateFormat: JsonFormat[LocalDate] =
     new JsonFormat[LocalDate] {
       override def write(obj: LocalDate): JsValue = JsString(obj.format(formatter))
 
@@ -27,7 +44,7 @@ package object impl extends DefaultJsonProtocol {
       }
     }
 
-  implicit val institutionFormat: RootJsonFormat[Institution]     = jsonFormat10(Institution.apply)
+  implicit val institutionFormat: RootJsonFormat[Institution]     = jsonFormat9(Institution.apply)
   implicit val paginatedFormat: RootJsonFormat[Paginated]         = jsonFormat2(Paginated.apply)
   implicit val errorResponseFormat: RootJsonFormat[ErrorResponse] = jsonFormat3(ErrorResponse.apply)
 }
