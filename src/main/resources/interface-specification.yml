@@ -41,8 +41,8 @@ paths:
           schema:
             type: integer
             format: int32
-            maximum: 100
             minimum: 10
+            maximum: 100
         - name: offset
           in: query
           description: for pagination
@@ -50,8 +50,8 @@ paths:
           schema:
             type: integer
             format: int32
-            maximum: 1000
             minimum: 10
+            maximum: 1000
       responses:
         '200':
           description: successful operation
@@ -128,53 +128,70 @@ components:
       properties:
         id:
           type: string
+          description: PDND Interoperability ID
           example: 123e4567-e89b-12d3-a456-426614174000
           format:  uuid
           maxLength: 36
+        externalId:
+          type: string
+          description: iPA code
+          example: age
+          pattern: '^[a-z]{1,3}$'
+          maxLength: 3
         taxCode:
           type: string
+          description: institution tax code
           example: '00000000000'
           pattern: '[\d]{10,13}'
           maxLength: 13
         managerTaxCode:
           type: string
+          description: manager tax code
           example: RSSMRA75L01H501A
           pattern: '^(?:(?:[B-DF-HJ-NP-TV-Z]|[AEIOU])[AEIOU][AEIOUX]|[B-DF-HJ-NP-TV-Z]{2}[A-Z]){2}[\dLMNP-V]{2}(?:[A-EHLMPR-T](?:[04LQ][1-9MNP-V]|[1256LMRS][\dLMNP-V])|[DHPS][37PT][0L]|[ACELMRT][37PT][01LM])(?:[A-MZ][1-9MNP-V][\dLMNP-V]{2}|[A-M][0L](?:[1-9MNP-V][\dLMNP-V]|[0L][1-9MNP-V]))[A-Z]$'
           maxLength: 16
         managerName:
           type: string
+          description: manager name
           example: Mario
           format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
           maxLength: 30
         managerSurname:
           type: string
+          description: manager surname
           example: Rossi
           format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
           maxLength: 30
         description:
           type: string
+          description: institution description
           example: AGENCY X
           format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
           maxLength: 30
         digitalHome:
           type: string
+          description: digital institution address
           example: mail@pec.mail.org
           format: mail
           maxLength: 20
         activationDate:
           type: string
+          description: institution activation date
           example: 2013-01-10
           format: date
         deactivationDate:
           type: string
+          description: institution de-activation date
           example: 2013-01-10
           format: date
       required:
         - id
+        - externalId
         - taxCode
         - managerTaxCode
         - description
         - digitalHome
+        - activationDate
     Paginated:
       type: object
       additionalProperties: false
@@ -183,13 +200,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Institution'
-          maxItems: 100
           minItems: 10
+          maxItems: 100
         totalCount:
           type: integer
           format: int32
-          maximum: 1000
           minimum: 10
+          maximum: 1000
       required:
         - items
         - totalCount
