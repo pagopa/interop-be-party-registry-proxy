@@ -1,6 +1,6 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.api
 
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{ErrorResponse, Institution, Paginated}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{ErrorResponse, Institution}
 import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat, RootJsonFormat, deserializationError}
 
 import java.time.LocalDate
@@ -45,6 +45,5 @@ package object impl extends DefaultJsonProtocol {
     }
 
   implicit val institutionFormat: RootJsonFormat[Institution]     = jsonFormat8(Institution.apply)
-  implicit val paginatedFormat: RootJsonFormat[Paginated]         = jsonFormat2(Paginated.apply)
   implicit val errorResponseFormat: RootJsonFormat[ErrorResponse] = jsonFormat3(ErrorResponse.apply)
 }

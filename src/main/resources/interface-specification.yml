@@ -26,51 +26,6 @@ tags:
       url: http://swagger.io
 
 paths:
-  /institutions:
-    get:
-      tags:
-        - institution
-      summary: Retriev all the institutions paginated
-      description: Returns institutions paginated
-      operationId: getInstitutions
-      parameters:
-        - name: limit
-          in: query
-          description: limit for pagination
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 10
-            maximum: 100
-        - name: offset
-          in: query
-          description: for pagination
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 10
-            maximum: 1000
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Paginated'
-        '400':
-          description: Invalid ID supplied
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Institution not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
   /institutions/{institutionId}:
     get:
       tags:
@@ -181,24 +136,6 @@ components:
         - managerTaxCode
         - description
         - digitalAddress
-    Paginated:
-      type: object
-      additionalProperties: false
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/Institution'
-          minItems: 10
-          maxItems: 100
-        totalCount:
-          type: integer
-          format: int32
-          minimum: 10
-          maximum: 1000
-      required:
-        - items
-        - totalCount
     ErrorResponse:
       properties:
         detail:

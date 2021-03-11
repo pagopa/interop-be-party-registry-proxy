@@ -5,10 +5,11 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.server.directives.SecurityDirectives
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
   InstitutionApiMarshallerImpl,
-  InstitutionApiServiceImpl
+  InstitutionApiServiceImpl,
+  _
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{
   HealthApi,
@@ -27,8 +28,8 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import spray.json.DefaultJsonProtocol.{jsonFormat4, _}
 
+import java.util.UUID
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
@@ -85,9 +86,6 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
   "Asking for an institutions" must {
     "work successfully" in {
 
-      implicit val unmarshaller: FromEntityUnmarshaller[Institution] =
-        sprayJsonUnmarshaller(jsonFormat4(Institution.apply))
-
       val body = Await.result(
         Http()
           .singleRequest(HttpRequest(uri = s"$url/$validOrdId", method = HttpMethods.GET))
@@ -101,8 +99,6 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
     }
 
     "return 404 for an organization not found" in {
-      implicit val unmarshaller: FromEntityUnmarshaller[ErrorResponse] =
-        sprayJsonUnmarshaller(jsonFormat4(ErrorResponse.apply))
 
       val body = Await.result(
         Http()
@@ -117,8 +113,6 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
 
     }
     "return 400 fo an invalid request" in {
-      implicit val unmarshaller: FromEntityUnmarshaller[ErrorResponse] =
-        sprayJsonUnmarshaller(jsonFormat4(ErrorResponse.apply))
 
       val body = Await.result(
         Http()
@@ -141,7 +135,16 @@ object ServiceSpecSupport {
   final lazy val notFoundOrdId = "id2"
   final lazy val invalidOrdId  = "id3"
 
-  final lazy val responseOk       = Institution("id", "dn", "description", "pec")
-  final lazy val responseNotFound = ErrorResponse("not found", "Bad request", "Error", "404")
-  final lazy val responseInvalid  = ErrorResponse("invalid id", "Bad request", "Error", "400")
+  final lazy val responseOk = Institution(
+    id = UUID.fromString("27f8dce0-0a5b-476b-9fdd-a7a658eb9219"),
+    externalId = "externalId",
+    taxCode = "taxCode",
+    managerTaxCode = "managerTaxCode",
+    managerName = None,
+    managerSurname = None,
+    description = "description",
+    digitalAddress = "digitalAddress"
+  )
+  final lazy val responseNotFound = ErrorResponse(None, 404, "not found")
+  final lazy val responseInvalid  = ErrorResponse(None, 400, "invalid")
 }
