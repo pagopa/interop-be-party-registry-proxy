@@ -168,30 +168,19 @@ components:
           example: AGENCY X
           format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
           maxLength: 30
-        digitalHome:
+        digitalAddress:
           type: string
           description: digital institution address
           example: mail@pec.mail.org
           format: mail
           maxLength: 20
-        activationDate:
-          type: string
-          description: institution activation date
-          example: 2013-01-10
-          format: date
-        deactivationDate:
-          type: string
-          description: institution de-activation date
-          example: 2013-01-10
-          format: date
       required:
         - id
         - externalId
         - taxCode
         - managerTaxCode
         - description
-        - digitalHome
-        - activationDate
+        - digitalAddress
     Paginated:
       type: object
       additionalProperties: false
