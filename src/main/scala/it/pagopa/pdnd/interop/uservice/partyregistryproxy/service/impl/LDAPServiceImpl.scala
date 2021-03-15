@@ -1,23 +1,34 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl
 
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.InstitutionIPA
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Institution
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.LDAPService
 
-import java.util.{Properties, UUID}
+import java.util.Properties
 import javax.naming.directory.{DirContext, InitialDirContext, SearchControls, SearchResult}
 import javax.naming.{Context, NamingEnumeration}
 import scala.jdk.CollectionConverters._
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 final case class LDAPServiceImpl(connection: DirContext) extends LDAPService {
 
-  def getAllInstitutions: Iterator[InstitutionIPA] = {
-
+  def getAllInstitutions: Iterator[Institution] = {
+    println("getAllInstitutions")
     val searchFilter: String = "(objectClass=*)"
 
     val searchControls: SearchControls = new SearchControls()
     val reqAtt: Array[String] =
-      Array("objectClass", "codiceFiscaleAmm", "mail", "description", "nomeResp", "cognomeResp", "tipoAmm", "o")
+      Array(
+        "objectClass",
+        "codiceFiscaleAmm",
+        "mail",
+        "description",
+        "nomeResp",
+        "cognomeResp",
+        "tipoAmm",
+        "o",
+        "aoo",
+        "ou"
+      )
 
     searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE)
     searchControls.setReturningAttributes(reqAtt)
@@ -30,18 +41,33 @@ final case class LDAPServiceImpl(connection: DirContext) extends LDAPService {
 
   }
 
-  def fromResult(result: SearchResult): Try[InstitutionIPA] = Try {
-    InstitutionIPA(
-      id = UUID.randomUUID(),
-      externalId = result.getAttributes.get("o").toString,
-      taxCode = result.getAttributes.get("codiceFiscaleAmm").toString,
-      managerTaxCode = "???", //result.getAttributes.get("o"),
-      managerName = Option(result.getAttributes.get("nomeResp")) map (_.toString),
-      managerSurname = Option(result.getAttributes.get("cognomeResp")) map (_.toString),
-      description = result.getAttributes.get("description").toString,
-      digitalAddress = result.getAttributes.get("mail").toString
+  def fromResult(result: SearchResult): Try[Institution] = Try {
+    val id: String          = result.getNameInNamespace.replace("dn: ", "")
+    val o: Option[String]   = result.extract("o").map(_.replace("o: ", ""))
+    val aoo: Option[String] = result.extract("aoo").map(_.replace("aoo: ", ""))
+    val ou: Option[String]  = result.extract("ou").map(_.replace("ou: ", ""))
+
+    Institution(
+      id = id,
+      o = o,
+      ou = ou,
+      aoo = aoo,
+      taxCode = result.extract("codiceFiscaleAmm"),
+      administrationCode = result.extract("codiceAmm"),
+      category = result.extract("tipoAmm"),
+      managerName = result.extract("nomeResp"),
+      managerSurname = result.extract("cognomeResp"),
+      description = result.extract("description").get,
+      digitalAddress = result.extract("mail")
     )
-  }
+  }.fold(
+    ex => {
+      println(result.getAttributes.toString)
+      println(ex.getMessage)
+      Failure(ex)
+    },
+    x => Success(x)
+  )
 
 }
 

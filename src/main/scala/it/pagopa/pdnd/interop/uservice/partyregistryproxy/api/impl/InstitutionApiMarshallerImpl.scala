@@ -3,11 +3,13 @@ package it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.InstitutionApiMarshaller
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{ErrorResponse, InstitutionIPA}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{ErrorResponse, Institution}
 
 class InstitutionApiMarshallerImpl extends InstitutionApiMarshaller with SprayJsonSupport {
 
-  override implicit def toEntityMarshallerInstitutionIPA: ToEntityMarshaller[InstitutionIPA] = sprayJsonMarshaller
+  override implicit def toEntityMarshallerInstitutionarray: ToEntityMarshaller[Seq[Institution]] = sprayJsonMarshaller
+
+  override implicit def toEntityMarshallerInstitution: ToEntityMarshaller[Institution] = sprayJsonMarshaller
 
   override implicit def toEntityMarshallerErrorResponse: ToEntityMarshaller[ErrorResponse] = sprayJsonMarshaller
 }

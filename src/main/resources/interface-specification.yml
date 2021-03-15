@@ -48,7 +48,39 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstitutionIPA'
+                $ref: '#/components/schemas/Institution'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Institution not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /institutions:
+    get:
+      tags:
+        - institution
+      summary: Find institution by ID
+      description: Returns a single institution
+      operationId: searchInstitution
+      parameters:
+        - in: query
+          name: search
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institutions'
         '400':
           description: Invalid ID supplied
           content:
@@ -77,34 +109,58 @@ paths:
                 $ref: 'https://teamdigitale.github.io/openapi/0.0.7/definitions.yaml#/schemas/Problem'
 components:
   schemas:
-    InstitutionIPA:
+    Institution:
       type: object
       additionalProperties: false
       properties:
         id:
           type: string
-          description: PDND Interoperability ID
-          example: 123e4567-e89b-12d3-a456-426614174000
-          format:  uuid
-          maxLength: 36
-        externalId:
-          type: string
           description: iPA code
           example: age
-          pattern: '^[a-z]{1,3}$'
-          maxLength: 3
+          pattern: '^[a-z]{1,12}$'
+          maxLength: 12
+        o:
+          type: string
+          description: o
+          example: age
+          pattern: '^[a-z]{1,12}$'
+          maxLength: 12
+        ou:
+          type: string
+          description: ou
+          example: age
+          pattern: '^[a-z]{1,12}$'
+          maxLength: 12
+        aoo:
+          type: string
+          description: aoo
+          example: age
+          pattern: '^[a-z]{1,12}$'
+          maxLength: 12
         taxCode:
           type: string
           description: institution tax code
           example: '00000000000'
           pattern: '[\d]{10,13}'
           maxLength: 13
-        managerTaxCode:
+        administrationCode:
           type: string
-          description: manager tax code
-          example: RSSMRA75L01H501A
-          pattern: '^(?:(?:[B-DF-HJ-NP-TV-Z]|[AEIOU])[AEIOU][AEIOUX]|[B-DF-HJ-NP-TV-Z]{2}[A-Z]){2}[\dLMNP-V]{2}(?:[A-EHLMPR-T](?:[04LQ][1-9MNP-V]|[1256LMRS][\dLMNP-V])|[DHPS][37PT][0L]|[ACELMRT][37PT][01LM])(?:[A-MZ][1-9MNP-V][\dLMNP-V]{2}|[A-M][0L](?:[1-9MNP-V][\dLMNP-V]|[0L][1-9MNP-V]))[A-Z]$'
-          maxLength: 16
+          description: institution tax code
+          example: '00000000000'
+          pattern: '[\d]{10,13}'
+          maxLength: 13
+        category:
+          type: string
+          description: institution category
+          example: 'c7'
+          pattern: '[a-zA-Z\d]{1,12}'
+          maxLength: 13
+        #        managerTaxCode:
+        #          type: string
+        #          description: manager tax code
+        #          example: RSSMRA75L01H501A
+        #          pattern: '^(?:(?:[B-DF-HJ-NP-TV-Z]|[AEIOU])[AEIOU][AEIOUX]|[B-DF-HJ-NP-TV-Z]{2}[A-Z]){2}[\dLMNP-V]{2}(?:[A-EHLMPR-T](?:[04LQ][1-9MNP-V]|[1256LMRS][\dLMNP-V])|[DHPS][37PT][0L]|[ACELMRT][37PT][01LM])(?:[A-MZ][1-9MNP-V][\dLMNP-V]{2}|[A-M][0L](?:[1-9MNP-V][\dLMNP-V]|[0L][1-9MNP-V]))[A-Z]$'
+        #          maxLength: 16
         managerName:
           type: string
           description: manager name
@@ -131,11 +187,11 @@ components:
           maxLength: 20
       required:
         - id
-        - externalId
-        - taxCode
-        - managerTaxCode
         - description
-        - digitalAddress
+    Institutions:
+      type: array
+      items:
+        $ref: '#/components/schemas/Institution'
     ErrorResponse:
       properties:
         detail:

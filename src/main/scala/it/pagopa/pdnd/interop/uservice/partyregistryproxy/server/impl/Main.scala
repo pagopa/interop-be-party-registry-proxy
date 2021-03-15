@@ -1,5 +1,6 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.impl
 
+import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.management.scaladsl.AkkaManagement
@@ -9,14 +10,22 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
   InstitutionApiMarshallerImpl,
   InstitutionApiServiceImpl
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.HealthApi
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.InstitutionApi
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{HealthApi, InstitutionApi}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
+  Authenticator,
+  actorSystem,
+  classicActorSystem,
+  executionContext
+}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.persistence.InstitutionsPersistentBehavior
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.persistence.InstitutionsPersistentBehavior.AddInstitution
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{Authenticator, classicActorSystem}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.LDAPServiceImpl
 import kamon.Kamon
 
 import javax.naming.directory.DirContext
+//import scala.concurrent.duration.{DurationInt, DurationLong}
+import scala.concurrent.duration.DurationInt
 
 object Main extends App {
 
@@ -28,15 +37,19 @@ object Main extends App {
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
+  val institutionCommander =
+    ActorSystem(InstitutionsPersistentBehavior(), "pdnd-interop-uservice-party-registry-proxy")
+
   val institutionApi: InstitutionApi = new InstitutionApi(
-    new InstitutionApiServiceImpl(),
+    new InstitutionApiServiceImpl(institutionCommander),
     new InstitutionApiMarshallerImpl(),
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val url: Option[String]      = Option(System.getenv("LDAP_URL"))
-  val userName: Option[String] = Option(System.getenv("LDAP_USER_NAME"))
-  val password: Option[String] = Option(System.getenv("LDAP_PASSWORD"))
+  val url: Option[String]           = Option(System.getenv("LDAP_URL"))
+  val userName: Option[String]      = Option(System.getenv("LDAP_USER_NAME"))
+  val password: Option[String]      = Option(System.getenv("LDAP_PASSWORD"))
+  val ipaUpdateTime: Option[String] = Option(System.getenv("IPA_UPDATE_TIME"))
 
   val connection: Option[DirContext] = for {
     url        <- url
@@ -45,9 +58,33 @@ object Main extends App {
     connection <- LDAPServiceImpl.createConnection(url, userName, password)
   } yield connection
 
-  val ldapService = connection.map(LDAPServiceImpl(_))
+  val ldapService: Option[LDAPServiceImpl] = connection.map(c => LDAPServiceImpl(c))
 
-  ldapService.foreach(_.getAllInstitutions.foreach(println))
+//  val cronTime = ipaUpdateTime.getOrElse("22:35")
+//
+//  actorSystem.scheduler.scheduleAtFixedRate(getInitialDelay(cronTime).milliseconds, 24.hours) { () =>
+//    println("LOADING FROM IPA")
+//    ldapService.foreach { service =>
+//      var count = 0
+//      service.getAllInstitutions.foreach { institution =>
+//        count += 1
+//        institutionCommander.tell(AddInstitution(institution))
+//      }
+//      println(count)
+//    }
+//  }
+
+  actorSystem.scheduler.scheduleAtFixedRate(0.milliseconds, 24.hours) { () =>
+    println("LOADING FROM IPA")
+    ldapService.foreach { service =>
+      var count = 0
+      service.getAllInstitutions.foreach { institution =>
+        count += 1
+        institutionCommander.tell(AddInstitution(institution))
+      }
+      println(count)
+    }
+  }
 
   locally {
     val _ = AkkaManagement.get(classicActorSystem).start()
@@ -55,5 +92,5 @@ object Main extends App {
 
   val controller = new Controller(healthApi, institutionApi)
 
-  val bindingFuture = Http().newServerAt("0.0.0.0", 8088).bind(controller.routes)
+  val bindingFuture = Http().newServerAt("0.0.0.0", 8090).bind(controller.routes)
 }

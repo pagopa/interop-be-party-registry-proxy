@@ -3,6 +3,13 @@ import scala.sys.process.Process
 ThisBuild / scalaVersion := "2.13.4"
 ThisBuild / organization := "it.pagopa"
 ThisBuild / organizationName := "Pagopa S.p.A."
+ThisBuild / dependencyOverrides ++= Dependencies.Jars.overrides
+ThisBuild / libraryDependencies := Dependencies.Jars.`server`.map(m =>
+  if (scalaVersion.value.startsWith("3.0"))
+    m.withDottyCompat(scalaVersion.value)
+  else
+    m
+)
 ThisBuild / libraryDependencies := Dependencies.Jars.`server`.map(m =>
   if (scalaVersion.value.startsWith("3.0"))
     m.withDottyCompat(scalaVersion.value)

@@ -1,7 +1,7 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service
 
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.InstitutionIPA
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Institution
 
 trait LDAPService {
-  def getAllInstitutions: Iterator[InstitutionIPA]
+  def getAllInstitutions: Iterator[Institution]
 }
