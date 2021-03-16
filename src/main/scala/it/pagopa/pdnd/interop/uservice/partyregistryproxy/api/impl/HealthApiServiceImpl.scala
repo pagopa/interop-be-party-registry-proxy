@@ -6,9 +6,8 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.HealthApiService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Problem
 
 class HealthApiServiceImpl extends HealthApiService {
-  override def getStatus200(responseProblem: Problem)(implicit
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
-  ): Route = ???
 
-  override def getStatus()(implicit toEntityMarshallerProblem: ToEntityMarshaller[Problem]): Route = ???
+  override def getStatus()(implicit toEntityMarshallerProblem: ToEntityMarshaller[Problem]): Route = getStatus200(
+    Problem(None, 200, "OK")
+  )
 }

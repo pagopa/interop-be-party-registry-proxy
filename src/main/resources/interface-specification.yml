@@ -53,13 +53,13 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Problem'
         '404':
           description: Institution not found
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Problem'
   /institutions:
     get:
       tags:
@@ -78,11 +78,13 @@ paths:
           required: true
           schema:
             type: integer
+            format: int32
         - in: query
           name: limit
           required: true
           schema:
             type: integer
+            format: int32
       responses:
         '200':
           description: successful operation
@@ -95,13 +97,13 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Problem'
         '404':
           description: Institution not found
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Problem'
   /status:
     get:
       tags:
@@ -115,7 +117,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: 'https://teamdigitale.github.io/openapi/0.0.7/definitions.yaml#/schemas/Problem'
+                $ref: '#/components/schemas/Problem'
 components:
   schemas:
     Institution:
@@ -198,10 +200,14 @@ components:
         - id
         - description
     Institutions:
-      type: array
-      items:
-        $ref: '#/components/schemas/Institution'
-    ErrorResponse:
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Institution'
+      required:
+        - items
+    Problem:
       properties:
         detail:
           description:

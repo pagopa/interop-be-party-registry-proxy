@@ -28,6 +28,6 @@ class HealthApiMarshallerImpl extends HealthApiMarshaller with SprayJsonSupport 
     }
 
   override implicit def toEntityMarshallerProblem: ToEntityMarshaller[Problem] = sprayJsonMarshaller(
-    jsonFormat5(Problem.apply)
+    jsonFormat3(Problem.apply)
   )
 }

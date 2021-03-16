@@ -7,13 +7,13 @@ import akka.http.scaladsl.server.Directives.onSuccess
 import akka.http.scaladsl.server.Route
 import akka.pattern.StatusReply
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.InstitutionApiService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.persistence.InstitutionsPersistentBehavior.{
   Command,
   GetInstitution,
   Search
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{ErrorResponse, Institution}
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system._
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Institution, Institutions, Problem}
 
 import scala.concurrent.Future
 
@@ -25,30 +25,30 @@ class InstitutionApiServiceImpl(commander: ActorSystem[Command]) extends Institu
     */
   override def getInstitutionById(institutionId: String)(implicit
     toEntityMarshallerInstitutionIPA: ToEntityMarshaller[Institution],
-    toEntityMarshallerErrorResponse: ToEntityMarshaller[ErrorResponse]
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
 
     val result: Future[StatusReply[Option[Institution]]] = commander.ask(ref => GetInstitution(institutionId, ref))
 
-    val errorResponse: ErrorResponse = ErrorResponse(detail = None, status = 404, title = "some error")
+    val errorResponse: Problem = Problem(detail = None, status = 404, title = "some error")
     onSuccess(result) { statusReply =>
       statusReply.getValue.fold(getInstitutionById404(errorResponse))(institution => getInstitutionById200(institution))
     }
   }
 
-  /** Code: 200, Message: successful operation, DataType: Seq[Institution]
-    * Code: 400, Message: Invalid ID supplied, DataType: ErrorResponse
-    * Code: 404, Message: Institution not found, DataType: ErrorResponse
+  /** Code: 200, Message: successful operation, DataType: Institutions
+    * Code: 400, Message: Invalid ID supplied, DataType: Problem
+    * Code: 404, Message: Institution not found, DataType: Problem
     */
   override def searchInstitution(search: String, offset: Int, limit: Int)(implicit
-    toEntityMarshallerInstitutionarray: ToEntityMarshaller[Seq[Institution]],
-    toEntityMarshallerErrorResponse: ToEntityMarshaller[ErrorResponse]
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
+    toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions]
   ): Route = {
 
     val result: Future[StatusReply[List[Institution]]] = commander.ask(ref => Search(search, offset, limit, ref))
 
     onSuccess(result) { statusReply =>
-      searchInstitution200(statusReply.getValue)
+      searchInstitution200(Institutions(statusReply.getValue))
     }
   }
 
