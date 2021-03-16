@@ -19,6 +19,6 @@
     </root>
 
     <logger name="oshi.hardware.platform.mac.MacHWDiskStore" level="OFF"/>
-    <logger name="akka.persistence.typed.internal.EventSourcedBehaviorImpl" level="OFF"/>
+    <logger name="akka.persistence.typed.internal.EventSourcedBehaviorImpl" level="WARN"/>
 
 </configuration>

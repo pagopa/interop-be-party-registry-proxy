@@ -6,28 +6,26 @@ import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.{Effect, EventSourcedBehavior, RetentionCriteria}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Institution
 
-import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
 object InstitutionsPersistentBehavior {
 
-  final case class State(institutions: Map[String, Institution], index: TrieMap[String, Institution])
-      extends CborSerializable {
+  final case class State(institutions: Map[String, Institution], index: Map[String, String]) extends CborSerializable {
 
     def add(institution: Institution): State =
       copy(
-        institutions = institutions + (institution.id -> institution),
-        index = index.addOne(institution.description.toLowerCase -> institution)
+        institutions = institutions + (institution.id        -> institution),
+        index = index + (institution.description.toLowerCase -> institution.id)
       )
 
     def delete(institution: Institution): State =
-      copy(institutions = institutions - institution.id, index = index.subtractOne(institution.description.toLowerCase))
+      copy(institutions = institutions - institution.id, index = index - institution.description.toLowerCase)
 
   }
 
   object State {
-    val empty: State = State(institutions = Map.empty, index = TrieMap.empty)
+    val empty: State = State(institutions = Map.empty, index = Map.empty)
   }
 
   /* Command */
@@ -36,7 +34,8 @@ object InstitutionsPersistentBehavior {
   final case class AddInstitution(entity: Institution)                                             extends Command
   final case class DeleteInstitution(entity: Institution)                                          extends Command
   final case class GetInstitution(id: String, replyTo: ActorRef[StatusReply[Option[Institution]]]) extends Command
-  final case class Search(text: String, replyTo: ActorRef[StatusReply[List[Institution]]])         extends Command
+  final case class Search(text: String, offset: Int, limit: Int, replyTo: ActorRef[StatusReply[List[Institution]]])
+      extends Command
 
   /* Event */
   sealed trait Event extends CborSerializable
@@ -59,22 +58,24 @@ object InstitutionsPersistentBehavior {
         replyTo ! StatusReply.Success(institution)
 
         Effect.none
-      case Search(text, replyTo) if text.length >= 3 =>
-
+      case Search(text, offset, limit, replyTo) if text.length >= 3 =>
         println(s"State status : ${state.institutions.size}")
 
         val searches: List[String] = text.split("\\s").toList
 
-        val result: TrieMap[String, Institution] =
-          searches.foldLeft(state.index)((index, s) => index.filter(_._1.contains(s.toLowerCase)))
+        val result: Iterable[Institution] =
+          searches
+            .foldLeft(state.index)((index, s) => index.filter(_._1.contains(s.toLowerCase)))
+            .values
+            .map(key => state.institutions(key))
 
-        val institutions: List[Institution] = result.take(20).values.toList
+        val institutions: List[Institution] = result.slice(offset - 1, limit + offset - 1).toList
 
         replyTo ! StatusReply.Success(institutions)
 
         Effect.none
 
-      case Search(_, replyTo) =>
+      case Search(_, _, _, replyTo) =>
         replyTo ! StatusReply.Success(List.empty)
         Effect.none
 

@@ -40,15 +40,16 @@ class InstitutionApiServiceImpl(commander: ActorSystem[Command]) extends Institu
     * Code: 400, Message: Invalid ID supplied, DataType: ErrorResponse
     * Code: 404, Message: Institution not found, DataType: ErrorResponse
     */
-  override def searchInstitution(search: String)(implicit
+  override def searchInstitution(search: String, offset: Int, limit: Int)(implicit
     toEntityMarshallerInstitutionarray: ToEntityMarshaller[Seq[Institution]],
     toEntityMarshallerErrorResponse: ToEntityMarshaller[ErrorResponse]
   ): Route = {
 
-    val result: Future[StatusReply[List[Institution]]] = commander.ask(ref => Search(search, ref))
+    val result: Future[StatusReply[List[Institution]]] = commander.ask(ref => Search(search, offset, limit, ref))
 
     onSuccess(result) { statusReply =>
       searchInstitution200(statusReply.getValue)
     }
   }
+
 }

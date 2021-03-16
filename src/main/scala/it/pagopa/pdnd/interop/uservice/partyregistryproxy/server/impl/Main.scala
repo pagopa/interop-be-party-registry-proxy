@@ -24,8 +24,7 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.LDAPServi
 import kamon.Kamon
 
 import javax.naming.directory.DirContext
-//import scala.concurrent.duration.{DurationInt, DurationLong}
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{DurationInt, DurationLong}
 
 object Main extends App {
 
@@ -60,21 +59,9 @@ object Main extends App {
 
   val ldapService: Option[LDAPServiceImpl] = connection.map(c => LDAPServiceImpl(c))
 
-//  val cronTime = ipaUpdateTime.getOrElse("22:35")
-//
-//  actorSystem.scheduler.scheduleAtFixedRate(getInitialDelay(cronTime).milliseconds, 24.hours) { () =>
-//    println("LOADING FROM IPA")
-//    ldapService.foreach { service =>
-//      var count = 0
-//      service.getAllInstitutions.foreach { institution =>
-//        count += 1
-//        institutionCommander.tell(AddInstitution(institution))
-//      }
-//      println(count)
-//    }
-//  }
+  val cronTime = ipaUpdateTime.getOrElse("22:35")
 
-  actorSystem.scheduler.scheduleAtFixedRate(0.milliseconds, 24.hours) { () =>
+  actorSystem.scheduler.scheduleAtFixedRate(getInitialDelay(cronTime).milliseconds, 24.hours) { () =>
     println("LOADING FROM IPA")
     ldapService.foreach { service =>
       var count = 0
@@ -85,6 +72,18 @@ object Main extends App {
       println(count)
     }
   }
+
+//  actorSystem.scheduler.scheduleAtFixedRate(0.milliseconds, 24.hours) { () =>
+//    println("LOADING FROM IPA")
+//    ldapService.foreach { service =>
+//      var count = 0
+//      service.getAllInstitutions.foreach { institution =>
+//        count += 1
+//        institutionCommander.tell(AddInstitution(institution))
+//      }
+//      println(count)
+//    }
+//  }
 
   locally {
     val _ = AkkaManagement.get(classicActorSystem).start()
