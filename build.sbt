@@ -3,13 +3,7 @@ import scala.sys.process.Process
 ThisBuild / scalaVersion := "2.13.4"
 ThisBuild / organization := "it.pagopa"
 ThisBuild / organizationName := "Pagopa S.p.A."
-ThisBuild / dependencyOverrides ++= Dependencies.Jars.overrides
-ThisBuild / libraryDependencies := Dependencies.Jars.`server`.map(m =>
-  if (scalaVersion.value.startsWith("3.0"))
-    m.withDottyCompat(scalaVersion.value)
-  else
-    m
-)
+//ThisBuild / dependencyOverrides ++= Dependencies.Jars.overrides
 ThisBuild / libraryDependencies := Dependencies.Jars.`server`.map(m =>
   if (scalaVersion.value.startsWith("3.0"))
     m.withDottyCompat(scalaVersion.value)
@@ -51,6 +45,13 @@ generateCode := {
              |                               -p dateLibrary=java8
              |                               -o client""".stripMargin).!!
 
+}
+
+assemblyMergeStrategy in assembly := {
+  case "module-info.class" => MergeStrategy.first
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
 }
 
 (compile in Compile) := ((compile in Compile) dependsOn generateCode).value

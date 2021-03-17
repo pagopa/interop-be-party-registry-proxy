@@ -17,13 +17,6 @@ object Dependencies {
     lazy val slf4j         = namespace                       %% "akka-slf4j"                 % akkaVersion
   }
 
-  private[this] object jackson {
-    lazy val namespace   = "com.fasterxml.jackson.core"
-    lazy val core        = namespace % "jackson-core"        % jacksonVersion
-    lazy val annotations = namespace % "jackson-annotations" % jacksonVersion
-    lazy val databind    = namespace % "jackson-databind"    % jacksonVersion
-  }
-
   private[this] object json4s {
     lazy val namespace = "org.json4s"
     lazy val jackson   = namespace %% "json4s-jackson" % "3.6.10"
@@ -51,8 +44,6 @@ object Dependencies {
   }
 
   object Jars {
-    lazy val overrides: Seq[ModuleID] =
-      Seq(jackson.annotations % Compile, jackson.core % Compile, jackson.databind % Compile)
     lazy val `server`: Seq[ModuleID] = Seq(
       // For making Java 12 happy
       "javax.annotation" % "javax.annotation-api" % "1.3.2" % "compile",
