@@ -14,10 +14,12 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.persistence.Inst
   Search
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Institution, Institutions, Problem}
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.Future
 
 class InstitutionApiServiceImpl(commander: ActorSystem[Command]) extends InstitutionApiService {
+  val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   /** Code: 200, Message: successful operation, DataType: InstitutionIPA
     * Code: 400, Message: Invalid ID supplied, DataType: ErrorResponse
@@ -27,12 +29,15 @@ class InstitutionApiServiceImpl(commander: ActorSystem[Command]) extends Institu
     toEntityMarshallerInstitutionIPA: ToEntityMarshaller[Institution],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
-
+    logger.info(s"Retrieving institution $institutionId")
     val result: Future[StatusReply[Option[Institution]]] = commander.ask(ref => GetInstitution(institutionId, ref))
 
     val errorResponse: Problem = Problem(detail = None, status = 404, title = "some error")
     onSuccess(result) { statusReply =>
-      statusReply.getValue.fold(getInstitutionById404(errorResponse))(institution => getInstitutionById200(institution))
+      statusReply.getValue.fold(getInstitutionById404(errorResponse)) { institution =>
+        logger.info(s"Institution $institutionId retrieved")
+        getInstitutionById200(institution)
+      }
     }
   }
 
@@ -44,7 +49,7 @@ class InstitutionApiServiceImpl(commander: ActorSystem[Command]) extends Institu
     toEntityMarshallerProblem: ToEntityMarshaller[Problem],
     toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions]
   ): Route = {
-
+    logger.info(s"Searching for institution with $search")
     val result: Future[StatusReply[List[Institution]]] = commander.ask(ref => Search(search, offset, limit, ref))
 
     onSuccess(result) { statusReply =>
