@@ -16,7 +16,12 @@ object Dependencies {
     lazy val management    = "com.lightbend.akka.management" %% "akka-management"            % "1.0.9"
     lazy val slf4j         = namespace                       %% "akka-slf4j"                 % akkaVersion
   }
-
+  private[this] object lucene {
+    lazy val namespace       = "org.apache.lucene"
+    lazy val core            = namespace % "lucene-core"             % luceneVersion
+    lazy val analyzersCommon = namespace % "lucene-analyzers-common" % luceneVersion
+    lazy val queryParser     = namespace % "lucene-queryparser"      % luceneVersion
+  }
   private[this] object json4s {
     lazy val namespace = "org.json4s"
     lazy val jackson   = namespace %% "json4s-jackson" % "3.6.10"
@@ -48,20 +53,23 @@ object Dependencies {
       // For making Java 12 happy
       "javax.annotation" % "javax.annotation-api" % "1.3.2" % "compile",
       //
-      akka.actorTyped    % Compile,
-      akka.stream        % Compile,
-      akka.actor         % Compile,
-      akka.persistence   % Compile,
-      akka.serialization % Compile,
-      akka.http          % Compile,
-      akka.httpJson      % Compile,
-      akka.management    % Compile,
-      logback.classic    % Compile,
-      akka.slf4j         % Compile,
-      kamon.bundle       % Compile,
-      kamon.prometheus   % Compile,
-      scalatest.core     % Test,
-      scalamock.core     % Test
+      akka.actorTyped        % Compile,
+      akka.stream            % Compile,
+      akka.actor             % Compile,
+      akka.persistence       % Compile,
+      akka.serialization     % Compile,
+      akka.http              % Compile,
+      akka.httpJson          % Compile,
+      akka.management        % Compile,
+      lucene.core            % Compile,
+      lucene.analyzersCommon % Compile,
+      lucene.queryParser     % Compile,
+      logback.classic        % Compile,
+      akka.slf4j             % Compile,
+      kamon.bundle           % Compile,
+      kamon.prometheus       % Compile,
+      scalatest.core         % Test,
+      scalamock.core         % Test
     )
     lazy val client: Seq[ModuleID] =
       Seq(akka.stream % Compile, akka.http % Compile, akka.httpJson4s % Compile, json4s.jackson % Compile)

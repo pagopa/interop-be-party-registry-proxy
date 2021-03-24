@@ -1,6 +1,5 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.impl
 
-import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.management.scaladsl.AkkaManagement
@@ -17,18 +16,27 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   classicActorSystem,
   executionContext
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.persistence.InstitutionsPersistentBehavior
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.persistence.InstitutionsPersistentBehavior.AddInstitution
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.LDAPServiceImpl
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.LuceneService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{LDAPServiceImpl, LuceneServiceImpl}
 import kamon.Kamon
+import org.slf4j.LoggerFactory
 
 import javax.naming.directory.DirContext
-import scala.concurrent.duration.{DurationInt, DurationLong}
+import scala.concurrent.duration._
+import scala.util.{Success, Try, Failure}
 
 object Main extends App {
 
+  val logger = LoggerFactory.getLogger(this.getClass)
+
   Kamon.init()
+
+  val url: Option[String]           = Option(System.getenv("LDAP_URL"))
+  val userName: Option[String]      = Option(System.getenv("LDAP_USER_NAME"))
+  val password: Option[String]      = Option(System.getenv("LDAP_PASSWORD"))
+  val ipaUpdateTime: Option[String] = Option(System.getenv("IPA_UPDATE_TIME"))
+  val indexDir: Option[String]      = Option(System.getenv("INDEX_DIR"))
 
   val healthApi: HealthApi = new HealthApi(
     new HealthApiServiceImpl(),
@@ -36,54 +44,54 @@ object Main extends App {
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val institutionCommander =
-    ActorSystem(InstitutionsPersistentBehavior(), "pdnd-interop-uservice-party-registry-proxy")
+  val luceneService: LuceneService = LuceneServiceImpl(indexDir.getOrElse("index"))
 
   val institutionApi: InstitutionApi = new InstitutionApi(
-    new InstitutionApiServiceImpl(institutionCommander),
+    new InstitutionApiServiceImpl(luceneService),
     new InstitutionApiMarshallerImpl(),
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val url: Option[String]           = Option(System.getenv("LDAP_URL"))
-  val userName: Option[String]      = Option(System.getenv("LDAP_USER_NAME"))
-  val password: Option[String]      = Option(System.getenv("LDAP_PASSWORD"))
-  val ipaUpdateTime: Option[String] = Option(System.getenv("IPA_UPDATE_TIME"))
+  val parametersErrorMessage: String =
+    s"LDAP connection parameter missed: " +
+      s"url:${url.fold("NOT SET")(_ => "SET")}, " +
+      s"userName:${userName.fold("NOT SET")(_ => "SET")}, " +
+      s"password: ${password.fold("NOT SET")(_ => "SET")}"
 
-  val connection: Option[DirContext] = for {
-    url        <- url
-    userName   <- userName
-    password   <- password
-    connection <- LDAPServiceImpl.createConnection(url, userName, password)
-  } yield connection
+  val connection: Try[DirContext] = {
+    for {
+      url        <- url
+      userName   <- userName
+      password   <- password
+      connection <- LDAPServiceImpl.createConnection(url, userName, password)
+    } yield connection
+  }
+    .toRight(new RuntimeException(parametersErrorMessage))
+    .toTry
 
-  val ldapService: Option[LDAPServiceImpl] = connection.map(c => LDAPServiceImpl(c))
+  val ldapService: Try[LDAPServiceImpl] = connection.map(LDAPServiceImpl.create)
 
   val cronTime = ipaUpdateTime.getOrElse("22:35")
 
   actorSystem.scheduler.scheduleAtFixedRate(getInitialDelay(cronTime).milliseconds, 24.hours) { () =>
-    println("LOADING FROM IPA")
-    ldapService.foreach { service =>
-      var count = 0
-      service.getAllInstitutions.foreach { institution =>
-        count += 1
-        institutionCommander.tell(AddInstitution(institution))
-      }
-      println(count)
-    }
-  }
+    logger.info("Creating index from iPA")
 
-//  actorSystem.scheduler.scheduleAtFixedRate(0.milliseconds, 24.hours) { () =>
-//    println("LOADING FROM IPA")
-//    ldapService.foreach { service =>
-//      var count = 0
-//      service.getAllInstitutions.foreach { institution =>
-//        count += 1
-//        institutionCommander.tell(AddInstitution(institution))
-//      }
-//      println(count)
-//    }
-//  }
+    val result = for {
+      ldap <- ldapService
+      _    <- luceneService.deleteAll()
+      _ = logger.info(s"Institutions deleted")
+      _ <- luceneService.adds(ldap.getAllInstitutions)
+      _ = logger.info(s"Institutions inserted")
+    } yield luceneService.commit()
+
+    result match {
+      case Success(_) => logger.info(s"Institutions committed")
+      case Failure(ex) =>
+        logger.error(s"Error trying to populate index, due: ${ex.getMessage}")
+        ex.printStackTrace()
+    }
+
+  }
 
   locally {
     val _ = AkkaManagement.get(classicActorSystem).start()

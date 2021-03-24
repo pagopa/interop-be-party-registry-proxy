@@ -7,12 +7,11 @@ import java.util.Properties
 import javax.naming.directory.{DirContext, InitialDirContext, SearchControls, SearchResult}
 import javax.naming.{Context, NamingEnumeration}
 import scala.jdk.CollectionConverters._
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 final case class LDAPServiceImpl(connection: DirContext) extends LDAPService {
 
   def getAllInstitutions: Iterator[Institution] = {
-    println("getAllInstitutions")
     val searchFilter: String = "(objectClass=*)"
 
     val searchControls: SearchControls = new SearchControls()
@@ -60,19 +59,12 @@ final case class LDAPServiceImpl(connection: DirContext) extends LDAPService {
       description = result.extract("description").get,
       digitalAddress = result.extract("mail")
     )
-  }.fold(
-    ex => {
-      println(result.getAttributes.toString)
-      println(ex.getMessage)
-      Failure(ex)
-    },
-    x => Success(x)
-  )
+  }
 
 }
 
 object LDAPServiceImpl {
-  def apply(connection: DirContext): LDAPServiceImpl = new LDAPServiceImpl(connection)
+  def create(connection: DirContext): LDAPServiceImpl = new LDAPServiceImpl(connection)
 
   def createConnection(url: String, userName: String, password: String): Option[DirContext] = {
     val properties: Properties = new Properties()
