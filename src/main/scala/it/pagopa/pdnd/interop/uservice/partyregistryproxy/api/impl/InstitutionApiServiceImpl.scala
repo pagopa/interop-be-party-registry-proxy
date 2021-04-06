@@ -4,10 +4,12 @@ import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.server.Route
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.InstitutionApiService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Institution, Institutions, Problem}
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.LuceneService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.SearchService
 import org.slf4j.{Logger, LoggerFactory}
 
-class InstitutionApiServiceImpl(luceneService: LuceneService) extends InstitutionApiService {
+import scala.util.Try
+
+class InstitutionApiServiceImpl(luceneService: SearchService) extends InstitutionApiService {
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   /** Code: 200, Message: successful operation, DataType: InstitutionIPA
@@ -19,14 +21,17 @@ class InstitutionApiServiceImpl(luceneService: LuceneService) extends Institutio
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
     logger.info(s"Retrieving institution $institutionId")
-    val result: Option[Institution] = luceneService.searchById(institutionId)
+    val result: Try[Option[Institution]] = luceneService.searchById(institutionId)
 
-    val errorResponse: Problem = Problem(detail = None, status = 404, title = "some error")
-
-    result.fold(getInstitutionById404(errorResponse)) { institution =>
-      logger.info(s"Institution $institutionId retrieved")
-      getInstitutionById200(institution)
-    }
+    result.fold(
+      ex => getInstitutionById400(Problem(Option(ex.getMessage), 400, "Invalid")),
+      institution =>
+        institution.fold(getInstitutionById404(Problem(detail = None, status = 404, title = "Not found"))) {
+          institution =>
+            logger.info(s"Institution $institutionId retrieved")
+            getInstitutionById200(institution)
+        }
+    )
 
   }
 
@@ -34,14 +39,24 @@ class InstitutionApiServiceImpl(luceneService: LuceneService) extends Institutio
     * Code: 400, Message: Invalid ID supplied, DataType: Problem
     * Code: 404, Message: Institution not found, DataType: Problem
     */
-  override def searchInstitution(search: String)(implicit
+  override def searchInstitution(search: String, page: Int, limit: Int)(implicit
     toEntityMarshallerProblem: ToEntityMarshaller[Problem],
     toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions]
   ): Route = {
     logger.info(s"Searching for institution with $search")
-    val institutions: List[Institution] = luceneService.searchByDescription(search)
 
-    searchInstitution200(Institutions(institutions))
+    val result: Try[(List[Institution], Long)] = luceneService.searchByDescription(search, page, limit)
+
+    result.fold(
+      ex => searchInstitution400(Problem(Option(ex.getMessage), 400, "Invalid")),
+      tuple => {
+        if (tuple._1.isEmpty)
+          searchInstitution404(Problem(None, 404, "Not found"))
+        else {
+          searchInstitution200(Institutions.tupled(tuple))
+        }
+      }
+    )
 
   }
 

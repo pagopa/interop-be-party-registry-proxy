@@ -1,6 +1,6 @@
 import scala.sys.process.Process
 
-ThisBuild / scalaVersion := "2.13.4"
+ThisBuild / scalaVersion := "2.13.5"
 ThisBuild / organization := "it.pagopa"
 ThisBuild / organizationName := "Pagopa S.p.A."
 //ThisBuild / dependencyOverrides ++= Dependencies.Jars.overrides
@@ -48,7 +48,7 @@ generateCode := {
 }
 
 assemblyMergeStrategy in assembly := {
-  case "module-info.class" => MergeStrategy.first
+  case "module-info.class" => MergeStrategy.last
   case x =>
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)

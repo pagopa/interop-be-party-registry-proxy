@@ -17,8 +17,8 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   executionContext
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.LuceneService
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{LDAPServiceImpl, LuceneServiceImpl}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.SearchService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{LDAPServiceImpl, SearchServiceImpl}
 import kamon.Kamon
 import org.slf4j.LoggerFactory
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
@@ -44,10 +44,10 @@ object Main extends App {
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val luceneService: LuceneService = LuceneServiceImpl(indexDir.getOrElse("index"))
+  val searchService: SearchService = SearchServiceImpl(indexDir.getOrElse("index"))
 
   val institutionApi: InstitutionApi = new InstitutionApi(
-    new InstitutionApiServiceImpl(luceneService),
+    new InstitutionApiServiceImpl(searchService),
     new InstitutionApiMarshallerImpl(),
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
@@ -78,11 +78,11 @@ object Main extends App {
 
     val result = for {
       ldap <- ldapService
-      _    <- luceneService.deleteAll()
+      _    <- searchService.deleteAll()
       _ = logger.info(s"Institutions deleted")
-      _ <- luceneService.adds(ldap.getAllInstitutions)
+      _ <- searchService.adds(ldap.getAllInstitutions)
       _ = logger.info(s"Institutions inserted")
-    } yield luceneService.commit()
+    } yield searchService.commit()
 
     result match {
       case Success(_) => logger.info(s"Institutions committed")
