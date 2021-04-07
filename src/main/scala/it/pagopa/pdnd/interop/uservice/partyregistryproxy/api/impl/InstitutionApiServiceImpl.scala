@@ -9,7 +9,7 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.Try
 
-class InstitutionApiServiceImpl(luceneService: SearchService) extends InstitutionApiService {
+class InstitutionApiServiceImpl(searchService: SearchService) extends InstitutionApiService {
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   /** Code: 200, Message: successful operation, DataType: InstitutionIPA
@@ -21,7 +21,7 @@ class InstitutionApiServiceImpl(luceneService: SearchService) extends Institutio
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
     logger.info(s"Retrieving institution $institutionId")
-    val result: Try[Option[Institution]] = luceneService.searchById(institutionId)
+    val result: Try[Option[Institution]] = searchService.searchById(institutionId)
 
     result.fold(
       ex => getInstitutionById400(Problem(Option(ex.getMessage), 400, "Invalid")),
@@ -45,7 +45,7 @@ class InstitutionApiServiceImpl(luceneService: SearchService) extends Institutio
   ): Route = {
     logger.info(s"Searching for institution with $search")
 
-    val result: Try[(List[Institution], Long)] = luceneService.searchByDescription(search, page, limit)
+    val result: Try[(List[Institution], Long)] = searchService.searchByDescription(search, page, limit)
 
     result.fold(
       ex => searchInstitution400(Problem(Option(ex.getMessage), 400, "Invalid")),
