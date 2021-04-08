@@ -5,7 +5,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.server.directives.SecurityDirectives
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
   InstitutionApiMarshallerImpl,
   InstitutionApiServiceImpl,
@@ -89,9 +89,6 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
   "Asking for an institutions" must {
     "work successfully for page = 1 and limit = 1" in {
 
-      implicit def fromEntityUnmarshallerInstitutions: FromEntityUnmarshaller[Institutions] =
-        sprayJsonUnmarshaller[Institutions]
-
       val searchTxt = "Institution"
       val page      = 1
       val limit     = 1
@@ -120,9 +117,6 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
     }
 
     "work successfully for page = 2 and limit = 1" in {
-
-      implicit def fromEntityUnmarshallerInstitutions: FromEntityUnmarshaller[Institutions] =
-        sprayJsonUnmarshaller[Institutions]
 
       val searchTxt = "Institution"
       val page      = 2
@@ -153,9 +147,6 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
 
     "work successfully for page = 1 and limit = 4" in {
 
-      implicit def fromEntityUnmarshallerInstitutions: FromEntityUnmarshaller[Institutions] =
-        sprayJsonUnmarshaller[Institutions]
-
       val searchTxt = "Institution"
       val page      = 1
       val limit     = 4
@@ -184,9 +175,6 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
     }
 
     "work successfully for page = 2 and limit = 2" in {
-
-      implicit def fromEntityUnmarshallerInstitutions: FromEntityUnmarshaller[Institutions] =
-        sprayJsonUnmarshaller[Institutions]
 
       val searchTxt = "Institution"
       val page      = 2
@@ -218,8 +206,6 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
     }
 
     "return 404 for an organization not found" in {
-      implicit def fromEntityUnmarshallerProblem: FromEntityUnmarshaller[Problem] =
-        sprayJsonUnmarshaller[Problem]
 
       val searchTxt = "Organization"
 
@@ -243,8 +229,6 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
 
     }
     "return 400 for an invalid request" in {
-      implicit def fromEntityUnmarshallerProblem: FromEntityUnmarshaller[Problem] =
-        sprayJsonUnmarshaller[Problem]
 
       (searchService.searchByDescription _)
         .expects(*, *, *)
