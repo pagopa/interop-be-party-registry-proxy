@@ -27,4 +27,5 @@ package object system {
   object Authenticator extends Authenticator[Unit] {
     override def apply(credentials: Credentials): Option[Unit] = Some(())
   }
+
 }

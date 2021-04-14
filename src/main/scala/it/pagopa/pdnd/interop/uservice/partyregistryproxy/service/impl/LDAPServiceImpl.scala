@@ -3,12 +3,12 @@ package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Institution
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.LDAPService
 
-import java.util.Properties
-import javax.naming.directory.{DirContext, InitialDirContext, SearchControls, SearchResult}
-import javax.naming.{Context, NamingEnumeration}
+import javax.naming.NamingEnumeration
+import javax.naming.directory.{DirContext, SearchControls, SearchResult}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
+@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.OptionPartial"))
 final case class LDAPServiceImpl(connection: DirContext) extends LDAPService {
 
   def getAllInstitutions: Iterator[Institution] = {
@@ -62,19 +62,8 @@ final case class LDAPServiceImpl(connection: DirContext) extends LDAPService {
   }
 
 }
-
+@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.OptionPartial"))
 object LDAPServiceImpl {
   def create(connection: DirContext): LDAPServiceImpl = new LDAPServiceImpl(connection)
 
-  def createConnection(url: String, userName: String, password: String): Option[DirContext] = {
-    val properties: Properties = new Properties()
-
-    properties.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory")
-    properties.put(Context.PROVIDER_URL, url)
-    properties.put(Context.SECURITY_PRINCIPAL, userName)
-    properties.put(Context.SECURITY_CREDENTIALS, password)
-
-    Try(new InitialDirContext(properties)).toOption
-
-  }
 }

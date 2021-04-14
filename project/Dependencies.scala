@@ -13,7 +13,11 @@ object Dependencies {
     lazy val httpJson4s = "de.heikoseeberger"             %% "akka-http-json4s"     % "1.36.0"
     lazy val management = "com.lightbend.akka.management" %% "akka-management"      % "1.0.10"
     lazy val slf4j      = namespace                       %% "akka-slf4j"           % akkaVersion
-    lazy val cors       = "ch.megard"                     %% "akka-http-cors"       % "1.1.1"
+  }
+
+  private[this] object vault {
+    lazy val namespace = "com.bettercloud"
+    lazy val driver    = namespace % "vault-java-driver" % vaultDriverVersion
   }
 
   private[this] object lucene {
@@ -65,7 +69,7 @@ object Dependencies {
       akka.http                    % Compile,
       akka.httpJson                % Compile,
       akka.management              % Compile,
-      akka.cors                    % Compile,
+      vault.driver                 % Compile,
       lucene.core                  % Compile,
       lucene.analyzersCommon       % Compile,
       lucene.queryParser           % Compile,

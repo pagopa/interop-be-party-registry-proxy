@@ -12,31 +12,27 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{HealthApi, InstitutionApi}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   Authenticator,
+  CorsSupport,
   actorSystem,
   classicActorSystem,
   executionContext
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.SearchService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{LDAPService, SearchService}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{LDAPServiceImpl, SearchServiceImpl}
 import kamon.Kamon
 import org.slf4j.LoggerFactory
-import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
+
 import javax.naming.directory.DirContext
 import scala.concurrent.duration._
-import scala.util.{Success, Try, Failure}
+import scala.util.{Failure, Success, Try}
 
-object Main extends App {
+@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
+object Main extends App with CorsSupport {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
   Kamon.init()
-
-  val url: Option[String]           = Option(System.getenv("LDAP_URL"))
-  val userName: Option[String]      = Option(System.getenv("LDAP_USER_NAME"))
-  val password: Option[String]      = Option(System.getenv("LDAP_PASSWORD"))
-  val ipaUpdateTime: Option[String] = Option(System.getenv("IPA_UPDATE_TIME"))
-  val indexDir: Option[String]      = Option(System.getenv("INDEX_DIR"))
 
   val healthApi: HealthApi = new HealthApi(
     new HealthApiServiceImpl(),
@@ -44,7 +40,7 @@ object Main extends App {
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val searchService: SearchService = SearchServiceImpl(indexDir.getOrElse("index"))
+  val searchService: SearchService = SearchServiceImpl(config.getString("service-config.index-dir"))
 
   val institutionApi: InstitutionApi = new InstitutionApi(
     new InstitutionApiServiceImpl(searchService),
@@ -52,26 +48,11 @@ object Main extends App {
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val parametersErrorMessage: String =
-    s"LDAP connection parameter missed: " +
-      s"url:${url.fold("NOT SET")(_ => "SET")}, " +
-      s"userName:${userName.fold("NOT SET")(_ => "SET")}, " +
-      s"password: ${password.fold("NOT SET")(_ => "SET")}"
+  val connection: Try[DirContext] = LDAPService.createConnection(vault)
 
-  val connection: Try[DirContext] = {
-    for {
-      url        <- url
-      userName   <- userName
-      password   <- password
-      connection <- LDAPServiceImpl.createConnection(url, userName, password)
-    } yield connection
-  }
-    .toRight(new RuntimeException(parametersErrorMessage))
-    .toTry
+  val ldapService: Try[LDAPService] = connection.map(LDAPServiceImpl.create)
 
-  val ldapService: Try[LDAPServiceImpl] = connection.map(LDAPServiceImpl.create)
-
-  val cronTime = ipaUpdateTime.getOrElse("22:35")
+  val cronTime = config.getString("service-config.ipa-update-time")
 
   actorSystem.scheduler.scheduleAtFixedRate(getInitialDelay(cronTime).milliseconds, 24.hours) { () =>
     logger.info("Creating index from iPA")
@@ -99,5 +80,5 @@ object Main extends App {
 
   val controller = new Controller(healthApi, institutionApi)
 
-  val bindingFuture = Http().newServerAt("0.0.0.0", 8090).bind(cors()(controller.routes))
+  val bindingFuture = Http().newServerAt("0.0.0.0", 8090).bind(corsHandler(controller.routes))
 }

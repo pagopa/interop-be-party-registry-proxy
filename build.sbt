@@ -1,18 +1,14 @@
-import scala.sys.process.Process
-
 ThisBuild / scalaVersion := "2.13.5"
 ThisBuild / organization := "it.pagopa"
 ThisBuild / organizationName := "Pagopa S.p.A."
-//ThisBuild / dependencyOverrides ++= Dependencies.Jars.overrides
 ThisBuild / libraryDependencies := Dependencies.Jars.`server`.map(m =>
   if (scalaVersion.value.startsWith("3.0"))
     m.withDottyCompat(scalaVersion.value)
   else
     m
 )
-ThisBuild / version := {
-  Process("./version.sh").lineStream_!.head.replaceFirst("v", "")
-}
+
+ThisBuild / version := "0.1.0-SNAPSHOT"
 
 lazy val generateCode = taskKey[Unit]("A task for generating the code starting from the swagger definition")
 
@@ -47,13 +43,6 @@ generateCode := {
 
 }
 
-assemblyMergeStrategy in assembly := {
-  case "module-info.class" => MergeStrategy.last
-  case x =>
-    val oldStrategy = (assemblyMergeStrategy in assembly).value
-    oldStrategy(x)
-}
-
 (compile in Compile) := ((compile in Compile) dependsOn generateCode).value
 
 cleanFiles += baseDirectory.value / "generated" / "src"
@@ -65,15 +54,32 @@ lazy val generated = project.in(file("generated")).settings(scalacOptions := Seq
 lazy val client = project
   .in(file("client"))
   .settings(
-    name := "pdnd-interop-uservice-party-registry-proxy-client",
+    name := "pdnd-interop-uservice-party-registry-proxy",
     scalacOptions := Seq(),
     scalafmtOnCompile := true,
+    version := s"${
+      val buildVersion = (version in ThisBuild).value
+      if (buildVersion == "latest")
+        buildVersion
+      else
+        s"$buildVersion"
+    }",
     libraryDependencies := Dependencies.Jars.client.map(m =>
       if (scalaVersion.value.startsWith("3.0"))
         m.withDottyCompat(scalaVersion.value)
       else
         m
-    )
+    ),
+    credentials += Credentials(file(".") / ".credentials"),
+    updateOptions := updateOptions.value.withGigahorse(false),
+    publishTo := {
+      val nexus = s"https://${System.getenv("NEXUS_HOST")}/nexus/repository/"
+
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "maven-snapshots/")
+      else
+        Some("releases" at nexus + "maven-releases/")
+    }
   )
 
 lazy val root = (project in file("."))
@@ -87,14 +93,14 @@ lazy val root = (project in file("."))
       if (buildVersion == "latest")
         buildVersion
       else
-        s"v$buildVersion"
-    }".toLowerCase,
+        s"$buildVersion"
+    }",
     packageName in Docker := s"services/${name.value}",
     daemonUser in Docker := "daemon",
     dockerExposedPorts in Docker := Seq(8080),
     dockerBaseImage in Docker := "openjdk:8-jre-alpine",
     dockerUpdateLatest in Docker := true,
-//    wartremoverErrors ++= Warts.unsafe,
+    wartremoverErrors ++= Warts.unsafe,
     scalafmtOnCompile := true
   )
   .aggregate(client)
