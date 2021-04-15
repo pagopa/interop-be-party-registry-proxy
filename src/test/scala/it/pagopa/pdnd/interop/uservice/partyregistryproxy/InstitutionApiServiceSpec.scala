@@ -71,7 +71,7 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
     controller foreach { controller =>
       bindServer = Some(
         Http()
-          .newServerAt("0.0.0.0", 18090)
+          .newServerAt("0.0.0.0", 8088)
           .bind(controller.routes)
       )
 
