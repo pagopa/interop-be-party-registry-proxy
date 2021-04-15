@@ -20,6 +20,9 @@ spec:
       containers:
         - name: {{name}}
           image: gateway.interop.pdnd.dev/services/{{name}}:{{version}}
+          volumeMounts:
+            - mountPath: /opt/docker/index
+              name: index-volume
           imagePullPolicy: Always
           readinessProbe:
             httpGet:
@@ -56,6 +59,9 @@ spec:
                 secretKeyRef:
                   name: vault
                   key: VAULT_TOKEN
+      volumes:
+      - name: index-volume
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
