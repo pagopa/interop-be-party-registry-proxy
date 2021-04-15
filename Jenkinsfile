@@ -62,6 +62,10 @@ pipeline {
 
     stage('Apply Kubernetes files') {
       agent { label 'sbt-template' }
+      environment {
+        VAULT_TOKEN = credentials('vault-token')
+        VAULT_ADDR = credentials('vault-addr')
+      }
       steps{
         // we should use a container with kubectl preinstalled
         container('sbt-container') {
