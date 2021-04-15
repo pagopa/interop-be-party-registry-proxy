@@ -28,7 +28,6 @@ final case class SearchServiceImpl(pathDir: String) extends SearchService {
   }
 
   def adds(institutions: Iterator[Institution]): Try[Long] = Try {
-    writer.deleteAll()
     writer.addDocuments(institutions.toList.map(_.toDocument).asJava)
   }
 

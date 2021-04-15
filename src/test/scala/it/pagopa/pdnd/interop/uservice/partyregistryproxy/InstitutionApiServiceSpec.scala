@@ -104,7 +104,10 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
       val response = Await.result(
         Http()
           .singleRequest(
-            HttpRequest(uri = s"$url?search=$searchTxt&page=$page&limit=$limit", method = HttpMethods.GET)
+            HttpRequest(
+              uri = s"$url?search=$searchTxt&page=${page.toString}&limit=${limit.toString}",
+              method = HttpMethods.GET
+            )
           ),
         Duration.Inf
       )
@@ -133,7 +136,10 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
       val response = Await.result(
         Http()
           .singleRequest(
-            HttpRequest(uri = s"$url?search=$searchTxt&page=$page&limit=$limit", method = HttpMethods.GET)
+            HttpRequest(
+              uri = s"$url?search=$searchTxt&page=${page.toString}&limit=${limit.toString}",
+              method = HttpMethods.GET
+            )
           ),
         Duration.Inf
       )
@@ -162,7 +168,10 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
       val response = Await.result(
         Http()
           .singleRequest(
-            HttpRequest(uri = s"$url?search=$searchTxt&page=$page&limit=$limit", method = HttpMethods.GET)
+            HttpRequest(
+              uri = s"$url?search=$searchTxt&page=${page.toString}&limit=${limit.toString}",
+              method = HttpMethods.GET
+            )
           ),
         Duration.Inf
       )
@@ -191,7 +200,10 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
       val response = Await.result(
         Http()
           .singleRequest(
-            HttpRequest(uri = s"$url?search=$searchTxt&page=$page&limit=$limit", method = HttpMethods.GET)
+            HttpRequest(
+              uri = s"$url?search=$searchTxt&page=${page.toString}&limit=${limit.toString}",
+              method = HttpMethods.GET
+            )
           ),
         Duration.Inf
       )
