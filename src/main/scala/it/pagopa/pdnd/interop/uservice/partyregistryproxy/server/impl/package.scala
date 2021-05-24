@@ -3,18 +3,16 @@ package it.pagopa.pdnd.interop.uservice.partyregistryproxy.server
 import com.bettercloud.vault.{SslConfig, Vault, VaultConfig}
 import com.typesafe.config.{Config, ConfigFactory}
 
-import java.time.{LocalDate, LocalDateTime, LocalTime, ZoneId}
+import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
 package object impl {
 
   def getInitialDelay(cronTime: String): Long = {
     val startTime: LocalTime = LocalTime.parse(cronTime)
-    val today: LocalDate     = LocalDate.now(ZoneId.of("UTC"))
-    val next: LocalDateTime  = LocalDateTime.of(today, startTime)
-    val now: LocalDateTime   = LocalDateTime.now(ZoneId.of("UTC"))
-    val diff: Long           = now.until(next, ChronoUnit.MILLIS)
-    if (diff < 0) Math.abs(diff) else diff
+    val now: LocalTime       = LocalTime.now()
+    val diff: Long           = now.until(startTime, ChronoUnit.MILLIS)
+    if (diff < 0) now.until(startTime.plusHours(24), ChronoUnit.MILLIS) else diff
   }
 
   lazy val vault: Vault = getVaultClient

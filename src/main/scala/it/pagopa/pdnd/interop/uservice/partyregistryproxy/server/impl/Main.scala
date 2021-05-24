@@ -52,11 +52,23 @@ object Main extends App with CorsSupport {
 
   val ldapService: Try[LDAPService] = connection.map(LDAPServiceImpl.create)
 
-  val cronTime = config.getString("service-config.ipa-update-time")
+  val cronTime: String = config.getString("service-config.ipa-update-time")
 
-  actorSystem.scheduler.scheduleAtFixedRate(getInitialDelay(cronTime).milliseconds, 24.hours) { () =>
+  val initialDelay: Long = getInitialDelay(cronTime)
+
+  actorSystem.scheduler.scheduleAtFixedRate(initialDelay.milliseconds, 24.hours)(() => loadLucene())
+
+  locally {
+    val _ = loadLucene() //TODO temporary solution, waiting for persistence volume
+    val _ = AkkaManagement.get(classicActorSystem).start()
+  }
+
+  val controller = new Controller(healthApi, institutionApi)
+
+  val bindingFuture = Http().newServerAt("0.0.0.0", 8088).bind(corsHandler(controller.routes))
+
+  private def loadLucene(): Unit = {
     logger.info("Creating index from iPA")
-
     val result = for {
       ldap <- ldapService
       _    <- searchService.deleteAll()
@@ -71,14 +83,5 @@ object Main extends App with CorsSupport {
         logger.error(s"Error trying to populate index, due: ${ex.getMessage}")
         ex.printStackTrace()
     }
-
   }
-
-  locally {
-    val _ = AkkaManagement.get(classicActorSystem).start()
-  }
-
-  val controller = new Controller(healthApi, institutionApi)
-
-  val bindingFuture = Http().newServerAt("0.0.0.0", 8088).bind(corsHandler(controller.routes))
 }
