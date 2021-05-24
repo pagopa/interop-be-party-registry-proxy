@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: https://gateway.interop.pdnd.dev/pdnd-interop-uservice-party-registry-proxy/0.0.1
+  - url: http://gateway.interop.pdnd.dev/pdnd-interop-uservice-party-registry-proxy/0.0.1
     description: This service is the proxy to the party registry
 tags:
   - name: institution
