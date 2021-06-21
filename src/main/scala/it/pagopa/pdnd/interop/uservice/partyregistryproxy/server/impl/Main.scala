@@ -69,7 +69,7 @@ object Main extends App with CorsSupport {
 
   private def loadLucene(): Unit = {
     logger.info("Creating index from iPA")
-    val result = for {
+    val result: Try[Long] = for {
       ldap <- ldapService
       _    <- searchService.deleteAll()
       _ = logger.info(s"Institutions deleted")

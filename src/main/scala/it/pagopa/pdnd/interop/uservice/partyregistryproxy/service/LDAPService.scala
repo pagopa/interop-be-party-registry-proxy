@@ -16,7 +16,7 @@ trait LDAPService {
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
 object LDAPService {
   def createConnection(vault: Vault): Try[DirContext] = {
-    val data     = vault.logical().read("secret/pdnd-interop-dev/service-party-registry-proxy/ldpad")
+    val data     = vault.logical().read("secret/data/pdnd-interop-dev/service-party-registry-proxy/ldpad")
     val url      = data.getData.asScala("url")
     val username = data.getData.asScala("username")
     val password = data.getData.asScala("password")
