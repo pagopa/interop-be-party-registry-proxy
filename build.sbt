@@ -54,7 +54,7 @@ lazy val generated = project.in(file("generated")).settings(scalacOptions := Seq
 lazy val client = project
   .in(file("client"))
   .settings(
-    name := "pdnd-interop-uservice-party-registry-proxy",
+    name := "pdnd-interop-uservice-party-registry-proxy-client",
     scalacOptions := Seq(),
     scalafmtOnCompile := true,
     version := (version in ThisBuild).value,
