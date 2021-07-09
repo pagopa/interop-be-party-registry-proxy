@@ -56,7 +56,7 @@ object Main extends App with CorsSupport {
 
   val initialDelay: Long = getInitialDelay(cronTime)
 
-  actorSystem.scheduler.scheduleAtFixedRate(initialDelay.milliseconds, 24.hours)(() => loadLucene())
+//  actorSystem.scheduler.scheduleAtFixedRate(initialDelay.milliseconds, 24.hours)(() => loadLucene())
 
   locally {
     val _ = loadLucene() //TODO temporary solution, waiting for persistence volume
