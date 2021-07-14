@@ -10,21 +10,14 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
   InstitutionApiServiceImpl
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{HealthApi, InstitutionApi}
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
-  Authenticator,
-  CorsSupport,
-  actorSystem,
-  classicActorSystem,
-  executionContext
-}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{Authenticator, CorsSupport, classicActorSystem}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{LDAPService, SearchService}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{LDAPServiceImpl, SearchServiceImpl}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{LDAPService, SearchService}
 import kamon.Kamon
 import org.slf4j.LoggerFactory
 
 import javax.naming.directory.DirContext
-import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
