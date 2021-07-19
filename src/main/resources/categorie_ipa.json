@@ -1,565 +1,259 @@
 {
   "records": [
     [
-      1,
       "C17",
       "EntidiPrevidenzaedAssistenzaSocialeinContoEconomicoConsolidatoprivati",
-      "EntiNazionalidiPrevidenzaedAssistenzaSocialeinContoEconomicoConsolidato",
-      "P",
-      "A",
-      "P",
-      "A",
-      "P"
+      "EntiNazionalidiPrevidenzaedAssistenzaSocialeinContoEconomicoConsolidato"
     ],
     [
-      2,
       "C16",
       "EntidiPrevidenzaedAssistenzaSocialeinContoEconomicoConsolidatopubblici",
-      "EntiNazionalidiPrevidenzaedAssistenzaSocialeinContoEconomicoConsolidato",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "EntiNazionalidiPrevidenzaedAssistenzaSocialeinContoEconomicoConsolidato"
     ],
     [
-      3,
       "L37",
       "GestoridiPubbliciServizi",
-      "GestoridiPubbliciServizi",
-      "A",
-      "A",
-      "A",
-      "P",
-      "P"
+      "GestoridiPubbliciServizi"
     ],
     [
-      4,
       "SAG",
       "StazioniAppaltantiGestoridiPubbliciServizi",
-      "GestoridiPubbliciServizi",
-      "P",
-      "A",
-      "A",
-      "P",
-      "P"
+      "GestoridiPubbliciServizi"
     ],
     [
-      5,
       "L10",
       "AgenzieedEntiperilTurismo",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      6,
       "L19",
       "AgenzieedEntiRegionalidelLavoro",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      7,
       "L13",
       "AgenzieedEntiRegionalidiSviluppoAgricolo",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      8,
       "L2",
       "AgenzieedEntiRegionaliperlaFormazione,laRicercael'Ambiente",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      9,
       "C10",
       "AgenzieFiscali",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      10,
       "L20",
       "AgenzieRegionalieProvincialeperlaRappresentanzaNegoziale",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      11,
       "L21",
       "AgenzieRegionaliperleErogazioniinAgricoltura",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      12,
       "L22",
       "AgenzieRegionaliSanitarie",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      13,
       "L15",
       "Agenzie,EntieConsorziPubbliciperilDirittoalloStudioUniversitario",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      14,
       "L1",
       "AltriEntiLocali",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      15,
       "C13",
       "AutomobileClubFederatiACI",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      16,
       "C5",
       "Autorita'AmministrativeIndipendenti",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      17,
       "L40",
       "Autorita'diBacino",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      18,
       "L11",
       "Autorita'Portuali",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      19,
       "L39",
       "AziendeeConsorziPubbliciTerritorialiperl'EdiliziaResidenziale",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      20,
       "L46",
       "AziendeedAmministrazionidelloStatoadOrdinamentoAutonomo",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      21,
       "L8",
       "AziendeOspedaliere,AziendeOspedaliereUniversitarie,PoliclinicieIstitutidiRicoveroeCuraaCarattereScientificoPubblici",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      22,
       "L34",
       "AziendePubblichediServiziallaPersona",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      23,
       "L7",
       "AziendeSanitarieLocali",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      24,
       "L35",
       "CamerediCommercio,Industria,ArtigianatoeAgricolturaeloroUnioniRegionali",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      25,
       "L45",
       "Citta'Metropolitane",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      26,
       "L6",
       "ComunieloroConsorzieAssociazioni",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      27,
       "L12",
       "Comunita'MontaneeloroConsorzieAssociazioni",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      28,
       "L24",
       "ConsorzidiBacinoImbriferoMontano",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      29,
       "L28",
       "ConsorziInteruniversitaridiRicerca",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      30,
       "L42",
       "Consorziperl'AreadiSviluppoIndustriale",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      31,
       "L36",
       "ConsorzitraAmministrazioniLocali",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      32,
       "L44",
       "EntidiRegolazionedeiServiziIdricieodeiRifiuti",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      33,
       "C8",
       "EntieIstituzionidiRicercaPubblici",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      34,
       "C3",
       "EntiPubbliciNonEconomici",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      35,
       "C7",
       "EntiPubbliciProduttoridiServiziAssistenziali,RicreativieCulturali",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      36,
       "C14",
       "FederazioniNazionali,Ordini,CollegieConsigliProfessionali",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      37,
       "L16",
       "FondazioniLirico,Sinfoniche",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      38,
       "C11",
       "ForzediPoliziaadOrdinamentoCivileeMilitareperlaTuteladell'OrdineedellaSicurezzaPubblica",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      39,
       "L33",
       "IstitutidiIstruzioneStatalediOgniOrdineeGrado",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      40,
       "C12",
       "IstitutiZooprofilatticiSperimentali",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      41,
       "L43",
       "Istituzioniperl'AltaFormazioneArtistica,MusicaleeCoreutica-AFAM",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      42,
       "C2",
       "OrganiCostituzionaliediRilievoCostituzionale",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      43,
       "L38",
       "ParchiNazionali,ConsorzieEntiGestoridiParchieAreeNaturaliProtette",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      44,
       "C1",
       "PresidenzadelConsigliodeiMinistri,MinisterieAvvocaturadelloStato",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      45,
       "L5",
       "ProvinceeloroConsorzieAssociazioni",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      46,
       "L4",
       "Regioni,ProvinceAutonomeeloroConsorzieAssociazioni",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      47,
       "L31",
       "TeatriStabiliadIniziativaPubblica",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      48,
       "L18",
       "UnionidiComunieloroConsorzieAssociazioni",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      49,
       "L17",
       "Universita'eIstitutidiIstruzioneUniversitariaPubblici",
-      "PubblicheAmministrazioni",
-      "P",
-      "P",
-      "P",
-      "P",
-      "P"
+      "PubblicheAmministrazioni"
     ],
     [
-      50,
       "S01",
       "Societa'inContoEconomicoConsolidato",
-      "Societa'inContoEconomicoConsolidato",
-      "P",
-      "A",
-      "P",
-      "A",
-      "P"
+      "Societa'inContoEconomicoConsolidato"
     ],
     [
-      51,
       "SA",
       "StazioniAppaltanti",
-      "StazioniAppaltanti",
-      "P",
-      "A",
-      "A",
-      "A",
-      "P"
+      "StazioniAppaltanti"
     ]
   ]
 }
