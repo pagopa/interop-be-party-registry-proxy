@@ -10,6 +10,11 @@ ThisBuild / libraryDependencies := Dependencies.Jars.`server`.map(m =>
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
+resolvers in ThisBuild += "Pagopa Nexus Snapshots" at s"https://gateway.interop.pdnd.dev/nexus/repository/maven-snapshots/"
+resolvers in ThisBuild += "Pagopa Nexus Releases" at s"https://gateway.interop.pdnd.dev/nexus/repository/maven-releases/"
+
+credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+
 lazy val generateCode = taskKey[Unit]("A task for generating the code starting from the swagger definition")
 
 generateCode := {
@@ -64,7 +69,6 @@ lazy val client = project
       else
         m
     ),
-    credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
     updateOptions := updateOptions.value.withGigahorse(false),
     publishTo := {
       val nexus = s"https://${System.getenv("MAVEN_REPO")}/nexus/repository/"
@@ -79,18 +83,21 @@ lazy val client = project
 lazy val root = (project in file("."))
   .settings(
     name := "pdnd-interop-uservice-party-registry-proxy",
-    parallelExecution in Test := false,
+    Test / parallelExecution := false,
     dockerBuildOptions ++= Seq("--network=host"),
-    dockerRepository in Docker := Some(System.getenv("DOCKER_REPO")),
-    version in Docker := (version in ThisBuild).value,
-    packageName in Docker := s"services/${name.value}",
-    daemonUser in Docker := "daemon",
-    dockerExposedPorts in Docker := Seq(8080),
-    dockerBaseImage in Docker := "openjdk:11-jre-alpine",
-    dockerUpdateLatest in Docker := true,
-    wartremoverErrors ++= Warts.unsafe,
+    dockerRepository := Some(System.getenv("DOCKER_REPO")),
+    dockerBaseImage := "adoptopenjdk:11-jdk-hotspot",
+    dockerUpdateLatest := true,
+    daemonUser := "daemon",
+    Docker / version := (ThisBuild / version).value,
+    Docker / packageName := s"services/${name.value}",
+    Docker / dockerExposedPorts := Seq(8080),
+    Compile / compile / wartremoverErrors ++= Warts.unsafe,
+    wartremoverExcluded += sourceManaged.value,
     scalafmtOnCompile := true
   )
   .aggregate(client)
   .dependsOn(generated)
-  .enablePlugins(AshScriptPlugin, DockerPlugin)
+  .enablePlugins(JavaAppPackaging, JavaAgent)
+
+javaAgents += "io.kamon" % "kanela-agent" % "1.0.11"
