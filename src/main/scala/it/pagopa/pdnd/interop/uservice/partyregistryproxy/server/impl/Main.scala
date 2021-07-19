@@ -64,7 +64,8 @@ object Main extends App with CorsSupport {
     logger.info("Creating index from iPA")
     val result: Try[Long] = for {
       ldap <- ldapService
-      _    <- searchService.deleteAll()
+      _ = ldap
+      _ <- searchService.deleteAll()
       _ = logger.info(s"Institutions deleted")
       _ <- searchService.adds(ldap.getAllInstitutions)
       _ = logger.info(s"Institutions inserted")

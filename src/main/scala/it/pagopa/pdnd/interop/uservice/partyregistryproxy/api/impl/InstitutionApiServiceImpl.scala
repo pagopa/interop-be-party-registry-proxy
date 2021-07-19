@@ -3,14 +3,21 @@ package it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.server.Route
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.InstitutionApiService
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Institution, Institutions, Problem}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{
+  Categories,
+  CategorySupport,
+  Institution,
+  Institutions,
+  Problem
+}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.SearchService
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.Try
 
 class InstitutionApiServiceImpl(searchService: SearchService) extends InstitutionApiService {
-  val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  val logger: Logger     = LoggerFactory.getLogger(this.getClass)
+  private val categories = CategorySupport.load() //TODO Temporary
 
   /** Code: 200, Message: successful operation, DataType: InstitutionIPA
     * Code: 400, Message: Invalid ID supplied, DataType: ErrorResponse
@@ -60,4 +67,8 @@ class InstitutionApiServiceImpl(searchService: SearchService) extends Institutio
 
   }
 
+  /** Code: 200, Message: successful operation, DataType: Categories
+    */
+  override def getCategories()(implicit toEntityMarshallerCategories: ToEntityMarshaller[Categories]): Route =
+    getCategories200(categories)
 }

@@ -104,6 +104,20 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+  /catergories:
+    get:
+      tags:
+        - institution
+      summary: Get all ipa categories
+      description: Returns the ipa categories list
+      operationId: getCategories
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Categories'
   /status:
     get:
       tags:
@@ -211,6 +225,28 @@ components:
       required:
         - items
         - count
+    Category:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        kind:
+          type: string
+      required:
+        - code
+        - kind
+        - name
+    Categories:
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+      required:
+        - items
     Problem:
       properties:
         detail:
