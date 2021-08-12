@@ -57,6 +57,8 @@ pipeline {
         CASSANDRA = credentials('cassandra-db')
         CASSANDRA_HOST = 'cluster1-dc1-service.cassandra-operator.svc.cluster.local:9042'
         DOCKER_REPO = 'gateway.interop.pdnd.dev'
+        VAULT_TOKEN = credentials('vault-token')
+        VAULT_ADDR = credentials('vault-addr')
         //REPLICAS_NR = 1
       }
       steps {
