@@ -1,7 +1,7 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service
 
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Institution
-import org.apache.lucene.document.{Document, Field, StoredField, TextField}
+import org.apache.lucene.document.{Document, Field, StoredField, StringField, TextField}
 
 import javax.naming.directory.SearchResult
 
@@ -52,7 +52,7 @@ package object impl {
   implicit class InstitutionOps(val institution: Institution) extends AnyVal {
     def toDocument: Document = {
       val doc = new Document
-      doc.add(new TextField(InstitutionFields.ID, institution.id, Field.Store.YES))
+      doc.add(new StringField(InstitutionFields.ID, institution.id, Field.Store.YES))
       doc.add(new TextField(InstitutionFields.DESCRIPTION, institution.description, Field.Store.YES))
 
       doc.addOptional(InstitutionFields.O, institution.o)

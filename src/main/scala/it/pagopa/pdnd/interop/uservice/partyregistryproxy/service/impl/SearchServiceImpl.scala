@@ -3,14 +3,15 @@ package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Institution
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.SearchService
 import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
+import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig, Term}
 import org.apache.lucene.queryparser.classic.QueryParser
-import org.apache.lucene.search.{IndexSearcher, Query, ScoreDoc, TopDocs, TopScoreDocCollector}
+import org.apache.lucene.search._
 import org.apache.lucene.store.FSDirectory
 
 import java.nio.file.Paths
 import scala.jdk.CollectionConverters.IterableHasAsJava
 import scala.util.Try
+
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
 final case class SearchServiceImpl(pathDir: String) extends SearchService {
 
@@ -56,11 +57,10 @@ final case class SearchServiceImpl(pathDir: String) extends SearchService {
   def searchById(id: String): Try[Option[Institution]] = Try {
     val reader: DirectoryReader = DirectoryReader.open(writer)
     val searcher: IndexSearcher = new IndexSearcher(reader)
-    val parser: QueryParser     = new QueryParser(InstitutionFields.ID, analyzer)
-    val query: Query            = parser.parse(id)
+    val query                   = new TermQuery(new Term(InstitutionFields.ID, id))
     val hits: TopDocs           = searcher.search(query, 1)
 
-    val results = hits.scoreDocs.headOption.map(sc => searcher.doc(sc.doc).toInstitution)
+    val results = hits.scoreDocs.map(sc => searcher.doc(sc.doc).toInstitution).find(_.id == id)
     reader.close()
     results
   }
