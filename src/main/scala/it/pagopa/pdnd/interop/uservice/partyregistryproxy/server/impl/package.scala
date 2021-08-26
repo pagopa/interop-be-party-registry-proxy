@@ -1,7 +1,6 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.server
 
 import com.bettercloud.vault.{SslConfig, Vault, VaultConfig}
-import com.typesafe.config.{Config, ConfigFactory}
 
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
@@ -27,7 +26,5 @@ package object impl {
       .build()
     new Vault(config)
   }
-
-  lazy val config: Config = ConfigFactory.load()
 
 }

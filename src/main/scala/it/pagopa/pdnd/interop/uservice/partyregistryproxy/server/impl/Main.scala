@@ -10,7 +10,12 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
   InstitutionApiServiceImpl
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{HealthApi, InstitutionApi}
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{Authenticator, CorsSupport, classicActorSystem}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
+  ApplicationConfiguration,
+  Authenticator,
+  CorsSupport,
+  classicActorSystem
+}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{LDAPServiceImpl, SearchServiceImpl}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{LDAPService, SearchService}
@@ -33,7 +38,7 @@ object Main extends App with CorsSupport {
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val searchService: SearchService = SearchServiceImpl(config.getString("service-config.index-dir"))
+  val searchService: SearchService = SearchServiceImpl(ApplicationConfiguration.indexDir)
 
   val institutionApi: InstitutionApi = new InstitutionApi(
     new InstitutionApiServiceImpl(searchService),
@@ -45,9 +50,7 @@ object Main extends App with CorsSupport {
 
   val ldapService: Try[LDAPService] = connection.map(LDAPServiceImpl.create)
 
-  val cronTime: String = config.getString("service-config.ipa-update-time")
-
-  val initialDelay: Long = getInitialDelay(cronTime)
+  val initialDelay: Long = getInitialDelay(ApplicationConfiguration.cronTime)
 
 //  actorSystem.scheduler.scheduleAtFixedRate(initialDelay.milliseconds, 24.hours)(() => loadLucene())
 
@@ -58,7 +61,8 @@ object Main extends App with CorsSupport {
 
   val controller = new Controller(healthApi, institutionApi)
 
-  val bindingFuture = Http().newServerAt("0.0.0.0", 8088).bind(corsHandler(controller.routes))
+  val bindingFuture =
+    Http().newServerAt("0.0.0.0", ApplicationConfiguration.serverPort).bind(corsHandler(controller.routes))
 
   private def loadLucene(): Unit = {
     logger.info("Creating index from iPA")
