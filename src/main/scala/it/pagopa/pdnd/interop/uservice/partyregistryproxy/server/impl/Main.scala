@@ -61,6 +61,8 @@ object Main extends App with CorsSupport {
 
   val controller = new Controller(healthApi, institutionApi)
 
+  logger.error(s"Started build info = ${buildinfo.BuildInfo.toString}")
+
   val bindingFuture =
     Http().newServerAt("0.0.0.0", ApplicationConfiguration.serverPort).bind(corsHandler(controller.routes))
 

@@ -50,7 +50,8 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
 
   val institutionApiMarshaller: InstitutionApiMarshaller = new InstitutionApiMarshallerImpl
 
-  val url: String = "http://localhost:8088/pdnd-interop-uservice-party-registry-proxy/0.0.1/institutions"
+  val url: String =
+    s"http://localhost:8088/pdnd-interop-uservice-party-registry-proxy/${buildinfo.BuildInfo.interfaceVersion}/institutions"
 
   var controller: Option[Controller]                 = None
   var bindServer: Option[Future[Http.ServerBinding]] = None

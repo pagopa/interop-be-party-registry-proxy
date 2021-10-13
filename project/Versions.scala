@@ -1,6 +1,6 @@
 object Versions {
-  lazy val akkaVersion        = "2.6.15"
-  lazy val akkaHttpVersion    = "10.2.4"
+  lazy val akkaVersion        = "2.6.16"
+  lazy val akkaHttpVersion    = "10.2.6"
   lazy val vaultDriverVersion = "5.1.0"
   lazy val luceneVersion      = "8.9.0"
   lazy val json4sVersion      = "4.0.1"
@@ -10,4 +10,5 @@ object Versions {
   lazy val scalatestVersion   = "3.2.9"
   lazy val mockitoVersion     = "3.7.7"
   lazy val scalaMockVersion   = "5.1.0"
+  lazy val mustacheVersion    = "0.9.0"
 }
