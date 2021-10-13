@@ -10,7 +10,7 @@ object Dependencies {
     lazy val stream     = namespace                       %% "akka-stream"          % akkaVersion
     lazy val http       = namespace                       %% "akka-http"            % akkaHttpVersion
     lazy val httpJson   = namespace                       %% "akka-http-spray-json" % akkaHttpVersion
-    lazy val httpJson4s = "de.heikoseeberger"             %% "akka-http-json4s"     % "1.37.0"
+    lazy val httpJson4s = "de.heikoseeberger"             %% "akka-http-json4s"     % "1.38.2"
     lazy val management = "com.lightbend.akka.management" %% "akka-management"      % "1.1.1"
     lazy val slf4j      = namespace                       %% "akka-slf4j"           % akkaVersion
   }
@@ -59,6 +59,10 @@ object Dependencies {
     lazy val core      = namespace %% "scalamock" % scalaMockVersion
   }
 
+  private[this] object mustache {
+    lazy val mustache = "com.github.spullara.mustache.java" % "compiler" % mustacheVersion
+  }
+
   object Jars {
     lazy val `server`: Seq[ModuleID] = Seq(
       // For making Java 12 happy
@@ -79,6 +83,7 @@ object Dependencies {
       akka.slf4j                   % Compile,
       kamon.bundle                 % Compile,
       kamon.prometheus             % Compile,
+      mustache.mustache            % Compile,
       scalatest.core               % Test,
       scalamock.core               % Test
     )
