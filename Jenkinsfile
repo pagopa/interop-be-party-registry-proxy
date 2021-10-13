@@ -59,7 +59,7 @@ pipeline {
         DOCKER_REPO = 'gateway.interop.pdnd.dev'
         VAULT_TOKEN = credentials('vault-token')
         VAULT_ADDR = credentials('vault-addr')
-        //REPLICAS_NR = 1
+        REPLICAS_NR = 1
       }
       steps {
         container('sbt-container') {

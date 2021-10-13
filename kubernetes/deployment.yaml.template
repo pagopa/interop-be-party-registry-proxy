@@ -14,30 +14,35 @@ spec:
     metadata:
       labels:
         app: {{name}}
+        actorSystemName: {{name}}
     spec:
       imagePullSecrets:
         - name: regcred
+      volumes:
+        - name: application-conf
+          secret:
+            secretName: application.conf
+            defaultMode: 420
       containers:
         - name: {{name}}
-          image: gateway.interop.pdnd.dev/services/{{name}}:{{version}}
-          volumeMounts:
-            - mountPath: /opt/docker/index
-              name: index-volume
+          image: {{repository}}/services/{{name}}:{{version}}
+          command: ["bin/{{name}}"]
+          args: ["-Dconfig.file=etc/application.conf", "-Dconfig.override_with_env_vars=true"]
           imagePullPolicy: Always
           readinessProbe:
             httpGet:
               path: /ready
               port: management
             periodSeconds: 10
-            failureThreshold: 3
-            initialDelaySeconds: 10
+            failureThreshold: 5
+            initialDelaySeconds: 30
           livenessProbe:
             httpGet:
               path: "/alive"
               port: management
             periodSeconds: 10
             failureThreshold: 5
-            initialDelaySeconds: 20
+            initialDelaySeconds: 30
           ports:
             - name: management
               containerPort: 8558
@@ -48,20 +53,29 @@ spec:
             - name: monitoring
               containerPort: 9095
               protocol: TCP
+          securityContext:
+            runAsUser: 1001
+            allowPrivilegeEscalation: false
           env:
-            - name: VAULT_ADDR
+            - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: vault
-                  key: VAULT_ADDR
-            - name: VAULT_TOKEN
+                  name: aws
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: vault
-                  key: VAULT_TOKEN
-      volumes:
-      - name: index-volume
-        emptyDir: {}
+                  name: aws
+                  key: AWS_ACCESS_KEY_ID
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: REQUIRED_CONTACT_POINT_NR
+              value: "{{replicas}}"
+          volumeMounts:
+            - name: application-conf
+              mountPath: /opt/docker/etc
 ---
 apiVersion: v1
 kind: Service
@@ -84,6 +98,31 @@ spec:
   selector:
     app: {{name}}
 ---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-reader
+  namespace: {{name}}
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-pods
+  namespace: {{name}}
+subjects:
+# Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
+# For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
+- kind: User
+  name: system:serviceaccount:{{name}}:default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
@@ -101,4 +140,3 @@ spec:
             backend:
               serviceName: {{name}}
               servicePort: 8088
-
