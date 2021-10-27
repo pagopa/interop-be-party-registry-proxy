@@ -35,15 +35,6 @@ import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
-@SuppressWarnings(
-  Array(
-    "org.wartremover.warts.Var",
-    "org.wartremover.warts.Any",
-    "org.wartremover.warts.NonUnitStatements",
-    "org.wartremover.warts.OptionPartial",
-    "org.wartremover.warts.Null"
-  )
-)
 class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with MockFactory {
 
   import ServiceSpecSupport._

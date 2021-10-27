@@ -12,7 +12,6 @@ import java.nio.file.Paths
 import scala.jdk.CollectionConverters.IterableHasAsJava
 import scala.util.Try
 
-@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
 final case class SearchServiceImpl(pathDir: String) extends SearchService {
 
   private val dir      = FSDirectory.open(Paths.get(pathDir))

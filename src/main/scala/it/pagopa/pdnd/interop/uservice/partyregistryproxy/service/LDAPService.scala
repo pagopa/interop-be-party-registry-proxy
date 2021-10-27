@@ -13,7 +13,6 @@ trait LDAPService {
   def getAllInstitutions: Iterator[Institution]
 }
 
-@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
 object LDAPService {
   def createConnection(vault: Vault): Try[DirContext] = {
     val data     = vault.logical().read("secret/data/pdnd-interop-dev/service-party-registry-proxy/ldpad")

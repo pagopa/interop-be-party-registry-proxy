@@ -8,7 +8,6 @@ import javax.naming.directory.{DirContext, SearchControls, SearchResult}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
-@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.OptionPartial"))
 final case class LDAPServiceImpl(connection: DirContext) extends LDAPService {
 
   def getAllInstitutions: Iterator[Institution] = {
@@ -62,7 +61,6 @@ final case class LDAPServiceImpl(connection: DirContext) extends LDAPService {
   }
 
 }
-@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.OptionPartial"))
 object LDAPServiceImpl {
   def create(connection: DirContext): LDAPServiceImpl = new LDAPServiceImpl(connection)
 

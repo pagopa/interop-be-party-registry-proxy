@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory
 import javax.naming.directory.DirContext
 import scala.util.{Failure, Success, Try}
 
-@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
 object Main extends App with CorsSupport {
 
   val logger = LoggerFactory.getLogger(this.getClass)
