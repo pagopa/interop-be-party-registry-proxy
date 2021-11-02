@@ -12,7 +12,7 @@ import scala.util.Try
 final case class LDAPServiceImpl(connection: DirContext) extends LDAPService {
 
   def getAllInstitutions: Iterator[Institution] = {
-    val searchFilter: String = "(objectClass=*)"
+    val searchFilter: String = "(objectClass=amministrazione)"
 
     val searchControls: SearchControls = new SearchControls()
     val reqAtt: Array[String] =
