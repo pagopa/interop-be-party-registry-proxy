@@ -5,7 +5,6 @@ package it.pagopa.pdnd.interop.uservice.partyregistryproxy.model
   * @param ou ou for example: ''age''
   * @param aoo aoo for example: ''age''
   * @param fiscalCode institution fiscal code for example: ''00000000000''
-  * @param administrationCode institution code for example: ''00000000000''
   * @param category institution category for example: ''c7''
   * @param managerName manager name for example: ''Mario''
   * @param managerSurname manager surname for example: ''Rossi''
@@ -17,11 +16,10 @@ final case class Institution(
   o: Option[String],
   ou: Option[String],
   aoo: Option[String],
-  fiscalCode: Option[String],
-  administrationCode: Option[String],
-  category: Option[String],
+  fiscalCode: String,
+  category: String,
   managerName: Option[String],
   managerSurname: Option[String],
   description: String,
-  digitalAddress: Option[String]
+  digitalAddress: String
 )

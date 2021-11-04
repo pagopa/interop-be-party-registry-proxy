@@ -23,11 +23,9 @@ case class Institution (
   /* aoo */
   aoo: Option[String] = None,
   /* institution fiscal code */
-  fiscalCode: Option[String] = None,
-  /* institution code */
-  administrationCode: Option[String] = None,
+  fiscalCode: String,
   /* institution category */
-  category: Option[String] = None,
+  category: String,
   /* manager name */
   managerName: Option[String] = None,
   /* manager surname */
@@ -35,7 +33,7 @@ case class Institution (
   /* institution description */
   description: String,
   /* digital institution address */
-  digitalAddress: Option[String] = None
+  digitalAddress: String
 ) extends ApiModel
 
 

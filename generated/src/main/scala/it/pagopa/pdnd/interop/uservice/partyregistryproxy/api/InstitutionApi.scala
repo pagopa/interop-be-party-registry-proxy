@@ -51,10 +51,18 @@ trait InstitutionApiService {
     toEntityMarshallerCategories: ToEntityMarshaller[Categories]
   ): Route =
     complete((200, responseCategories))
+  def getCategories404(responseProblem: Problem)(implicit
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+  ): Route =
+    complete((404, responseProblem))
 
   /** Code: 200, Message: successful operation, DataType: Categories
+    * Code: 404, Message: Categories not found, DataType: Problem
     */
-  def getCategories()(implicit toEntityMarshallerCategories: ToEntityMarshaller[Categories]): Route
+  def getCategories()(implicit
+    toEntityMarshallerCategories: ToEntityMarshaller[Categories],
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+  ): Route
 
   def getInstitutionById200(responseInstitution: Institution)(implicit
     toEntityMarshallerInstitution: ToEntityMarshaller[Institution]

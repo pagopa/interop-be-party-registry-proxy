@@ -35,15 +35,6 @@ import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
-@SuppressWarnings(
-  Array(
-    "org.wartremover.warts.Var",
-    "org.wartremover.warts.Any",
-    "org.wartremover.warts.NonUnitStatements",
-    "org.wartremover.warts.OptionPartial",
-    "org.wartremover.warts.Null"
-  )
-)
 class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with MockFactory {
 
   import ServiceSpecSupport._
@@ -97,7 +88,7 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
       val luceneResponse =
         institutions.filter(_.description.contains(searchTxt)).sortBy(_.id).slice(page - 1, page + limit - 1)
 
-      (searchService.searchByDescription _)
+      (searchService.searchByInstitutionDescription _)
         .expects(searchTxt, page, limit)
         .returning(Success(luceneResponse -> luceneResponse.size.toLong))
         .once()
@@ -129,7 +120,7 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
       val luceneResponse =
         institutions.filter(_.description.contains(searchTxt)).sortBy(_.id).slice(page - 1, page + limit - 1)
 
-      (searchService.searchByDescription _)
+      (searchService.searchByInstitutionDescription _)
         .expects(searchTxt, page, limit)
         .returning(Success(luceneResponse -> luceneResponse.size.toLong))
         .once()
@@ -161,7 +152,7 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
       val luceneResponse =
         institutions.filter(_.description.contains(searchTxt)).sortBy(_.id).slice(page - 1, page + limit - 1)
 
-      (searchService.searchByDescription _)
+      (searchService.searchByInstitutionDescription _)
         .expects(searchTxt, page, limit)
         .returning(Success(luceneResponse -> luceneResponse.size.toLong))
         .once()
@@ -193,7 +184,7 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
       val searchResponse =
         institutions.filter(_.description.contains(searchTxt)).sortBy(_.id).slice(page, page + limit)
 
-      (searchService.searchByDescription _)
+      (searchService.searchByInstitutionDescription _)
         .expects(searchTxt, page, limit)
         .returning(Success(searchResponse -> searchResponse.size.toLong))
         .once()
@@ -224,7 +215,7 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
 
       val searchResponse = institutions.filter(_.description.contains(searchTxt))
 
-      (searchService.searchByDescription _)
+      (searchService.searchByInstitutionDescription _)
         .expects(searchTxt, *, *)
         .returning(Success(searchResponse -> searchResponse.size.toLong))
         .once()
@@ -243,7 +234,7 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
     }
     "return 400 for an invalid request" in {
 
-      (searchService.searchByDescription _)
+      (searchService.searchByInstitutionDescription _)
         .expects(*, *, *)
         .returning(Failure(new RuntimeException("Something goes wrong")))
         .once()
@@ -270,13 +261,12 @@ object ServiceSpecSupport {
     o = None,
     ou = None,
     aoo = None,
-    fiscalCode = None,
-    administrationCode = None,
-    category = None,
+    fiscalCode = "fiscalCode1",
+    category = "cat1",
     managerName = None,
     managerSurname = None,
     description = "Institution One",
-    digitalAddress = None
+    digitalAddress = "digitalAddress1"
   )
 
   final lazy val institutionTwo = Institution(
@@ -284,13 +274,12 @@ object ServiceSpecSupport {
     o = None,
     ou = None,
     aoo = None,
-    fiscalCode = None,
-    administrationCode = None,
-    category = None,
+    fiscalCode = "fiscalCode2",
+    category = "cat2",
     managerName = None,
     managerSurname = None,
     description = "Institution Two",
-    digitalAddress = None
+    digitalAddress = "digitalAddress2"
   )
 
   final lazy val institutionThree = Institution(
@@ -298,13 +287,12 @@ object ServiceSpecSupport {
     o = None,
     ou = None,
     aoo = None,
-    fiscalCode = None,
-    administrationCode = None,
-    category = None,
+    fiscalCode = "fiscalCode3",
+    category = "cat3",
     managerName = None,
     managerSurname = None,
     description = "Institution Three",
-    digitalAddress = None
+    digitalAddress = "digitalAddress3"
   )
 
   final lazy val institutionFour = Institution(
@@ -312,13 +300,12 @@ object ServiceSpecSupport {
     o = None,
     ou = None,
     aoo = None,
-    fiscalCode = None,
-    administrationCode = None,
-    category = None,
+    fiscalCode = "fiscalCode4",
+    category = "cat4",
     managerName = None,
     managerSurname = None,
     description = "Institution Four",
-    digitalAddress = None
+    digitalAddress = "digitalAddress4"
   )
 
   final lazy val institutions = List(institutionOne, institutionTwo, institutionThree, institutionFour)

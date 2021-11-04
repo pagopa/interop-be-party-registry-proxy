@@ -50,7 +50,7 @@ package object impl extends DefaultJsonProtocol {
       }
     }
 
-  implicit val institutionFormat: RootJsonFormat[Institution]   = jsonFormat11(Institution.apply)
+  implicit val institutionFormat: RootJsonFormat[Institution]   = jsonFormat10(Institution.apply)
   implicit val institutionsFormat: RootJsonFormat[Institutions] = jsonFormat2(Institutions.apply)
   implicit val categoryFormat: RootJsonFormat[Category]         = jsonFormat3(Category.apply)
   implicit val categoriesFormat: RootJsonFormat[Categories]     = jsonFormat1(Categories.apply)

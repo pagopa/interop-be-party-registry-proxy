@@ -15,11 +15,6 @@ object Dependencies {
     lazy val slf4j      = namespace                       %% "akka-slf4j"           % akkaVersion
   }
 
-  private[this] object vault {
-    lazy val namespace = "com.bettercloud"
-    lazy val driver    = namespace % "vault-java-driver" % vaultDriverVersion
-  }
-
   private[this] object lucene {
     lazy val namespace       = "org.apache.lucene"
     lazy val core            = namespace % "lucene-core"             % luceneVersion
@@ -63,6 +58,10 @@ object Dependencies {
     lazy val mustache = "com.github.spullara.mustache.java" % "compiler" % mustacheVersion
   }
 
+  private[this] object shapeless {
+    lazy val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
+  }
+
   object Jars {
     lazy val `server`: Seq[ModuleID] = Seq(
       // For making Java 12 happy
@@ -74,7 +73,7 @@ object Dependencies {
       akka.http                    % Compile,
       akka.httpJson                % Compile,
       akka.management              % Compile,
-      vault.driver                 % Compile,
+      shapeless.shapeless          % Compile,
       lucene.core                  % Compile,
       lucene.analyzersCommon       % Compile,
       lucene.queryParser           % Compile,

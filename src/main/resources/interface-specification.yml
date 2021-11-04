@@ -118,6 +118,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Categories'
+        '404':
+          description: Categories not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /status:
     get:
       tags:
@@ -168,12 +174,6 @@ components:
           example: '00000000000'
           pattern: '[\d]{10,13}'
           maxLength: 13
-        administrationCode:
-          type: string
-          description: institution code
-          example: '00000000000'
-          pattern: '[\d]{10,13}'
-          maxLength: 13
         category:
           type: string
           description: institution category
@@ -206,6 +206,9 @@ components:
           maxLength: 20
       required:
         - id
+        - category
+        - fiscalCode
+        - digitalAddress
         - description
     Institutions:
       properties:

@@ -31,10 +31,12 @@ class InstitutionApi(baseUrl: String) {
    * 
    * Expected answers:
    *   code 200 : Categories (successful operation)
+   *   code 404 : Problem (Categories not found)
    */
   def getCategories(): ApiRequest[Categories] =
     ApiRequest[Categories](ApiMethods.GET, baseUrl, "/catergories", "application/json")
       .withSuccessResponse[Categories](200)
+      .withErrorResponse[Problem](404)
       
 
   /**
