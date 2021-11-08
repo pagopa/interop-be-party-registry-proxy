@@ -38,7 +38,7 @@ package object impl {
         o = Option(document.get(InstitutionFields.O)),
         ou = Option(document.get(InstitutionFields.OU)),
         aoo = Option(document.get(InstitutionFields.AOO)),
-        taxCode = Option(document.get(InstitutionFields.TAXCODE)),
+        fiscalCode = Option(document.get(InstitutionFields.TAXCODE)),
         administrationCode = Option(document.get(InstitutionFields.ADMINISTRATIONCODE)),
         category = Option(document.get(InstitutionFields.CATEGORY)),
         managerName = Option(document.get(InstitutionFields.MANAGERNAME)),
@@ -58,7 +58,7 @@ package object impl {
       doc.addOptional(InstitutionFields.O, institution.o)
       doc.addOptional(InstitutionFields.OU, institution.ou)
       doc.addOptional(InstitutionFields.AOO, institution.aoo)
-      doc.addOptional(InstitutionFields.TAXCODE, institution.taxCode)
+      doc.addOptional(InstitutionFields.TAXCODE, institution.fiscalCode)
       doc.addOptional(InstitutionFields.ADMINISTRATIONCODE, institution.administrationCode)
       doc.addOptional(InstitutionFields.CATEGORY, institution.category)
       doc.addOptional(InstitutionFields.MANAGERNAME, institution.managerName)

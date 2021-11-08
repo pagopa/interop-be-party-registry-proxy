@@ -51,7 +51,7 @@ final case class LDAPServiceImpl(connection: DirContext) extends LDAPService {
       o = o,
       ou = ou,
       aoo = aoo,
-      taxCode = result.extract("codiceFiscaleAmm"),
+      fiscalCode = result.extract("codiceFiscaleAmm"),
       administrationCode = result.extract("codiceAmm"),
       category = result.extract("tipoAmm"),
       managerName = result.extract("nomeResp"),

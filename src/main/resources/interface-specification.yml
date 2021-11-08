@@ -162,15 +162,15 @@ components:
           example: age
           pattern: '^[a-z]{1,12}$'
           maxLength: 12
-        taxCode:
+        fiscalCode:
           type: string
-          description: institution tax code
+          description: institution fiscal code
           example: '00000000000'
           pattern: '[\d]{10,13}'
           maxLength: 13
         administrationCode:
           type: string
-          description: institution tax code
+          description: institution code
           example: '00000000000'
           pattern: '[\d]{10,13}'
           maxLength: 13
@@ -180,12 +180,6 @@ components:
           example: 'c7'
           pattern: '[a-zA-Z\d]{1,12}'
           maxLength: 13
-        #        managerTaxCode:
-        #          type: string
-        #          description: manager tax code
-        #          example: RSSMRA75L01H501A
-        #          pattern: '^(?:(?:[B-DF-HJ-NP-TV-Z]|[AEIOU])[AEIOU][AEIOUX]|[B-DF-HJ-NP-TV-Z]{2}[A-Z]){2}[\dLMNP-V]{2}(?:[A-EHLMPR-T](?:[04LQ][1-9MNP-V]|[1256LMRS][\dLMNP-V])|[DHPS][37PT][0L]|[ACELMRT][37PT][01LM])(?:[A-MZ][1-9MNP-V][\dLMNP-V]{2}|[A-M][0L](?:[1-9MNP-V][\dLMNP-V]|[0L][1-9MNP-V]))[A-Z]$'
-        #          maxLength: 16
         managerName:
           type: string
           description: manager name
