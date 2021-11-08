@@ -48,6 +48,7 @@ object Main extends App with CorsSupport {
 
   val categoriesSearchService: SearchService[Category]      = CategorySearchServiceImpl
   val institutionsSearchService: SearchService[Institution] = InstitutionSearchServiceImpl
+  val openDataService: OpenDataService                      = OpenDataServiceImpl(http)(actorSystem, executionContext)
 
   val institutionApi: InstitutionApi = new InstitutionApi(
     new InstitutionApiServiceImpl(institutionsSearchService, categoriesSearchService),
@@ -58,7 +59,7 @@ object Main extends App with CorsSupport {
   val initialDelay: Long = getInitialDelay(ApplicationConfiguration.cronTime)
 
   locally {
-    val _ = loadOpenData()
+    val _ = loadOpenData(openDataService)
     val _ = AkkaManagement.get(classicActorSystem).start()
   }
 
@@ -69,9 +70,7 @@ object Main extends App with CorsSupport {
   val bindingFuture =
     http.newServerAt("0.0.0.0", ApplicationConfiguration.serverPort).bind(corsHandler(controller.routes))
 
-  val openDataService: OpenDataService = OpenDataServiceImpl(http)(actorSystem, executionContext)
-
-  def loadOpenData(): Unit = {
+  def loadOpenData(openDataService: OpenDataService): Unit = {
     val result: Future[Unit] = for {
       institutions <- openDataService.getAllInstitutions
       _            <- loadInstitutions(institutions)

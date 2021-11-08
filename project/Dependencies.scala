@@ -20,6 +20,7 @@ object Dependencies {
     lazy val core            = namespace % "lucene-core"             % luceneVersion
     lazy val analyzersCommon = namespace % "lucene-analyzers-common" % luceneVersion
     lazy val queryParser     = namespace % "lucene-queryparser"      % luceneVersion
+    lazy val luceneSuggest   = namespace % "lucene-suggest"          % luceneVersion
   }
 
   private[this] object json4s {
@@ -77,6 +78,7 @@ object Dependencies {
       lucene.core                  % Compile,
       lucene.analyzersCommon       % Compile,
       lucene.queryParser           % Compile,
+      lucene.luceneSuggest         % Compile,
       openapi4j.operationValidator % Compile,
       logback.classic              % Compile,
       akka.slf4j                   % Compile,
