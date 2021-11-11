@@ -18,3 +18,5 @@ client/src
 .DS_Store
 .env
 snapshots
+index
+client/project
