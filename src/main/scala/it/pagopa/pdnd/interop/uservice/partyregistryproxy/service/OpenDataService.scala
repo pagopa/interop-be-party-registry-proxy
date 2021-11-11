@@ -1,6 +1,6 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service
 
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution, Manager}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util.{OpenDataResponse, OpenDataResponseField}
 
 import scala.concurrent.Future
@@ -13,16 +13,16 @@ trait OpenDataService {
 object OpenDataService {
 
   private object InstitutionsFields {
-    final val id             = "Codice_IPA"
-    final val description    = "Denominazione_ente"
-    final val fiscalCode     = "Codice_fiscale_ente"
-    final val category       = "Codice_Categoria"
-    final val managerName    = "Nome_responsabile"
-    final val managerSurname = "Cognome_responsabile"
-    final val digitalAddress = "Mail1"
+    final val id                = "Codice_IPA"
+    final val description       = "Denominazione_ente"
+    final val taxCode           = "Codice_fiscale_ente"
+    final val category          = "Codice_Categoria"
+    final val managerGivenName  = "Nome_responsabile"
+    final val managerFamilyName = "Cognome_responsabile"
+    final val digitalAddress    = "Mail1"
 
     final val fields: Set[String] =
-      Set(id, description, fiscalCode, category, managerName, managerSurname, digitalAddress)
+      Set(id, description, taxCode, category, managerGivenName, managerFamilyName, digitalAddress)
   }
 
   private object CategoriesFields {
@@ -43,22 +43,21 @@ object OpenDataService {
 
     response.records.flatMap { record =>
       for {
-        id             <- record(mapped(InstitutionsFields.id)).select[String]
-        fiscalCode     <- mapped.get(InstitutionsFields.fiscalCode).flatMap(idx => record(idx).select[String])
-        category       <- mapped.get(InstitutionsFields.category).flatMap(idx => record(idx).select[String])
-        managerName    <- mapped.get(InstitutionsFields.managerName).map(idx => record(idx).select[String])
-        managerSurname <- mapped.get(InstitutionsFields.managerSurname).map(idx => record(idx).select[String])
-        description    <- record(mapped(InstitutionsFields.description)).select[String]
-        digitalAddress <- mapped.get(InstitutionsFields.digitalAddress).flatMap(idx => record(idx).select[String])
+        id                <- record(mapped(InstitutionsFields.id)).select[String]
+        managerGivenName  <- record(mapped(InstitutionsFields.managerGivenName)).select[String]
+        managerFamilyName <- record(mapped(InstitutionsFields.managerFamilyName)).select[String]
+        taxCode           <- mapped.get(InstitutionsFields.taxCode).flatMap(idx => record(idx).select[String])
+        category          <- mapped.get(InstitutionsFields.category).flatMap(idx => record(idx).select[String])
+        description       <- record(mapped(InstitutionsFields.description)).select[String]
+        digitalAddress    <- mapped.get(InstitutionsFields.digitalAddress).flatMap(idx => record(idx).select[String])
       } yield Institution(
         id = id,
         o = Some(id),
         ou = None,
         aoo = None,
-        fiscalCode = fiscalCode,
+        taxCode = taxCode,
         category = category,
-        managerName = managerName,
-        managerSurname = managerSurname,
+        manager = Manager(managerGivenName, managerFamilyName),
         description = description,
         digitalAddress = digitalAddress
       )

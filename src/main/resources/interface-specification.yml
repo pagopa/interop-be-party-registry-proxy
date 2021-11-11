@@ -168,7 +168,7 @@ components:
           example: age
           pattern: '^[a-z]{1,12}$'
           maxLength: 12
-        fiscalCode:
+        taxCode:
           type: string
           description: institution fiscal code
           example: '00000000000'
@@ -180,18 +180,8 @@ components:
           example: 'c7'
           pattern: '[a-zA-Z\d]{1,12}'
           maxLength: 13
-        managerName:
-          type: string
-          description: manager name
-          example: Mario
-          format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
-          maxLength: 30
-        managerSurname:
-          type: string
-          description: manager surname
-          example: Rossi
-          format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
-          maxLength: 30
+        manager:
+          $ref: '#/components/schemas/Manager'
         description:
           type: string
           description: institution description
@@ -207,9 +197,10 @@ components:
       required:
         - id
         - category
-        - fiscalCode
+        - taxCode
         - digitalAddress
         - description
+        - manager
     Institutions:
       properties:
         items:
@@ -244,6 +235,25 @@ components:
             $ref: '#/components/schemas/Category'
       required:
         - items
+    Manager:
+      type: object
+      additionalProperties: false
+      properties:
+        givenName:
+          type: string
+          description: manager name
+          example: Mario
+          format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
+          maxLength: 30
+        familyName:
+          type: string
+          description: manager surname
+          example: Rossi
+          format: '^[A-Za-z èàòùìÈÀÒÙÌ]{2,30}$'
+          maxLength: 30
+      required:
+        - givenName
+        - familyName
     Problem:
       properties:
         detail:

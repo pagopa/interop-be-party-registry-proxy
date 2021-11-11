@@ -52,7 +52,7 @@ class InstitutionApiServiceImpl(
     logger.info(s"Searching for institution with $search")
 
     val result: Try[(List[Institution], Long)] =
-      institutionSearchService.searchByText(search, InstitutionFields.DESCRIPTION, page, limit)
+      institutionSearchService.searchByText(InstitutionFields.DESCRIPTION, search, page, limit)
 
     result.fold(
       ex => searchInstitution400(Problem(Option(ex.getMessage), 400, "Invalid")),

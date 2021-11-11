@@ -46,9 +46,14 @@ object Main extends App with CorsSupport {
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val categoriesSearchService: SearchService[Category]      = CategorySearchServiceImpl
   val institutionsSearchService: SearchService[Institution] = InstitutionSearchServiceImpl
+  val categoriesSearchService: SearchService[Category]      = CategorySearchServiceImpl
   val openDataService: OpenDataService                      = OpenDataServiceImpl(http)(actorSystem, executionContext)
+
+  locally {
+    val _ = loadOpenData(openDataService, institutionsSearchService, categoriesSearchService)
+    val _ = AkkaManagement.get(classicActorSystem).start()
+  }
 
   val institutionApi: InstitutionApi = new InstitutionApi(
     new InstitutionApiServiceImpl(institutionsSearchService, categoriesSearchService),
@@ -58,11 +63,6 @@ object Main extends App with CorsSupport {
 
   val initialDelay: Long = getInitialDelay(ApplicationConfiguration.cronTime)
 
-  locally {
-    val _ = loadOpenData(openDataService)
-    val _ = AkkaManagement.get(classicActorSystem).start()
-  }
-
   val controller = new Controller(healthApi, institutionApi)
 
   logger.error(s"Started build info = ${buildinfo.BuildInfo.toString}")
@@ -70,23 +70,31 @@ object Main extends App with CorsSupport {
   val bindingFuture =
     http.newServerAt("0.0.0.0", ApplicationConfiguration.serverPort).bind(corsHandler(controller.routes))
 
-  def loadOpenData(openDataService: OpenDataService): Unit = {
+  def loadOpenData(
+    openDataService: OpenDataService,
+    institutionsSearchService: SearchService[Institution],
+    categoriesSearchService: SearchService[Category]
+  ): Unit = {
+    logger.info(s"Loading open data")
     val result: Future[Unit] = for {
       institutions <- openDataService.getAllInstitutions
-      _            <- loadInstitutions(institutions)
+      _            <- loadInstitutions(institutionsSearchService, institutions)
       categories   <- openDataService.getAllCategories
-      _            <- loadCategories(categories)
+      _            <- loadCategories(categoriesSearchService, categories)
     } yield ()
 
     result.onComplete {
-      case Success(_) => logger.info(s"Institutions committed")
+      case Success(_) => logger.info(s"Open data committed")
       case Failure(ex) =>
         logger.error(s"Error trying to populate index, due: ${ex.getMessage}")
         ex.printStackTrace()
     }
   }
 
-  private def loadInstitutions(institutions: List[Institution]): Future[Long] = Future.fromTry {
+  private def loadInstitutions(
+    institutionsSearchService: SearchService[Institution],
+    institutions: List[Institution]
+  ): Future[Long] = Future.fromTry {
     logger.info("Loading institutions index from iPA")
     for {
       _ <- institutionsSearchService.adds(institutions)
@@ -94,7 +102,10 @@ object Main extends App with CorsSupport {
     } yield institutionsSearchService.commit()
   }
 
-  private def loadCategories(categories: List[Category]): Future[Long] = Future.fromTry {
+  private def loadCategories(
+    categoriesSearchService: SearchService[Category],
+    categories: List[Category]
+  ): Future[Long] = Future.fromTry {
     logger.info("Loading categories index from iPA")
     for {
       _ <- categoriesSearchService.adds(categories)
