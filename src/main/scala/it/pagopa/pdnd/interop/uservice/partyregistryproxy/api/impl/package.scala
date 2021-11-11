@@ -1,12 +1,6 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.api
 
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{
-  Categories,
-  Category,
-  Institution,
-  Institutions,
-  Problem
-}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model._
 import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat, RootJsonFormat, deserializationError}
 
 import java.time.LocalDate
@@ -50,7 +44,8 @@ package object impl extends DefaultJsonProtocol {
       }
     }
 
-  implicit val institutionFormat: RootJsonFormat[Institution]   = jsonFormat11(Institution.apply)
+  implicit val managerFormat: RootJsonFormat[Manager]           = jsonFormat2(Manager.apply)
+  implicit val institutionFormat: RootJsonFormat[Institution]   = jsonFormat9(Institution.apply)
   implicit val institutionsFormat: RootJsonFormat[Institutions] = jsonFormat2(Institutions.apply)
   implicit val categoryFormat: RootJsonFormat[Category]         = jsonFormat3(Category.apply)
   implicit val categoriesFormat: RootJsonFormat[Categories]     = jsonFormat1(Categories.apply)
