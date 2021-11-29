@@ -75,6 +75,10 @@ spec:
                   fieldPath: metadata.namespace
             - name: REQUIRED_CONTACT_POINT_NR
               value: "{{replicas}}"
+            - name: PARTY_REGISTRY_CATEGORIES_URL
+              value: "{{partyRegistryCategoriesURL}}"
+            - name: PARTY_REGISTRY_INSTITUTIONS_URL
+              value: "{{partyRegistryInstitutionsURL}}"
           volumeMounts:
             - name: application-conf
               mountPath: /opt/docker/etc
