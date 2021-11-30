@@ -32,7 +32,18 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{OpenDataServi
 import kamon.Kamon
 import org.slf4j.LoggerFactory
 
+import scala.util.{Failure, Success, Try}
+
 object Main extends App with CorsSupport {
+
+  private val reloadDataEndpoint = "config.reload_data_endpoint"
+
+  private def showReloadEndpoint: Option[Boolean] = {
+    Try { System.getProperties.getProperty(reloadDataEndpoint) } match {
+      case Success(str) => Option(str).flatMap(_.toBooleanOption)
+      case Failure(_)   => None
+    }
+  }
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -74,9 +85,14 @@ object Main extends App with CorsSupport {
 
   logger.error(s"Started build info = ${buildinfo.BuildInfo.toString}")
 
+  val availableRoutes = showReloadEndpoint match {
+    case Some(true) => loaderApi.route ~ controller.routes
+    case _          => controller.routes
+  }
+
   val bindingFuture =
     http
       .newServerAt("0.0.0.0", ApplicationConfiguration.serverPort)
-      .bind(corsHandler(loaderApi.route ~ controller.routes))
+      .bind(corsHandler(availableRoutes))
 
 }
