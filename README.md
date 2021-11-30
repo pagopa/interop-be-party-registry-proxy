@@ -5,7 +5,7 @@
 ### Setup reload endpoint
 
 By default, at startup, this component loads a Lucene dataset with all the available institutions and categories.  
-For testing purposes, you could enable an hidden endpoint to manually reload the dataset.  
+For testing purposes, you could enable a hidden endpoint to manually reload the dataset.  
 
 To enable it, you should launch the component with the following Java option:  
 
