@@ -1,5 +1,6 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.impl
 
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.management.scaladsl.AkkaManagement
@@ -7,9 +8,11 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
   HealthApiMarshallerImpl,
   HealthApiServiceImpl,
   InstitutionApiMarshallerImpl,
-  InstitutionApiServiceImpl
+  InstitutionApiServiceImpl,
+  LoaderApiMarshallerImpl,
+  LoaderApiServiceImpl
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{HealthApi, InstitutionApi}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{HealthApi, InstitutionApi, LoaderApi}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   ApplicationConfiguration,
   Authenticator,
@@ -28,9 +31,6 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{OpenDataService, SearchService}
 import kamon.Kamon
 import org.slf4j.LoggerFactory
-
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 object Main extends App with CorsSupport {
 
@@ -51,7 +51,7 @@ object Main extends App with CorsSupport {
   val openDataService: OpenDataService                      = OpenDataServiceImpl(http)(actorSystem, executionContext)
 
   locally {
-    val _ = loadOpenData(openDataService, institutionsSearchService, categoriesSearchService)
+    val _ = OpenDataLoading.loadOpenData(openDataService, institutionsSearchService, categoriesSearchService)
     val _ = AkkaManagement.get(classicActorSystem).start()
   }
 
@@ -61,6 +61,13 @@ object Main extends App with CorsSupport {
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
+  val loaderApi: LoaderApi =
+    new LoaderApi(
+      new LoaderApiServiceImpl(openDataService, institutionsSearchService, categoriesSearchService),
+      new LoaderApiMarshallerImpl(),
+      SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
+    )
+
   val initialDelay: Long = getInitialDelay(ApplicationConfiguration.cronTime)
 
   val controller = new Controller(healthApi, institutionApi)
@@ -68,48 +75,8 @@ object Main extends App with CorsSupport {
   logger.error(s"Started build info = ${buildinfo.BuildInfo.toString}")
 
   val bindingFuture =
-    http.newServerAt("0.0.0.0", ApplicationConfiguration.serverPort).bind(corsHandler(controller.routes))
+    http
+      .newServerAt("0.0.0.0", ApplicationConfiguration.serverPort)
+      .bind(corsHandler(loaderApi.route ~ controller.routes))
 
-  def loadOpenData(
-    openDataService: OpenDataService,
-    institutionsSearchService: SearchService[Institution],
-    categoriesSearchService: SearchService[Category]
-  ): Unit = {
-    logger.info(s"Loading open data")
-    val result: Future[Unit] = for {
-      institutions <- openDataService.getAllInstitutions
-      _            <- loadInstitutions(institutionsSearchService, institutions)
-      categories   <- openDataService.getAllCategories
-      _            <- loadCategories(categoriesSearchService, categories)
-    } yield ()
-
-    result.onComplete {
-      case Success(_) => logger.info(s"Open data committed")
-      case Failure(ex) =>
-        logger.error(s"Error trying to populate index, due: ${ex.getMessage}")
-        ex.printStackTrace()
-    }
-  }
-
-  private def loadInstitutions(
-    institutionsSearchService: SearchService[Institution],
-    institutions: List[Institution]
-  ): Future[Long] = Future.fromTry {
-    logger.info("Loading institutions index from iPA")
-    for {
-      _ <- institutionsSearchService.adds(institutions)
-      _ = logger.info(s"Institutions inserted")
-    } yield institutionsSearchService.commit()
-  }
-
-  private def loadCategories(
-    categoriesSearchService: SearchService[Category],
-    categories: List[Category]
-  ): Future[Long] = Future.fromTry {
-    logger.info("Loading categories index from iPA")
-    for {
-      _ <- categoriesSearchService.adds(categories)
-      _ = logger.info(s"Categories inserted")
-    } yield categoriesSearchService.commit()
-  }
 }

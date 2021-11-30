@@ -13,8 +13,10 @@ import scala.concurrent.duration.DurationInt
 
 package object system {
 
+  val projectName = "pdnd-interop-uservice-party-registry-proxy"
+
   val actorSystem: ActorSystem[Nothing] =
-    ActorSystem[Nothing](Behaviors.empty, "pdnd-interop-uservice-party-registry-proxy")
+    ActorSystem[Nothing](Behaviors.empty, projectName)
 
   implicit val executionContext: ExecutionContext = actorSystem.executionContext
 
