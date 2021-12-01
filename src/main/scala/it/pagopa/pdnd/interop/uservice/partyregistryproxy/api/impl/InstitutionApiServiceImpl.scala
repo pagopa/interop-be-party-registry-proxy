@@ -6,15 +6,15 @@ import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.InstitutionApiService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model._
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.SearchService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.InstitutionFields
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.{Failure, Success, Try}
 
 class InstitutionApiServiceImpl(
-  institutionSearchService: SearchService[Institution],
-  categoriesSearchService: SearchService[Category]
+  institutionSearchService: IndexSearchService[Institution],
+  categoriesSearchService: IndexSearchService[Category]
 ) extends InstitutionApiService {
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 

@@ -1,32 +1,23 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl
 
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Institution
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.SearchService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util.DocumentConverter
-import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig, Term}
+import org.apache.lucene.index.{DirectoryReader, Term}
 import org.apache.lucene.search._
-import org.apache.lucene.store.ByteBuffersDirectory
+import org.apache.lucene.store.FSDirectory
 
+import java.nio.file.Paths
 import scala.util.{Failure, Try}
 
-case object InstitutionSearchServiceImpl extends SearchService[Institution] {
+case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institution] {
 
-  private val dir: ByteBuffersDirectory  = new ByteBuffersDirectory()
-  private val analyzer: StandardAnalyzer = new StandardAnalyzer()
-  private val config: IndexWriterConfig  = new IndexWriterConfig(analyzer)
-  private val writer: IndexWriter        = new IndexWriter(dir, config)
-
-  override def adds(items: List[Institution]): Try[Unit] = Try {
-
-    items.foreach { item =>
-      writer.updateDocument(new Term(InstitutionFields.ID, item.id), item.toDocument)
-    }
-
-  }
+  private val dir: FSDirectory            = FSDirectory.open(Paths.get(ApplicationConfiguration.institutionsIndexDir))
+  private val mainReader: DirectoryReader = DirectoryReader.open(dir)
 
   override def searchById(id: String): Try[Option[Institution]] = Try {
-    val reader: DirectoryReader = DirectoryReader.open(writer)
+    val reader: DirectoryReader = DirectoryReader.openIfChanged(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val query         = new TermQuery(new Term(InstitutionFields.ID, id))
@@ -45,11 +36,11 @@ case object InstitutionSearchServiceImpl extends SearchService[Institution] {
     page: Int,
     limit: Int
   ): Try[(List[Institution], Long)] = {
-    val reader: DirectoryReader = DirectoryReader.open(writer)
+    val reader: DirectoryReader = DirectoryReader.openIfChanged(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val documents: Try[(List[ScoreDoc], Long)] = {
-      val search = searchFunc(reader, analyzer, searcher)
+      val search = searchFunc(reader, searcher)
       search(searchingField, searchText, page, limit)
     }
 
@@ -64,11 +55,5 @@ case object InstitutionSearchServiceImpl extends SearchService[Institution] {
 
   //TODO add pagination, low priority
   override def getAllItems: Try[List[Institution]] = Failure(new RuntimeException("Not implemented"))
-
-  def deleteAll(): Try[Long] = Try(writer.deleteAll())
-
-  def commit(): Long = {
-    writer.commit()
-  }
 
 }

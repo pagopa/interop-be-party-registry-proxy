@@ -21,11 +21,17 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{
-  CategorySearchServiceImpl,
-  InstitutionSearchServiceImpl,
+  CategoryIndexSearchServiceImpl,
+  CategoryIndexWriterServiceImpl,
+  InstitutionIndexSearchServiceImpl,
+  InstitutionIndexWriterServiceImpl,
   OpenDataServiceImpl
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{OpenDataService, SearchService}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{
+  IndexSearchService,
+  IndexWriterService,
+  OpenDataService
+}
 import kamon.Kamon
 import org.slf4j.LoggerFactory
 
@@ -46,14 +52,17 @@ object Main extends App with CorsSupport {
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val institutionsSearchService: SearchService[Institution] = InstitutionSearchServiceImpl
-  val categoriesSearchService: SearchService[Category]      = CategorySearchServiceImpl
-  val openDataService: OpenDataService                      = OpenDataServiceImpl(http)(actorSystem, executionContext)
+  val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
+  val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
+  val openDataService: OpenDataService                           = OpenDataServiceImpl(http)(actorSystem, executionContext)
 
   locally {
-    val _ = loadOpenData(openDataService, institutionsSearchService, categoriesSearchService)
+    val _ = loadOpenData(openDataService, institutionsWriterService, categoriesWriterService)
     val _ = AkkaManagement.get(classicActorSystem).start()
   }
+
+  val institutionsSearchService: IndexSearchService[Institution] = InstitutionIndexSearchServiceImpl
+  val categoriesSearchService: IndexSearchService[Category]      = CategoryIndexSearchServiceImpl
 
   val institutionApi: InstitutionApi = new InstitutionApi(
     new InstitutionApiServiceImpl(institutionsSearchService, categoriesSearchService),
@@ -72,15 +81,15 @@ object Main extends App with CorsSupport {
 
   def loadOpenData(
     openDataService: OpenDataService,
-    institutionsSearchService: SearchService[Institution],
-    categoriesSearchService: SearchService[Category]
+    institutionsIndexWriterService: IndexWriterService[Institution],
+    categoriesIndexWriterService: IndexWriterService[Category]
   ): Unit = {
     logger.info(s"Loading open data")
     val result: Future[Unit] = for {
       institutions <- openDataService.getAllInstitutions
-      _            <- loadInstitutions(institutionsSearchService, institutions)
+      _            <- loadInstitutions(institutionsIndexWriterService, institutions)
       categories   <- openDataService.getAllCategories
-      _            <- loadCategories(categoriesSearchService, categories)
+      _            <- loadCategories(categoriesIndexWriterService, categories)
     } yield ()
 
     result.onComplete {
@@ -92,24 +101,26 @@ object Main extends App with CorsSupport {
   }
 
   private def loadInstitutions(
-    institutionsSearchService: SearchService[Institution],
+    institutionsIndexWriterService: IndexWriterService[Institution],
     institutions: List[Institution]
-  ): Future[Long] = Future.fromTry {
+  ): Future[Unit] = Future.fromTry {
     logger.info("Loading institutions index from iPA")
     for {
-      _ <- institutionsSearchService.adds(institutions)
+      _ <- institutionsIndexWriterService.adds(institutions)
       _ = logger.info(s"Institutions inserted")
-    } yield institutionsSearchService.commit()
+      _ <- institutionsIndexWriterService.commit()
+    } yield ()
   }
 
   private def loadCategories(
-    categoriesSearchService: SearchService[Category],
+    categoriesIndexWriterService: IndexWriterService[Category],
     categories: List[Category]
-  ): Future[Long] = Future.fromTry {
+  ): Future[Unit] = Future.fromTry {
     logger.info("Loading categories index from iPA")
     for {
-      _ <- categoriesSearchService.adds(categories)
+      _ <- categoriesIndexWriterService.adds(categories)
       _ = logger.info(s"Categories inserted")
-    } yield categoriesSearchService.commit()
+      _ <- categoriesIndexWriterService.commit()
+    } yield ()
   }
 }

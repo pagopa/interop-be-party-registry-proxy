@@ -1,17 +1,45 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service
 
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution}
-import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.analysis.it.ItalianAnalyzer
+import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilter
+import org.apache.lucene.analysis.ngram.NGramTokenFilter
+import org.apache.lucene.analysis.standard.StandardTokenizer
+import org.apache.lucene.analysis.{Analyzer, LowerCaseFilter, StopFilter}
 import org.apache.lucene.document._
-import org.apache.lucene.index.DirectoryReader
+import org.apache.lucene.index.{DirectoryReader, IndexWriter}
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
+import org.apache.lucene.store.LockObtainFailedException
 import org.apache.lucene.util.BytesRef
 
 import javax.naming.directory.SearchResult
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 package object impl {
+
+  case object NGramTokenAnalyzer extends Analyzer {
+
+    override def createComponents(fieldName: String): Analyzer.TokenStreamComponents = {
+      val source: StandardTokenizer    = new StandardTokenizer()
+      val lowerFilter: LowerCaseFilter = new LowerCaseFilter(source)
+      val stopFilter: StopFilter       = new StopFilter(lowerFilter, ItalianAnalyzer.getDefaultStopSet)
+      val ascii: ASCIIFoldingFilter    = new ASCIIFoldingFilter(stopFilter)
+      val ngram: NGramTokenFilter      = new NGramTokenFilter(ascii, 3, 5, true)
+      new Analyzer.TokenStreamComponents(source, ngram)
+    }
+  }
+
+  def useWriter[A](writer: Try[IndexWriter], f: IndexWriter => Try[A], zero: A): Try[A] = writer match {
+    case Success(wr)                           => f(wr)
+    case Failure(_: LockObtainFailedException) => Success(zero)
+    case Failure(ex)                           => Failure(ex)
+  }
+
+  def commitAndClose(writer: IndexWriter): Try[Unit] = Try {
+    writer.commit()
+    writer.close()
+  }
 
   implicit class SearchResultOps(val result: SearchResult) extends AnyVal {
     def extract(attributeName: String): Option[String] = {
@@ -41,18 +69,18 @@ package object impl {
 
   def searchFunc(
     reader: DirectoryReader,
-    analyzer: StandardAnalyzer,
     searcher: IndexSearcher
   ): (String, String, Int, Int) => Try[(List[ScoreDoc], Long)] = (searchingField, searchTxt, page, limit) =>
     Try {
 
       val collector: TopScoreDocCollector = TopScoreDocCollector.create(reader.numDocs, Int.MaxValue)
       val startIndex: Int                 = (page - 1) * limit
-      val parser: QueryParser             = new QueryParser(searchingField, analyzer)
-      val query: Query                    = parser.parse(searchTxt)
-      val _                               = searcher.search(query, collector)
-      val hits: TopDocs                   = collector.topDocs(startIndex, limit)
-      val scores: List[ScoreDoc]          = hits.scoreDocs.toList
+      val parser: QueryParser             = new QueryParser(searchingField, NGramTokenAnalyzer)
+      parser.setPhraseSlop(4)
+      val query: Query           = parser.parse(searchTxt)
+      val _                      = searcher.search(query, collector)
+      val hits: TopDocs          = collector.topDocs(startIndex, limit)
+      val scores: List[ScoreDoc] = hits.scoreDocs.toList
 
       (scores, hits.totalHits.value)
     }
