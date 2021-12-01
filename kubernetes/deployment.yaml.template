@@ -19,17 +19,13 @@ spec:
       imagePullSecrets:
         - name: regcred
       volumes:
-        - name: application-conf
-          secret:
-            secretName: application.conf
-            defaultMode: 420
         - name: index-volume
           emptyDir: {}
       containers:
         - name: {{name}}
           image: {{repository}}/services/{{name}}:{{version}}
           command: ["bin/{{name}}"]
-          args: ["-Dconfig.file=etc/application.conf", "-Dconfig.override_with_env_vars=true", "-Dconfig.reload_data_endpoint=true"]
+          args: ["-Dconfig.override_with_env_vars=true"]
           imagePullPolicy: Always
           readinessProbe:
             httpGet:
@@ -76,8 +72,6 @@ spec:
             - name: REQUIRED_CONTACT_POINT_NR
               value: "{{replicas}}"
           volumeMounts:
-            - name: application-conf
-              mountPath: /opt/docker/etc
             - name: index-volume
               mountPath: /opt/docker/index
 ---

@@ -24,7 +24,8 @@ class InstitutionApiServiceImpl(
     */
   override def getInstitutionById(institutionId: String)(implicit
     toEntityMarshallerInstitutionIPA: ToEntityMarshaller[Institution],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
+    contexts: Seq[(String, String)]
   ): Route = {
     logger.info(s"Retrieving institution $institutionId")
     val result: Try[Option[Institution]] = institutionSearchService.searchById(institutionId)
@@ -47,7 +48,8 @@ class InstitutionApiServiceImpl(
     */
   override def searchInstitution(search: String, page: Int, limit: Int)(implicit
     toEntityMarshallerProblem: ToEntityMarshaller[Problem],
-    toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions]
+    toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions],
+    contexts: Seq[(String, String)]
   ): Route = {
     logger.info(s"Searching for institution with $search")
 
@@ -72,7 +74,8 @@ class InstitutionApiServiceImpl(
     */
   override def getCategories()(implicit
     toEntityMarshallerCategories: ToEntityMarshaller[Categories],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
+    contexts: Seq[(String, String)]
   ): Route = {
     val categories: Try[List[Category]] = categoriesSearchService.getAllItems
     categories match {

@@ -26,8 +26,8 @@ package object system {
 
   implicit val scheduler: Scheduler = actorSystem.scheduler
 
-  object Authenticator extends Authenticator[Unit] {
-    override def apply(credentials: Credentials): Option[Unit] = Some(())
+  object Authenticator extends Authenticator[Seq[(String, String)]] {
+    override def apply(credentials: Credentials): Option[Seq[(String, String)]] = Some(Seq.empty)
   }
 
 }

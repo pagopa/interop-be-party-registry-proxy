@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-object OpenDataLoading {
+object OpenDataLoader {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 

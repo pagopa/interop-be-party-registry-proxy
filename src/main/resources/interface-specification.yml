@@ -13,6 +13,8 @@ info:
 servers:
   - url: 'https://gateway.interop.pdnd.dev/pdnd-interop-uservice-party-registry-proxy/{{version}}'
     description: This service is the proxy to the party registry
+security:
+  - bearerAuth: [ ]
 tags:
   - name: institution
     description: Retrieve information about institution
@@ -21,6 +23,11 @@ tags:
       url: http://swagger.io
   - name: health
     description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+  - name: loader
+    description: Load data
     externalDocs:
       description: Find out more
       url: http://swagger.io
@@ -104,7 +111,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
-  /catergories:
+  /categories:
     get:
       tags:
         - institution
@@ -120,6 +127,22 @@ paths:
                 $ref: '#/components/schemas/Categories'
         '404':
           description: Categories not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /reload:
+    get:
+      tags:
+        - loader
+      summary: Reload all data
+      description: Reload all data
+      operationId: reloadData
+      responses:
+        '204':
+          description: successful operation
+        '400':
+          description: Reload data failed
           content:
             application/problem+json:
               schema:
@@ -284,3 +307,9 @@ components:
       required:
         - status
         - title
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: 'A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).'
+      scheme: bearer
+      bearerFormat: JWT

@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives.onComplete
 import akka.http.scaladsl.server.Route
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.LoaderApiService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution, Problem}
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.impl.OpenDataLoading
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.impl.OpenDataLoader
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{OpenDataService, SearchService}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -25,11 +25,12 @@ class LoaderApiServiceImpl(
     * Code: 400, Message: Invalid ID supplied, DataType: Problem
     * Code: 404, Message: Institution not found, DataType: Problem
     */
-  override def reloadData(
-    cronExpression: Option[String]
-  )(implicit toEntityMarshallerProblem: ToEntityMarshaller[Problem]): Route = {
+  override def reloadData()(implicit
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
+    contexts: Seq[(String, String)]
+  ): Route = {
     val result = for {
-      _ <- OpenDataLoading.futureLoadOpenData(openDataService, institutionsSearchService, categoriesSearchService)
+      _ <- OpenDataLoader.futureLoadOpenData(openDataService, institutionsSearchService, categoriesSearchService)
     } yield ()
 
     onComplete(result) {

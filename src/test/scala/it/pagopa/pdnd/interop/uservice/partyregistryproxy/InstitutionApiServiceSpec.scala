@@ -3,20 +3,14 @@ package it.pagopa.pdnd.interop.uservice.partyregistryproxy
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directive1
-import akka.http.scaladsl.server.directives.SecurityDirectives
+import akka.http.scaladsl.server.directives.{AuthenticationDirective, SecurityDirectives}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
   InstitutionApiMarshallerImpl,
   InstitutionApiServiceImpl,
   _
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{
-  HealthApi,
-  InstitutionApi,
-  InstitutionApiMarshaller,
-  InstitutionApiService
-}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   Authenticator,
   classicActorSystem,
@@ -50,18 +44,25 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
   val institutionSearchService: SearchService[Institution] = mock[SearchService[Institution]]
   val categorySearchService: SearchService[Category]       = mock[SearchService[Category]]
 
+  val loaderService: LoaderApiService       = mock[LoaderApiService]
+  val loaderMarshaller: LoaderApiMarshaller = mock[LoaderApiMarshaller]
+
   override def beforeAll(): Unit = {
 
-    val wrappingDirective: Directive1[Unit] = SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
+    val wrappingDirective: AuthenticationDirective[Seq[(String, String)]] =
+      SecurityDirectives.authenticateOAuth2("SecurityRealm", Authenticator)
 
     val institutionApiService: InstitutionApiService =
       new InstitutionApiServiceImpl(institutionSearchService, categorySearchService)
     val institutionApi: InstitutionApi =
       new InstitutionApi(institutionApiService, institutionApiMarshaller, wrappingDirective)
 
+    val loaderApi: LoaderApi =
+      new LoaderApi(loaderService, loaderMarshaller, wrappingDirective)
+
     val healthApi: HealthApi = mock[HealthApi]
 
-    controller = Some(new Controller(healthApi, institutionApi))
+    controller = Some(new Controller(healthApi, institutionApi, loaderApi))
 
     controller foreach { controller =>
       bindServer = Some(
