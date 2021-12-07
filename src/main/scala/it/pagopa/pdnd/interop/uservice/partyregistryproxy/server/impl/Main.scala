@@ -35,7 +35,8 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{
 import kamon.Kamon
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success}
 
 object Main extends App with CorsSupport {
@@ -98,6 +99,8 @@ object Main extends App with CorsSupport {
         logger.error(s"Error trying to populate index, due: ${ex.getMessage}")
         ex.printStackTrace()
     }
+
+    Await.result(result, Duration.Inf)
   }
 
   private def loadInstitutions(

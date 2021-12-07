@@ -17,7 +17,7 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
   private val mainReader: DirectoryReader = DirectoryReader.open(dir)
 
   override def searchById(id: String): Try[Option[Category]] = Try {
-    val reader: DirectoryReader = DirectoryReader.openIfChanged(mainReader)
+    val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val query: TermQuery = new TermQuery(new Term(CategoryFields.CODE, id))
@@ -25,8 +25,6 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
 
     val results: Option[Category] =
       hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).find(_.code == id)
-
-    reader.close()
 
     results
   }
@@ -37,7 +35,7 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
     page: Int,
     limit: Int
   ): Try[(List[Category], Long)] = {
-    val reader: DirectoryReader = DirectoryReader.openIfChanged(mainReader)
+    val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val documents: Try[(List[ScoreDoc], Long)] = {
@@ -49,21 +47,17 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
       scores.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))) -> count
     }
 
-    reader.close()
-
     results
   }
 
   override def getAllItems: Try[List[Category]] = Try {
-    val reader: DirectoryReader = DirectoryReader.openIfChanged(mainReader)
+    val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val query: MatchAllDocsQuery = new MatchAllDocsQuery
     val hits: TopDocs            = searcher.search(query, reader.numDocs)
 
     val results: List[Category] = hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).toList
-
-    reader.close()
 
     results
   }

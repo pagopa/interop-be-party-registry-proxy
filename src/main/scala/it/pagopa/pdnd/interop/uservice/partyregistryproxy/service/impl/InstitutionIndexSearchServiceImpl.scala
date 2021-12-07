@@ -17,15 +17,13 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
   private val mainReader: DirectoryReader = DirectoryReader.open(dir)
 
   override def searchById(id: String): Try[Option[Institution]] = Try {
-    val reader: DirectoryReader = DirectoryReader.openIfChanged(mainReader)
+    val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val query         = new TermQuery(new Term(InstitutionFields.ID, id))
     val hits: TopDocs = searcher.search(query, 1)
 
     val results = hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).find(_.id == id)
-
-    reader.close()
 
     results
   }
@@ -36,7 +34,7 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     page: Int,
     limit: Int
   ): Try[(List[Institution], Long)] = {
-    val reader: DirectoryReader = DirectoryReader.openIfChanged(mainReader)
+    val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val documents: Try[(List[ScoreDoc], Long)] = {
@@ -47,8 +45,6 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     val results: Try[(List[Institution], Long)] = documents.map { case (scores, count) =>
       scores.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))) -> count
     }
-
-    reader.close()
 
     results
   }

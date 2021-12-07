@@ -41,6 +41,10 @@ package object impl {
     writer.close()
   }
 
+  def getDirectoryReader(reader: DirectoryReader): DirectoryReader = {
+    Option(DirectoryReader.openIfChanged(reader)).getOrElse(reader)
+  }
+
   implicit class SearchResultOps(val result: SearchResult) extends AnyVal {
     def extract(attributeName: String): Option[String] = {
       Option(result.getAttributes.get(attributeName)).map(_.get().asInstanceOf[String])
