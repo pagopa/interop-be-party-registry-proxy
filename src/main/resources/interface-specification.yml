@@ -104,7 +104,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
-  /catergories:
+  /categories:
     get:
       tags:
         - institution
