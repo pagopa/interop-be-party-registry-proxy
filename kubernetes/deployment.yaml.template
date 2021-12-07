@@ -23,7 +23,9 @@ spec:
           secret:
             secretName: application.conf
             defaultMode: 420
-        - name: index-volume
+        - name: categories-index-volume
+          emptyDir: {}
+        - name: institutions-index-volume
           emptyDir: {}
       containers:
         - name: {{name}}
@@ -82,8 +84,10 @@ spec:
           volumeMounts:
             - name: application-conf
               mountPath: /opt/docker/etc
-            - name: index-volume
-              mountPath: /opt/docker/index
+            - name: categories-index-volume
+              mountPath: /opt/docker/index/categories
+            - name: institutions-index-volume
+              mountPath: /opt/docker/index/institutions
 ---
 apiVersion: v1
 kind: Service

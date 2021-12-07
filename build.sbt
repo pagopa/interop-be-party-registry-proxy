@@ -111,7 +111,7 @@ lazy val root = (project in file("."))
       else
         s"v$buildVersion"
     }".toLowerCase,
-    Docker / packageName := s"${name.value}",
+    Docker / packageName := s"services/${name.value}",
     Docker / dockerExposedPorts := Seq(8080),
     scalafmtOnCompile := true,
     Docker / maintainer := "https://pagopa.it",
