@@ -24,7 +24,7 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.SearchService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.InstitutionFields
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
@@ -54,10 +54,10 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
   val url: String =
     s"http://localhost:8088/pdnd-interop-uservice-party-registry-proxy/${buildinfo.BuildInfo.interfaceVersion}/institutions"
 
-  var controller: Option[Controller]                       = None
-  var bindServer: Option[Future[Http.ServerBinding]]       = None
-  val institutionSearchService: SearchService[Institution] = mock[SearchService[Institution]]
-  val categorySearchService: SearchService[Category]       = mock[SearchService[Category]]
+  var controller: Option[Controller]                            = None
+  var bindServer: Option[Future[Http.ServerBinding]]            = None
+  val institutionSearchService: IndexSearchService[Institution] = mock[IndexSearchService[Institution]]
+  val categorySearchService: IndexSearchService[Category]       = mock[IndexSearchService[Category]]
 
   override def beforeAll(): Unit = {
 

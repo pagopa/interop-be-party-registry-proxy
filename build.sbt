@@ -1,4 +1,5 @@
 import ProjectSettings.ProjectFrom
+import com.typesafe.sbt.packager.docker.Cmd
 ThisBuild / scalaVersion := "2.13.6"
 ThisBuild / organization := "it.pagopa"
 ThisBuild / organizationName := "Pagopa S.p.A."
@@ -83,6 +84,7 @@ lazy val client = project
         m
     ),
     updateOptions := updateOptions.value.withGigahorse(false),
+    Docker / publish := {},
     publishTo := {
       val nexus = s"https://${System.getenv("MAVEN_REPO")}/nexus/repository/"
 
@@ -109,9 +111,11 @@ lazy val root = (project in file("."))
       else
         s"v$buildVersion"
     }".toLowerCase,
-    Docker / packageName := s"services/${name.value}",
+    Docker / packageName := s"${name.value}",
     Docker / dockerExposedPorts := Seq(8080),
-    scalafmtOnCompile := true
+    scalafmtOnCompile := true,
+    Docker / maintainer := "https://pagopa.it",
+    dockerCommands += Cmd("LABEL", s"org.opencontainers.image.source https://github.com/pagopa/${name.value}")
   )
   .aggregate(client)
   .dependsOn(generated)

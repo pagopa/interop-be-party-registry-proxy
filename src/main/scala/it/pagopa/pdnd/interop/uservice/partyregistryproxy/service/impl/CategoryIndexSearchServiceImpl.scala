@@ -1,30 +1,23 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl
 
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Category
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.SearchService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util.DocumentConverter
-import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig, Term}
+import org.apache.lucene.index.{DirectoryReader, Term}
 import org.apache.lucene.search._
-import org.apache.lucene.store.ByteBuffersDirectory
+import org.apache.lucene.store.FSDirectory
 
+import java.nio.file.Paths
 import scala.util.Try
 
-case object CategorySearchServiceImpl extends SearchService[Category] {
+case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] {
 
-  private val dir: ByteBuffersDirectory  = new ByteBuffersDirectory()
-  private val analyzer: StandardAnalyzer = new StandardAnalyzer()
-  private val config: IndexWriterConfig  = new IndexWriterConfig(analyzer)
-  private val writer: IndexWriter        = new IndexWriter(dir, config)
-
-  override def adds(items: List[Category]): Try[Unit] = Try {
-    items.foreach { item =>
-      writer.updateDocument(new Term(CategoryFields.CODE, item.code), item.toDocument)
-    }
-  }
+  private val dir: FSDirectory            = FSDirectory.open(Paths.get(ApplicationConfiguration.categoriesIndexDir))
+  private val mainReader: DirectoryReader = DirectoryReader.open(dir)
 
   override def searchById(id: String): Try[Option[Category]] = Try {
-    val reader: DirectoryReader = DirectoryReader.open(writer)
+    val reader: DirectoryReader = DirectoryReader.openIfChanged(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val query: TermQuery = new TermQuery(new Term(CategoryFields.CODE, id))
@@ -44,11 +37,11 @@ case object CategorySearchServiceImpl extends SearchService[Category] {
     page: Int,
     limit: Int
   ): Try[(List[Category], Long)] = {
-    val reader: DirectoryReader = DirectoryReader.open(writer)
+    val reader: DirectoryReader = DirectoryReader.openIfChanged(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val documents: Try[(List[ScoreDoc], Long)] = {
-      val search = searchFunc(reader, analyzer, searcher)
+      val search = searchFunc(reader, searcher)
       search(searchingField, searchText, page, limit)
     }
 
@@ -62,7 +55,7 @@ case object CategorySearchServiceImpl extends SearchService[Category] {
   }
 
   override def getAllItems: Try[List[Category]] = Try {
-    val reader: DirectoryReader = DirectoryReader.open(writer)
+    val reader: DirectoryReader = DirectoryReader.openIfChanged(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val query: MatchAllDocsQuery = new MatchAllDocsQuery
@@ -74,9 +67,5 @@ case object CategorySearchServiceImpl extends SearchService[Category] {
 
     results
   }
-
-  def deleteAll(): Try[Long] = Try(writer.deleteAll())
-
-  def commit(): Long = writer.commit()
 
 }
