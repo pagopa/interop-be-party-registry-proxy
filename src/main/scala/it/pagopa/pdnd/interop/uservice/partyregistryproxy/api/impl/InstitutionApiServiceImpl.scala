@@ -30,12 +30,13 @@ class InstitutionApiServiceImpl(
     val result: Try[Option[Institution]] = institutionSearchService.searchById(institutionId)
 
     result.fold(
-      ex => getInstitutionById400(Problem(Option(ex.getMessage), 400, "Invalid")),
+      ex => getInstitutionById400(problemOf(StatusCodes.BadRequest, "0001", ex, "Invalid")),
       institution =>
-        institution.fold(getInstitutionById404(Problem(detail = None, status = 404, title = "Not found"))) {
-          institution =>
-            logger.info(s"Institution $institutionId retrieved")
-            getInstitutionById200(institution)
+        institution.fold(
+          getInstitutionById404(problemOf(StatusCodes.NotFound, "0002", defaultMessage = "Institution not found"))
+        ) { institution =>
+          logger.info(s"Institution $institutionId retrieved")
+          getInstitutionById200(institution)
         }
     )
 
@@ -55,10 +56,10 @@ class InstitutionApiServiceImpl(
       institutionSearchService.searchByText(InstitutionFields.DESCRIPTION, search, page, limit)
 
     result.fold(
-      ex => searchInstitution400(Problem(Option(ex.getMessage), 400, "Invalid")),
+      ex => searchInstitution400(problemOf(StatusCodes.BadRequest, "0003", ex, "Invalid")),
       tuple => {
         if (tuple._1.isEmpty)
-          searchInstitution404(Problem(None, 404, "Not found"))
+          searchInstitution404(problemOf(StatusCodes.NotFound, "0004", defaultMessage = "Not Found"))
         else {
           searchInstitution200(Institutions.tupled(tuple))
         }
@@ -76,10 +77,12 @@ class InstitutionApiServiceImpl(
   ): Route = {
     val categories: Try[List[Category]] = categoriesSearchService.getAllItems
     categories match {
-      case Success(values) if values.isEmpty => getCategories404(Problem(None, 404, "No category found"))
-      case Success(values)                   => getCategories200(Categories(values))
+      case Success(values) if values.isEmpty =>
+        getCategories404(problemOf(StatusCodes.NotFound, "0005", defaultMessage = "No category found"))
+      case Success(values) => getCategories200(Categories(values))
       case Failure(ex) =>
-        complete(StatusCodes.InternalServerError, Problem(Option(ex.getMessage), 500, "Something went wrong"))
+        val error = problemOf(StatusCodes.InternalServerError, "0006", ex)
+        complete(error.status, error)
     }
   }
 }

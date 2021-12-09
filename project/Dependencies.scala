@@ -1,3 +1,4 @@
+import PDNDVersions.commonsVersion
 import Versions._
 import sbt._
 
@@ -45,6 +46,12 @@ object Dependencies {
     lazy val prometheus = namespace %% "kamon-prometheus" % kamonVersion
   }
 
+  private[this] object pagopa {
+    lazy val namespace = "it.pagopa"
+
+    lazy val commonsUtils = namespace %% "pdnd-interop-commons-utils" % commonsVersion
+  }
+
   private[this] object scalatest {
     lazy val namespace = "org.scalatest"
     lazy val core      = namespace %% "scalatest" % scalatestVersion
@@ -68,23 +75,24 @@ object Dependencies {
       // For making Java 12 happy
       "javax.annotation" % "javax.annotation-api" % "1.3.2" % "compile",
       //
-      akka.actorTyped              % Compile,
-      akka.stream                  % Compile,
       akka.actor                   % Compile,
+      akka.actorTyped              % Compile,
       akka.http                    % Compile,
       akka.httpJson                % Compile,
       akka.management              % Compile,
-      shapeless.shapeless          % Compile,
-      lucene.core                  % Compile,
-      lucene.analyzersCommon       % Compile,
-      lucene.queryParser           % Compile,
-      lucene.luceneSuggest         % Compile,
-      openapi4j.operationValidator % Compile,
-      logback.classic              % Compile,
       akka.slf4j                   % Compile,
+      akka.stream                  % Compile,
       kamon.bundle                 % Compile,
       kamon.prometheus             % Compile,
+      logback.classic              % Compile,
+      lucene.analyzersCommon       % Compile,
+      lucene.core                  % Compile,
+      lucene.luceneSuggest         % Compile,
+      lucene.queryParser           % Compile,
       mustache.mustache            % Compile,
+      openapi4j.operationValidator % Compile,
+      pagopa.commonsUtils          % Compile,
+      shapeless.shapeless          % Compile,
       scalatest.core               % Test,
       scalamock.core               % Test
     )
