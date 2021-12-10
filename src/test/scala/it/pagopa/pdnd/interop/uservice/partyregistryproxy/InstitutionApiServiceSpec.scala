@@ -318,6 +318,6 @@ object ServiceSpecSupport {
 
   final lazy val institutions = List(institutionOne, institutionTwo, institutionThree, institutionFour)
 
-  final lazy val responseNotFound = Problem(None, 404, "Not found")
-  final lazy val responseInvalid  = Problem(Some("Something goes wrong"), 400, "Invalid")
+  final lazy val responseNotFound = problemOf(StatusCodes.NotFound, "0004", defaultMessage = "Not Found")
+  final lazy val responseInvalid  = problemOf(StatusCodes.BadRequest, "0003", defaultMessage = "Something goes wrong")
 }
