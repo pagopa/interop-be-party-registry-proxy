@@ -96,8 +96,7 @@ object Main extends App with CorsSupport {
     result.onComplete {
       case Success(_) => logger.info(s"Open data committed")
       case Failure(ex) =>
-        logger.error(s"Error trying to populate index, due: ${ex.getMessage}")
-        ex.printStackTrace()
+        logger.error("Error trying to populate index", ex)
     }
 
     Await.result(result, Duration.Inf)

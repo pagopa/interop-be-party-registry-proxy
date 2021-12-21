@@ -16,6 +16,7 @@ class InstitutionApiServiceImpl(
   institutionSearchService: IndexSearchService[Institution],
   categoriesSearchService: IndexSearchService[Category]
 ) extends InstitutionApiService {
+
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   /** Code: 200, Message: successful operation, DataType: InstitutionIPA
@@ -26,16 +27,20 @@ class InstitutionApiServiceImpl(
     toEntityMarshallerInstitutionIPA: ToEntityMarshaller[Institution],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
-    logger.info(s"Retrieving institution $institutionId")
+    logger.info("Retrieving institution {}", institutionId)
     val result: Try[Option[Institution]] = institutionSearchService.searchById(institutionId)
 
     result.fold(
-      ex => getInstitutionById400(problemOf(StatusCodes.BadRequest, "0001", ex, "Invalid")),
+      ex => {
+        logger.error("Error while retrieving institution {}", institutionId, ex)
+        getInstitutionById400(problemOf(StatusCodes.BadRequest, "0001", ex, "Invalid"))
+      },
       institution =>
-        institution.fold(
+        institution.fold({
+          logger.error("Error while retrieving institution {} - Institution not found", institutionId)
           getInstitutionById404(problemOf(StatusCodes.NotFound, "0002", defaultMessage = "Institution not found"))
-        ) { institution =>
-          logger.info(s"Institution $institutionId retrieved")
+        }) { institution =>
+          logger.info("Institution {} retrieved", institutionId)
           getInstitutionById200(institution)
         }
     )
@@ -50,17 +55,22 @@ class InstitutionApiServiceImpl(
     toEntityMarshallerProblem: ToEntityMarshaller[Problem],
     toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions]
   ): Route = {
-    logger.info(s"Searching for institution with $search")
+    logger.info("Searching for institution with following search string = {}", search)
 
     val result: Try[(List[Institution], Long)] =
       institutionSearchService.searchByText(InstitutionFields.DESCRIPTION, search, page, limit)
 
     result.fold(
-      ex => searchInstitution400(problemOf(StatusCodes.BadRequest, "0003", ex, "Invalid")),
+      ex => {
+        logger
+          .error("Error while searching for institution with following search string = {}", search, ex)
+        searchInstitution400(problemOf(StatusCodes.BadRequest, "0003", ex, "Invalid"))
+      },
       tuple => {
-        if (tuple._1.isEmpty)
+        if (tuple._1.isEmpty) {
+          logger.error("Error while searching for institution with following search string = {} - Not Found", search)
           searchInstitution404(problemOf(StatusCodes.NotFound, "0004", defaultMessage = "Not Found"))
-        else {
+        } else {
           searchInstitution200(Institutions.tupled(tuple))
         }
       }
@@ -75,12 +85,14 @@ class InstitutionApiServiceImpl(
     toEntityMarshallerCategories: ToEntityMarshaller[Categories],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
+    logger.info("Retrieving categories")
     val categories: Try[List[Category]] = categoriesSearchService.getAllItems
     categories match {
       case Success(values) if values.isEmpty =>
         getCategories404(problemOf(StatusCodes.NotFound, "0005", defaultMessage = "No category found"))
       case Success(values) => getCategories200(Categories(values))
       case Failure(ex) =>
+        logger.error("Error while retrieving categories", ex)
         val error = problemOf(StatusCodes.InternalServerError, "0006", ex)
         complete(error.status, error)
     }
