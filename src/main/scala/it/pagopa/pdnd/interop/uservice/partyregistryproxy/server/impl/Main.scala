@@ -41,7 +41,7 @@ import scala.util.{Failure, Success}
 
 object Main extends App with CorsSupport {
 
-  val logger = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   Kamon.init()
 
