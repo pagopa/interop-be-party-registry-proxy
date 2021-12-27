@@ -12,8 +12,8 @@ ThisBuild / libraryDependencies := Dependencies.Jars.`server`.map(m =>
 
 ThisBuild / version := ComputeVersion.version
 
-resolvers in ThisBuild += "Pagopa Nexus Snapshots" at s"https://gateway.interop.pdnd.dev/nexus/repository/maven-snapshots/"
-resolvers in ThisBuild += "Pagopa Nexus Releases" at s"https://gateway.interop.pdnd.dev/nexus/repository/maven-releases/"
+ThisBuild / resolvers += "Pagopa Nexus Snapshots" at s"https://gateway.interop.pdnd.dev/nexus/repository/maven-snapshots/"
+ThisBuild / resolvers += "Pagopa Nexus Releases" at s"https://gateway.interop.pdnd.dev/nexus/repository/maven-releases/"
 
 credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 
@@ -78,7 +78,7 @@ lazy val client = project
     name := "pdnd-interop-uservice-party-registry-proxy-client",
     scalacOptions := Seq(),
     scalafmtOnCompile := true,
-    version := (version in ThisBuild).value,
+    version := (ThisBuild / version).value,
     libraryDependencies := Dependencies.Jars.client.map(m =>
       if (scalaVersion.value.startsWith("3.0"))
         m.withDottyCompat(scalaVersion.value)
