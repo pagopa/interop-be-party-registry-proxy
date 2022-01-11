@@ -22,6 +22,10 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   classicActorSystem,
   executionContext
 }
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.errors.PartyRegistryProxyErrors.{
+  InstitutionsNotFound,
+  InvalidSearchInstitutionRequest
+}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
@@ -318,6 +322,6 @@ object ServiceSpecSupport {
 
   final lazy val institutions = List(institutionOne, institutionTwo, institutionThree, institutionFour)
 
-  final lazy val responseNotFound = problemOf(StatusCodes.NotFound, "0004", defaultMessage = "Not Found")
-  final lazy val responseInvalid  = problemOf(StatusCodes.BadRequest, "0003", defaultMessage = "Something goes wrong")
+  final lazy val responseNotFound = problemOf(StatusCodes.NotFound, InstitutionsNotFound)
+  final lazy val responseInvalid  = problemOf(StatusCodes.BadRequest, InvalidSearchInstitutionRequest)
 }
