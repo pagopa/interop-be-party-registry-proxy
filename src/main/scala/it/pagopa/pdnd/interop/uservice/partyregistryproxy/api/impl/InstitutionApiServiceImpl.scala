@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.InstitutionApiService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.errors.PartyRegistryProxyErrors._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.InstitutionFields
@@ -33,12 +34,12 @@ class InstitutionApiServiceImpl(
     result.fold(
       ex => {
         logger.error("Error while retrieving institution {}", institutionId, ex)
-        getInstitutionById400(problemOf(StatusCodes.BadRequest, "0001", ex, "Invalid"))
+        getInstitutionById400(problemOf(StatusCodes.BadRequest, InvalidGetInstitutionRequest))
       },
       institution =>
         institution.fold({
           logger.error("Error while retrieving institution {} - Institution not found", institutionId)
-          getInstitutionById404(problemOf(StatusCodes.NotFound, "0002", defaultMessage = "Institution not found"))
+          getInstitutionById404(problemOf(StatusCodes.NotFound, InstitutionNotFound))
         }) { institution =>
           logger.info("Institution {} retrieved", institutionId)
           getInstitutionById200(institution)
@@ -64,12 +65,12 @@ class InstitutionApiServiceImpl(
       ex => {
         logger
           .error("Error while searching for institution with following search string = {}", search, ex)
-        searchInstitution400(problemOf(StatusCodes.BadRequest, "0003", ex, "Invalid"))
+        searchInstitution400(problemOf(StatusCodes.BadRequest, InvalidSearchInstitutionRequest))
       },
       tuple => {
         if (tuple._1.isEmpty) {
           logger.error("Error while searching for institution with following search string = {} - Not Found", search)
-          searchInstitution404(problemOf(StatusCodes.NotFound, "0004", defaultMessage = "Not Found"))
+          searchInstitution404(problemOf(StatusCodes.NotFound, InstitutionsNotFound))
         } else {
           searchInstitution200(Institutions.tupled(tuple))
         }
@@ -89,11 +90,11 @@ class InstitutionApiServiceImpl(
     val categories: Try[List[Category]] = categoriesSearchService.getAllItems
     categories match {
       case Success(values) if values.isEmpty =>
-        getCategories404(problemOf(StatusCodes.NotFound, "0005", defaultMessage = "No category found"))
+        getCategories404(problemOf(StatusCodes.NotFound, CategoriesNotFound))
       case Success(values) => getCategories200(Categories(values))
       case Failure(ex) =>
         logger.error("Error while retrieving categories", ex)
-        val error = problemOf(StatusCodes.InternalServerError, "0006", ex)
+        val error = problemOf(StatusCodes.InternalServerError, CategoriesError)
         complete(error.status, error)
     }
   }
