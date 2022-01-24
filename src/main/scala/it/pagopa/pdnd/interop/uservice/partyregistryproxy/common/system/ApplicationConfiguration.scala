@@ -13,6 +13,7 @@ object ApplicationConfiguration {
   def categoriesIndexDir: String    = config.getString("uservice-party-registry-proxy.categories.index-dir")
   def categoriesOpenDataUrl: String = config.getString("uservice-party-registry-proxy.categories.open-data-url")
 
-  def cronTime: String = config.getString("uservice-party-registry-proxy.ipa-update-time")
+  def cronTime: String            = config.getString("uservice-party-registry-proxy.ipa-update-time")
+  lazy val registryOrigin: String = config.getString("uservice-party-registry-proxy.origin")
 
 }

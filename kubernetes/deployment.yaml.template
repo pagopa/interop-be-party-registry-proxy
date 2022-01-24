@@ -81,6 +81,8 @@ spec:
               value: "{{partyRegistryCategoriesURL}}"
             - name: PARTY_REGISTRY_INSTITUTIONS_URL
               value: "{{partyRegistryInstitutionsURL}}"
+            - name: PARTY_REGISTRY_ORIGIN
+              value: "{{partyRegistryOrigin}}"
           volumeMounts:
             - name: application-conf
               mountPath: /opt/docker/etc

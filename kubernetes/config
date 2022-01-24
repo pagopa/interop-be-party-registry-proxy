@@ -13,6 +13,7 @@ replicas=$REPLICAS_NR
 
 partyRegistryCategoriesURL=$PARTY_REGISTRY_CATEGORIES_URL
 partyRegistryInstitutionsURL=$PARTY_REGISTRY_INSTITUTIONS_URL
+partyRegistryOrigin=$PARTY_REGISTRY_ORIGIN
 
 name=$(cat $SCRIPT_PATH/../build.sbt | grep "name :=" | awk -F:= '{ print $2 }' | sed 's/\"//' | sed 's/\",//' | sed 's/ //' | tr '[:upper:]' '[:lower:]' | grep -v client)
 

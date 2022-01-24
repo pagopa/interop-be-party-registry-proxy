@@ -53,6 +53,8 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
     "https://indicepa.gov.it/ipa-dati/datastore/dump/d09adf99-dc10-4349-8c53-27b1e5aa97b6?format=json"
   )
 
+  System.setProperty("PARTY_REGISTRY_ORIGIN", "IPA")
+
   val institutionApiMarshaller: InstitutionApiMarshaller = new InstitutionApiMarshallerImpl
 
   val url: String =
