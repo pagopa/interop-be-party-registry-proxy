@@ -77,7 +77,7 @@ object OpenDataService {
         code <- record(mapped(CategoriesFields.code)).select[String]
         name <- record(mapped(CategoriesFields.name)).select[String]
         kind <- record(mapped(CategoriesFields.kind)).select[String]
-      } yield Category(code = code, name = name, kind = kind)
+      } yield Category(code = code, name = name, kind = kind, origin = "IPA")
     }
 
   }

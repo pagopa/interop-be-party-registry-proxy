@@ -223,10 +223,13 @@ components:
           type: string
         kind:
           type: string
+        origin:
+          type: string
       required:
         - code
         - kind
         - name
+        - origin
     Categories:
       properties:
         items:

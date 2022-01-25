@@ -14,5 +14,4 @@ object ApplicationConfiguration {
   def categoriesOpenDataUrl: String = config.getString("uservice-party-registry-proxy.categories.open-data-url")
 
   def cronTime: String = config.getString("uservice-party-registry-proxy.ipa-update-time")
-
 }

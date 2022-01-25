@@ -32,7 +32,8 @@ object DocumentConverter {
     Category(
       code = document.get(CategoryFields.CODE),
       name = document.get(CategoryFields.NAME),
-      kind = document.get(CategoryFields.KIND)
+      kind = document.get(CategoryFields.KIND),
+      origin = "IPA"
     )
   }
 }

@@ -32,7 +32,7 @@ package object impl extends DefaultJsonProtocol {
   implicit val managerFormat: RootJsonFormat[Manager]           = jsonFormat2(Manager)
   implicit val institutionFormat: RootJsonFormat[Institution]   = jsonFormat9(Institution)
   implicit val institutionsFormat: RootJsonFormat[Institutions] = jsonFormat2(Institutions)
-  implicit val categoryFormat: RootJsonFormat[Category]         = jsonFormat3(Category)
+  implicit val categoryFormat: RootJsonFormat[Category]         = jsonFormat4(Category)
   implicit val categoriesFormat: RootJsonFormat[Categories]     = jsonFormat1(Categories)
   implicit val problemErrorFormat: RootJsonFormat[ProblemError] = jsonFormat2(ProblemError)
   implicit val problemFormat: RootJsonFormat[Problem]           = jsonFormat5(Problem)
