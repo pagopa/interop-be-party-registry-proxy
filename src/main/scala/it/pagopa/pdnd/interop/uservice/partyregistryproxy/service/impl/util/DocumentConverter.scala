@@ -1,6 +1,5 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util
 
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution, Manager}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{CategoryFields, InstitutionFields}
 import org.apache.lucene.document.Document
@@ -34,7 +33,7 @@ object DocumentConverter {
       code = document.get(CategoryFields.CODE),
       name = document.get(CategoryFields.NAME),
       kind = document.get(CategoryFields.KIND),
-      origin = ApplicationConfiguration.registryOrigin
+      origin = "IPA"
     )
   }
 }

@@ -1,6 +1,5 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service
 
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution, Manager}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util.{OpenDataResponse, OpenDataResponseField}
 
@@ -78,8 +77,7 @@ object OpenDataService {
         code <- record(mapped(CategoriesFields.code)).select[String]
         name <- record(mapped(CategoriesFields.name)).select[String]
         kind <- record(mapped(CategoriesFields.kind)).select[String]
-        origin = ApplicationConfiguration.registryOrigin
-      } yield Category(code = code, name = name, kind = kind, origin = origin)
+      } yield Category(code = code, name = name, kind = kind, origin = "IPA")
     }
 
   }
