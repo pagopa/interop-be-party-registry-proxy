@@ -79,8 +79,6 @@ object Main extends App with CorsSupport {
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val initialDelay: Long = getInitialDelay(ApplicationConfiguration.ipaCronTime)
-
   val controller = new Controller(category = categoryApi, health = healthApi, institution = institutionApi)
 
   logger.error(s"Started build info = ${buildinfo.BuildInfo.toString}")
