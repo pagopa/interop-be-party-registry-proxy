@@ -2,7 +2,6 @@ package it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl
 
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.InstitutionApiService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.errors.PartyRegistryProxyErrors._
@@ -11,12 +10,10 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchSer
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.InstitutionFields
 import org.slf4j.{Logger, LoggerFactory}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
-class InstitutionApiServiceImpl(
-  institutionSearchService: IndexSearchService[Institution],
-  categoriesSearchService: IndexSearchService[Category]
-) extends InstitutionApiService {
+final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearchService[Institution])
+    extends InstitutionApiService {
 
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
@@ -79,23 +76,4 @@ class InstitutionApiServiceImpl(
 
   }
 
-  /** Code: 200, Message: successful operation, DataType: Categories
-    * Code: 404, Message: Categories not found, DataType: Problem
-    */
-  override def getCategories()(implicit
-    toEntityMarshallerCategories: ToEntityMarshaller[Categories],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
-  ): Route = {
-    logger.info("Retrieving categories")
-    val categories: Try[List[Category]] = categoriesSearchService.getAllItems
-    categories match {
-      case Success(values) if values.isEmpty =>
-        getCategories404(problemOf(StatusCodes.NotFound, CategoriesNotFound))
-      case Success(values) => getCategories200(Categories(values))
-      case Failure(ex) =>
-        logger.error("Error while retrieving categories", ex)
-        val error = problemOf(StatusCodes.InternalServerError, CategoriesError)
-        complete(error.status, error)
-    }
-  }
 }

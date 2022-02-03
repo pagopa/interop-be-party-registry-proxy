@@ -19,12 +19,16 @@ tags:
     externalDocs:
       description: Find out more
       url: http://swagger.io
+  - name: category
+    description: Retrieve information about category
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
   - name: health
     description: Verify service status
     externalDocs:
       description: Find out more
       url: http://swagger.io
-
 paths:
   /institutions/{institutionId}:
     get:
@@ -107,7 +111,7 @@ paths:
   /categories:
     get:
       tags:
-        - institution
+        - category
       summary: Get all ipa categories
       description: Returns the ipa categories list
       operationId: getCategories
@@ -120,6 +124,40 @@ paths:
                 $ref: '#/components/schemas/Categories'
         '404':
           description: Categories not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /categories/{categoryCode}:
+    get:
+      tags:
+        - category
+      summary: Get an category
+      description: Returns an ipa category
+      operationId: getCategory
+      parameters:
+        - name: categoryCode
+          in: path
+          description: ID of category to return
+          required: true
+          schema:
+            type: string
+            maxLength: 32
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Invalid code supplied
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Category not found
           content:
             application/problem+json:
               schema:

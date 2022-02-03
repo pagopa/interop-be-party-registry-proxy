@@ -4,12 +4,14 @@ import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.management.scaladsl.AkkaManagement
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
+  CategoryApiMarshallerImpl,
+  CategoryApiServiceImpl,
   HealthApiMarshallerImpl,
   HealthApiServiceImpl,
   InstitutionApiMarshallerImpl,
   InstitutionApiServiceImpl
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{HealthApi, InstitutionApi}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{CategoryApi, HealthApi, InstitutionApi}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   ApplicationConfiguration,
   Authenticator,
@@ -66,14 +68,20 @@ object Main extends App with CorsSupport {
   val categoriesSearchService: IndexSearchService[Category]      = CategoryIndexSearchServiceImpl
 
   val institutionApi: InstitutionApi = new InstitutionApi(
-    new InstitutionApiServiceImpl(institutionsSearchService, categoriesSearchService),
-    new InstitutionApiMarshallerImpl(),
+    InstitutionApiServiceImpl(institutionsSearchService),
+    InstitutionApiMarshallerImpl,
+    SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
+  )
+
+  val categoryApi: CategoryApi = new CategoryApi(
+    CategoryApiServiceImpl(categoriesSearchService),
+    CategoryApiMarshallerImpl,
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
   val initialDelay: Long = getInitialDelay(ApplicationConfiguration.cronTime)
 
-  val controller = new Controller(healthApi, institutionApi)
+  val controller = new Controller(category = categoryApi, health = healthApi, institution = institutionApi)
 
   logger.error(s"Started build info = ${buildinfo.BuildInfo.toString}")
 
