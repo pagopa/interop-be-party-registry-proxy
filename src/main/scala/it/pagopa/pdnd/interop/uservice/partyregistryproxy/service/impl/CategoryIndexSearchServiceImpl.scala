@@ -20,11 +20,11 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
     val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
-    val query: TermQuery = new TermQuery(new Term(CategoryFields.CODE, id))
+    val query: TermQuery = new TermQuery(new Term(CategoryFields.ID, id))
     val hits: TopDocs    = searcher.search(query, 1)
 
     val results: Option[Category] =
-      hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).find(_.code == id)
+      hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).headOption
 
     results
   }

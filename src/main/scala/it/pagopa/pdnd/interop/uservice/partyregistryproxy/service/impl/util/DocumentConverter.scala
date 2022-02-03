@@ -24,7 +24,8 @@ object DocumentConverter {
         document.get(InstitutionFields.MANAGER_FAMILY_NAME)
       ),
       description = document.get(InstitutionFields.DESCRIPTION),
-      digitalAddress = document.get(InstitutionFields.DIGITAL_ADDRESS)
+      digitalAddress = document.get(InstitutionFields.DIGITAL_ADDRESS),
+      origin = document.get(InstitutionFields.ORIGIN)
     )
   }
 
@@ -33,7 +34,7 @@ object DocumentConverter {
       code = document.get(CategoryFields.CODE),
       name = document.get(CategoryFields.NAME),
       kind = document.get(CategoryFields.KIND),
-      origin = "IPA"
+      origin = document.get(CategoryFields.ORIGIN)
     )
   }
 }

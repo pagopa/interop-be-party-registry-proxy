@@ -1,5 +1,7 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service
 
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.createCategoryId
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution}
 import org.apache.lucene.analysis.it.ItalianAnalyzer
 import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilter
@@ -63,12 +65,15 @@ package object impl {
     final val MANAGER_FAMILY_NAME = "managerFamilyName"
     final val DESCRIPTION         = "description"
     final val DIGITAL_ADDRESS     = "digitalAddress"
+    final val ORIGIN              = "origin"
   }
 
   object CategoryFields {
-    final val CODE = "code"
-    final val NAME = "name"
-    final val KIND = "kind"
+    final val ID     = "id"
+    final val CODE   = "code"
+    final val NAME   = "name"
+    final val KIND   = "kind"
+    final val ORIGIN = "origin"
   }
 
   def searchFunc(
@@ -105,6 +110,7 @@ package object impl {
       doc.add(new TextField(InstitutionFields.DIGITAL_ADDRESS, institution.digitalAddress, Field.Store.YES))
       doc.add(new TextField(InstitutionFields.MANAGER_GIVEN_NAME, institution.manager.givenName, Field.Store.YES))
       doc.add(new TextField(InstitutionFields.MANAGER_FAMILY_NAME, institution.manager.familyName, Field.Store.YES))
+      doc.add(new TextField(InstitutionFields.ORIGIN, ApplicationConfiguration.ipaOrigin, Field.Store.YES))
 
       doc.addOptional(InstitutionFields.O, institution.o)
       doc.addOptional(InstitutionFields.OU, institution.ou)
@@ -117,9 +123,13 @@ package object impl {
   implicit class CategoryOps(val category: Category) extends AnyVal {
     def toDocument: Document = {
       val doc = new Document
-      doc.add(new StringField(CategoryFields.CODE, category.code, Field.Store.YES))
+      val id  = createCategoryId(code = category.code, origin = category.origin)
+      doc.add(new StringField(CategoryFields.ID, id, Field.Store.NO))
+      doc.add(new TextField(CategoryFields.CODE, category.code, Field.Store.YES))
+      doc.add(new TextField(CategoryFields.ORIGIN, category.origin, Field.Store.YES))
       doc.add(new TextField(CategoryFields.NAME, category.name, Field.Store.YES))
       doc.add(new TextField(CategoryFields.KIND, category.kind, Field.Store.YES))
+      doc.add(new TextField(CategoryFields.ORIGIN, category.origin, Field.Store.YES))
       doc
     }
   }

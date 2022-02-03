@@ -128,17 +128,24 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
-  /categories/{categoryCode}:
+  /categories/{code}/origins/{origin}:
     get:
       tags:
         - category
       summary: Get an category
-      description: Returns an ipa category
+      description: Returns a category
       operationId: getCategory
       parameters:
-        - name: categoryCode
+        - name: code
           in: path
           description: ID of category to return
+          required: true
+          schema:
+            type: string
+            maxLength: 32
+        - name: origin
+          in: path
+          description: category origin
           required: true
           schema:
             type: string
@@ -232,6 +239,9 @@ components:
           example: mail@pec.mail.org
           format: mail
           maxLength: 20
+        origin:
+          type: string
+          description: describes which is the source of Institution data
       required:
         - id
         - category
@@ -239,6 +249,7 @@ components:
         - digitalAddress
         - description
         - manager
+        - origin
     Institutions:
       properties:
         items:

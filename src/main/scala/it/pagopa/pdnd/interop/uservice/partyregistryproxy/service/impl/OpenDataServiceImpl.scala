@@ -19,11 +19,11 @@ final case class OpenDataServiceImpl(http: HttpExt)(implicit system: ActorSystem
     with OpenDataResponseMarshaller {
 
   def getAllInstitutions: Future[List[Institution]] = {
-    retrieveOpenData(ApplicationConfiguration.institutionsOpenDataUrl).map(OpenDataService.extractInstitutions)
+    retrieveOpenData(ApplicationConfiguration.institutionsIpaOpenDataUrl).map(OpenDataService.extractInstitutions)
   }
 
   override def getAllCategories: Future[List[Category]] = {
-    retrieveOpenData(ApplicationConfiguration.categoriesOpenDataUrl).map(OpenDataService.extractCategories)
+    retrieveOpenData(ApplicationConfiguration.categoriesIpaOpenDataUrl).map(OpenDataService.extractCategories)
   }
 
   private def retrieveOpenData(uri: String): Future[OpenDataResponse] = {

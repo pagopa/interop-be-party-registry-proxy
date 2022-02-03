@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.CategoryApiService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.createCategoryId
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.errors.PartyRegistryProxyErrors._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
@@ -41,18 +42,23 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
     * Code: 400, Message: Invalid code supplied, DataType: Problem
     * Code: 404, Message: Category not found, DataType: Problem
     */
-  override def getCategory(categoryCode: String)(implicit
+  override def getCategory(code: String, origin: String)(implicit
     toEntityMarshallerCategory: ToEntityMarshaller[Category],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
-    logger.info(s"Retrieving category $categoryCode")
-    val category: Try[Option[Category]] = categoriesSearchService.searchById(categoryCode)
+
+    logger.info(s"Retrieving category $code")
+
+    val id: String = createCategoryId(code = code, origin = origin)
+
+    val category: Try[Option[Category]] = categoriesSearchService.searchById(id)
+
     category match {
       case Success(value) =>
-        val error = problemOf(StatusCodes.NotFound, CategoryNotFound(categoryCode))
+        val error = problemOf(StatusCodes.NotFound, CategoryNotFound(code))
         value.fold(getCategory404(error))(getCategory200)
       case Failure(ex) =>
-        logger.error(s"Error while retrieving category $categoryCode", ex)
+        logger.error(s"Error while retrieving category $code", ex)
         val error = problemOf(StatusCodes.BadRequest, CategoriesError)
         getCategory400(error)
     }

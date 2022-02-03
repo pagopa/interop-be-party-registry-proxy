@@ -1,6 +1,7 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl
 
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.createCategoryId
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Category
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexWriterService
 import org.apache.lucene.index.{IndexWriter, IndexWriterConfig, Term}
@@ -21,7 +22,8 @@ case object CategoryIndexWriterServiceImpl extends IndexWriterService[Category] 
       wr =>
         Try {
           items.foreach { item =>
-            wr.updateDocument(new Term(CategoryFields.CODE, item.code), item.toDocument)
+            val id: String = createCategoryId(code = item.code, origin = item.origin)
+            wr.updateDocument(new Term(CategoryFields.ID, id), item.toDocument)
           }
         },
       ()
