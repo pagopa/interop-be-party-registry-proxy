@@ -27,7 +27,7 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{
   CategoryIndexWriterServiceImpl,
   InstitutionIndexSearchServiceImpl,
   InstitutionIndexWriterServiceImpl,
-  OpenDataServiceImpl
+  IPAOpenDataServiceImpl
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{
   IndexSearchService,
@@ -57,7 +57,7 @@ object Main extends App with CorsSupport {
 
   val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
   val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
-  val openDataService: OpenDataService                           = OpenDataServiceImpl(http)(actorSystem, executionContext)
+  val openDataService: OpenDataService                           = IPAOpenDataServiceImpl(http)(actorSystem, executionContext)
 
   locally {
     val _ = loadOpenData(openDataService, institutionsWriterService, categoriesWriterService)
