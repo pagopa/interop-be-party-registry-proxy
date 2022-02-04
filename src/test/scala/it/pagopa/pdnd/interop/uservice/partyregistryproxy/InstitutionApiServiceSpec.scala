@@ -21,6 +21,7 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   classicActorSystem,
   executionContext
 }
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.InstitutionField
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.errors.PartyRegistryProxyErrors.{
   InstitutionsNotFound,
   InvalidSearchInstitutionRequest
@@ -28,7 +29,6 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.errors.PartyRegistryPr
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.server.Controller
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.InstitutionFields
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.must.Matchers
@@ -109,7 +109,7 @@ class InstitutionApiServiceSpec extends AnyWordSpec with Matchers with BeforeAnd
         institutions.filter(_.description.contains(searchTxt)).sortBy(_.id).slice(page - 1, page + limit - 1)
 
       (institutionSearchService.searchByText _)
-        .expects(InstitutionFields.DESCRIPTION, searchTxt, page, limit)
+        .expects(InstitutionField.DESCRIPTION.value, searchTxt, page, limit)
         .returning(Success(luceneResponse -> luceneResponse.size.toLong))
         .once()
 
@@ -285,7 +285,8 @@ object ServiceSpecSupport {
     category = "cat1",
     manager = Manager("name", "surname"),
     description = "Institution One",
-    digitalAddress = "digitalAddress1"
+    digitalAddress = "digitalAddress1",
+    origin = "origin"
   )
 
   final lazy val institutionTwo = Institution(
@@ -297,7 +298,8 @@ object ServiceSpecSupport {
     category = "cat2",
     manager = Manager("name", "surname"),
     description = "Institution Two",
-    digitalAddress = "digitalAddress2"
+    digitalAddress = "digitalAddress2",
+    origin = "origin"
   )
 
   final lazy val institutionThree = Institution(
@@ -309,7 +311,8 @@ object ServiceSpecSupport {
     category = "cat3",
     manager = Manager("name", "surname"),
     description = "Institution Three",
-    digitalAddress = "digitalAddress3"
+    digitalAddress = "digitalAddress3",
+    origin = "origin"
   )
 
   final lazy val institutionFour = Institution(
@@ -321,7 +324,8 @@ object ServiceSpecSupport {
     category = "cat4",
     manager = Manager("name", "surname"),
     description = "Institution Four",
-    digitalAddress = "digitalAddress4"
+    digitalAddress = "digitalAddress4",
+    origin = "origin"
   )
 
   final lazy val institutions = List(institutionOne, institutionTwo, institutionThree, institutionFour)

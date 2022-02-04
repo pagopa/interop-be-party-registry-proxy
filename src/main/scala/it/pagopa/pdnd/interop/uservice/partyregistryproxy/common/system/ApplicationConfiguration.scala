@@ -14,5 +14,5 @@ object ApplicationConfiguration {
   def categoriesIndexDir: String       = config.getString("uservice-party-registry-proxy.index.categories.folder")
   def categoriesIpaOpenDataUrl: String = config.getString("uservice-party-registry-proxy.ipa.categories.open-data-url")
 
-  def ipaOrigin: String   = config.getString("uservice-party-registry-proxy.ipa.origin")
+  def ipaOrigin: String = config.getString("uservice-party-registry-proxy.ipa.origin")
 }

@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.CategoryApiService
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.createCategoryId
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.{CategoryField, SearchField, createCategoryId}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.errors.PartyRegistryProxyErrors._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
@@ -21,12 +21,14 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
   /** Code: 200, Message: successful operation, DataType: Categories
     * Code: 404, Message: Categories not found, DataType: Problem
     */
-  override def getCategories()(implicit
+  override def getCategories(origin: Option[String])(implicit
     toEntityMarshallerCategories: ToEntityMarshaller[Categories],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
     logger.info("Retrieving categories")
-    val categories: Try[List[Category]] = categoriesSearchService.getAllItems
+
+    val filters: Map[SearchField, String] = getCategoryFilters(origin)
+    val categories: Try[List[Category]]   = categoriesSearchService.getAllItems(filters)
     categories match {
       case Success(values) if values.isEmpty =>
         getCategories404(problemOf(StatusCodes.NotFound, CategoriesNotFound))
@@ -38,18 +40,22 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
     }
   }
 
+  private def getCategoryFilters(origin: Option[String]): Map[SearchField, String] = {
+    origin.fold(Map.empty[SearchField, String])(o => Map(CategoryField.ORIGIN -> o))
+  }
+
   /** Code: 200, Message: successful operation, DataType: Category
     * Code: 400, Message: Invalid code supplied, DataType: Problem
     * Code: 404, Message: Category not found, DataType: Problem
     */
-  override def getCategory(code: String, origin: String)(implicit
+  override def getCategory(origin: String, code: String)(implicit
     toEntityMarshallerCategory: ToEntityMarshaller[Category],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
 
     logger.info(s"Retrieving category $code")
 
-    val id: String = createCategoryId(code = code, origin = origin)
+    val id: String = createCategoryId(origin = origin, code = code)
 
     val category: Try[Option[Category]] = categoriesSearchService.searchById(id)
 

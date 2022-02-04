@@ -1,6 +1,7 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl
 
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.{InstitutionField, SearchField}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Institution
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util.DocumentConverter
@@ -20,7 +21,7 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
-    val query         = new TermQuery(new Term(InstitutionFields.ID, id))
+    val query         = new TermQuery(new Term(InstitutionField.ID.value, id.toLowerCase))
     val hits: TopDocs = searcher.search(query, 1)
 
     val results = hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).find(_.id == id)
@@ -50,6 +51,8 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
   }
 
   //TODO add pagination, low priority
-  override def getAllItems: Try[List[Institution]] = Failure(new RuntimeException("Not implemented"))
+  override def getAllItems(filters: Map[SearchField, String]): Try[List[Institution]] = Failure(
+    new RuntimeException("Not implemented")
+  )
 
 }

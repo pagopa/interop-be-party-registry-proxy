@@ -1,7 +1,11 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service
 
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.createCategoryId
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.{
+  CategoryField,
+  InstitutionField,
+  createCategoryId
+}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution}
 import org.apache.lucene.analysis.it.ItalianAnalyzer
 import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilter
@@ -54,28 +58,6 @@ package object impl {
     }
   }
 
-  object InstitutionFields {
-    final val ID                  = "id"
-    final val O                   = "o"
-    final val OU                  = "ou"
-    final val AOO                 = "aoo"
-    final val TAX_CODE            = "taxCode"
-    final val CATEGORY            = "category"
-    final val MANAGER_GIVEN_NAME  = "managerGivenName"
-    final val MANAGER_FAMILY_NAME = "managerFamilyName"
-    final val DESCRIPTION         = "description"
-    final val DIGITAL_ADDRESS     = "digitalAddress"
-    final val ORIGIN              = "origin"
-  }
-
-  object CategoryFields {
-    final val ID     = "id"
-    final val CODE   = "code"
-    final val NAME   = "name"
-    final val KIND   = "kind"
-    final val ORIGIN = "origin"
-  }
-
   def searchFunc(
     reader: DirectoryReader,
     searcher: IndexSearcher
@@ -102,19 +84,21 @@ package object impl {
   implicit class InstitutionOps(val institution: Institution) extends AnyVal {
     def toDocument: Document = {
       val doc = new Document
-      doc.add(new StringField(InstitutionFields.ID, institution.id, Field.Store.YES))
-      doc.add(new SortedDocValuesField(InstitutionFields.DESCRIPTION, new BytesRef(institution.description)))
-      doc.add(new TextField(InstitutionFields.DESCRIPTION, institution.description, Field.Store.YES))
-      doc.add(new TextField(InstitutionFields.TAX_CODE, institution.taxCode, Field.Store.YES))
-      doc.add(new TextField(InstitutionFields.CATEGORY, institution.category, Field.Store.YES))
-      doc.add(new TextField(InstitutionFields.DIGITAL_ADDRESS, institution.digitalAddress, Field.Store.YES))
-      doc.add(new TextField(InstitutionFields.MANAGER_GIVEN_NAME, institution.manager.givenName, Field.Store.YES))
-      doc.add(new TextField(InstitutionFields.MANAGER_FAMILY_NAME, institution.manager.familyName, Field.Store.YES))
-      doc.add(new TextField(InstitutionFields.ORIGIN, ApplicationConfiguration.ipaOrigin, Field.Store.YES))
+      doc.add(new StringField(InstitutionField.ID.value, institution.id, Field.Store.YES))
+      doc.add(new SortedDocValuesField(InstitutionField.DESCRIPTION.value, new BytesRef(institution.description)))
+      doc.add(new TextField(InstitutionField.DESCRIPTION.value, institution.description, Field.Store.YES))
+      doc.add(new TextField(InstitutionField.TAX_CODE.value, institution.taxCode, Field.Store.YES))
+      doc.add(new TextField(InstitutionField.CATEGORY.value, institution.category, Field.Store.YES))
+      doc.add(new TextField(InstitutionField.DIGITAL_ADDRESS.value, institution.digitalAddress, Field.Store.YES))
+      doc.add(new TextField(InstitutionField.MANAGER_GIVEN_NAME.value, institution.manager.givenName, Field.Store.YES))
+      doc.add(
+        new TextField(InstitutionField.MANAGER_FAMILY_NAME.value, institution.manager.familyName, Field.Store.YES)
+      )
+      doc.add(new TextField(InstitutionField.ORIGIN.value, ApplicationConfiguration.ipaOrigin, Field.Store.YES))
 
-      doc.addOptional(InstitutionFields.O, institution.o)
-      doc.addOptional(InstitutionFields.OU, institution.ou)
-      doc.addOptional(InstitutionFields.AOO, institution.aoo)
+      doc.addOptional(InstitutionField.O.value, institution.o)
+      doc.addOptional(InstitutionField.OU.value, institution.ou)
+      doc.addOptional(InstitutionField.AOO.value, institution.aoo)
 
       doc
     }
@@ -124,12 +108,12 @@ package object impl {
     def toDocument: Document = {
       val doc = new Document
       val id  = createCategoryId(code = category.code, origin = category.origin)
-      doc.add(new StringField(CategoryFields.ID, id, Field.Store.NO))
-      doc.add(new TextField(CategoryFields.CODE, category.code, Field.Store.YES))
-      doc.add(new TextField(CategoryFields.ORIGIN, category.origin, Field.Store.YES))
-      doc.add(new TextField(CategoryFields.NAME, category.name, Field.Store.YES))
-      doc.add(new TextField(CategoryFields.KIND, category.kind, Field.Store.YES))
-      doc.add(new TextField(CategoryFields.ORIGIN, category.origin, Field.Store.YES))
+      doc.add(new StringField(CategoryField.ID.value, id, Field.Store.NO))
+      doc.add(new TextField(CategoryField.CODE.value, category.code, Field.Store.YES))
+      doc.add(new TextField(CategoryField.ORIGIN.value, category.origin, Field.Store.YES))
+      doc.add(new TextField(CategoryField.NAME.value, category.name, Field.Store.YES))
+      doc.add(new TextField(CategoryField.KIND.value, category.kind, Field.Store.YES))
+      doc.add(new TextField(CategoryField.ORIGIN.value, category.origin, Field.Store.YES))
       doc
     }
   }

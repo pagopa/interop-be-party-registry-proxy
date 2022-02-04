@@ -4,10 +4,10 @@ import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.InstitutionApiService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.InstitutionField
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.errors.PartyRegistryProxyErrors._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model._
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.InstitutionFields
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.Try
@@ -56,7 +56,7 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     logger.info("Searching for institution with following search string = {}", search)
 
     val result: Try[(List[Institution], Long)] =
-      institutionSearchService.searchByText(InstitutionFields.DESCRIPTION, search, page, limit)
+      institutionSearchService.searchByText(InstitutionField.DESCRIPTION.value, search, page, limit)
 
     result.fold(
       ex => {

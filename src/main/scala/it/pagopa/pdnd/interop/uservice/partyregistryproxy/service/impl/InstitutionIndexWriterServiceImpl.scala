@@ -1,6 +1,7 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl
 
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.InstitutionField
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Institution
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexWriterService
 import org.apache.lucene.index.{IndexWriter, IndexWriterConfig, Term}
@@ -21,7 +22,7 @@ case object InstitutionIndexWriterServiceImpl extends IndexWriterService[Institu
       wr =>
         Try {
           items.foreach { item =>
-            wr.updateDocument(new Term(InstitutionFields.ID, item.id), item.toDocument)
+            wr.updateDocument(new Term(InstitutionField.ID.value, item.id), item.toDocument)
           }
         },
       ()
