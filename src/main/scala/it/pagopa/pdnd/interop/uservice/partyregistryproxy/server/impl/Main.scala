@@ -4,12 +4,14 @@ import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.management.scaladsl.AkkaManagement
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.impl.{
+  CategoryApiMarshallerImpl,
+  CategoryApiServiceImpl,
   HealthApiMarshallerImpl,
   HealthApiServiceImpl,
   InstitutionApiMarshallerImpl,
   InstitutionApiServiceImpl
 }
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{HealthApi, InstitutionApi}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.api.{CategoryApi, HealthApi, InstitutionApi}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.{
   ApplicationConfiguration,
   Authenticator,
@@ -25,7 +27,7 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{
   CategoryIndexWriterServiceImpl,
   InstitutionIndexSearchServiceImpl,
   InstitutionIndexWriterServiceImpl,
-  OpenDataServiceImpl
+  IPAOpenDataServiceImpl
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.{
   IndexSearchService,
@@ -55,7 +57,7 @@ object Main extends App with CorsSupport {
 
   val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
   val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
-  val openDataService: OpenDataService                           = OpenDataServiceImpl(http)(actorSystem, executionContext)
+  val openDataService: OpenDataService                           = IPAOpenDataServiceImpl(http)(actorSystem, executionContext)
 
   locally {
     val _ = loadOpenData(openDataService, institutionsWriterService, categoriesWriterService)
@@ -66,14 +68,18 @@ object Main extends App with CorsSupport {
   val categoriesSearchService: IndexSearchService[Category]      = CategoryIndexSearchServiceImpl
 
   val institutionApi: InstitutionApi = new InstitutionApi(
-    new InstitutionApiServiceImpl(institutionsSearchService, categoriesSearchService),
-    new InstitutionApiMarshallerImpl(),
+    InstitutionApiServiceImpl(institutionsSearchService),
+    InstitutionApiMarshallerImpl,
     SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
   )
 
-  val initialDelay: Long = getInitialDelay(ApplicationConfiguration.cronTime)
+  val categoryApi: CategoryApi = new CategoryApi(
+    CategoryApiServiceImpl(categoriesSearchService),
+    CategoryApiMarshallerImpl,
+    SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
+  )
 
-  val controller = new Controller(healthApi, institutionApi)
+  val controller = new Controller(category = categoryApi, health = healthApi, institution = institutionApi)
 
   logger.error(s"Started build info = ${buildinfo.BuildInfo.toString}")
 

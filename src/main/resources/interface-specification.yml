@@ -19,12 +19,16 @@ tags:
     externalDocs:
       description: Find out more
       url: http://swagger.io
+  - name: category
+    description: Retrieve information about category
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
   - name: health
     description: Verify service status
     externalDocs:
       description: Find out more
       url: http://swagger.io
-
 paths:
   /institutions/{institutionId}:
     get:
@@ -107,10 +111,17 @@ paths:
   /categories:
     get:
       tags:
-        - institution
-      summary: Get all ipa categories
-      description: Returns the ipa categories list
+        - category
+      summary: Get all categories
+      description: Returns the categories list
       operationId: getCategories
+      parameters:
+        - name: origin
+          in: query
+          description: category origin
+          schema:
+            type: string
+            maxLength: 32
       responses:
         '200':
           description: successful operation
@@ -120,6 +131,47 @@ paths:
                 $ref: '#/components/schemas/Categories'
         '404':
           description: Categories not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /origins/{origin}/categories/{code}:
+    get:
+      tags:
+        - category
+      summary: Get an category
+      description: Returns a category
+      operationId: getCategory
+      parameters:
+        - name: origin
+          in: path
+          description: category origin
+          required: true
+          schema:
+            type: string
+            maxLength: 32
+        - name: code
+          in: path
+          description: ID of category to return
+          required: true
+          schema:
+            type: string
+            maxLength: 32
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Invalid code supplied
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Category not found
           content:
             application/problem+json:
               schema:
@@ -194,6 +246,9 @@ components:
           example: mail@pec.mail.org
           format: mail
           maxLength: 20
+        origin:
+          type: string
+          description: describes which is the source of Institution data
       required:
         - id
         - category
@@ -201,6 +256,7 @@ components:
         - digitalAddress
         - description
         - manager
+        - origin
     Institutions:
       properties:
         items:

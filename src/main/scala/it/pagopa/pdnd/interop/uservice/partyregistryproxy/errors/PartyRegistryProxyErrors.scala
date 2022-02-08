@@ -12,4 +12,6 @@ object PartyRegistryProxyErrors {
 
   final case object CategoriesNotFound extends ComponentError("0005", "No categories found")
   final case object CategoriesError    extends ComponentError("0006", "Error while retrieving categories")
+  final case class CategoryNotFound(categoryCode: String)
+      extends ComponentError("0007", s"Category $categoryCode not found")
 }

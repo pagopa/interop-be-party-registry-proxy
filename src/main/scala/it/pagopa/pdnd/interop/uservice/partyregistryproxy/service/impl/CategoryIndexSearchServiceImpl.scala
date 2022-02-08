@@ -1,6 +1,7 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl
 
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.{CategoryField, SearchField}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Category
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util.DocumentConverter
@@ -20,11 +21,11 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
     val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
-    val query: TermQuery = new TermQuery(new Term(CategoryFields.CODE, id))
+    val query: TermQuery = new TermQuery(new Term(CategoryField.ID.value, id.toLowerCase))
     val hits: TopDocs    = searcher.search(query, 1)
 
     val results: Option[Category] =
-      hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).find(_.code == id)
+      hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).headOption
 
     results
   }
@@ -50,16 +51,32 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
     results
   }
 
-  override def getAllItems: Try[List[Category]] = Try {
+  override def getAllItems(filters: Map[SearchField, String]): Try[List[Category]] = Try {
     val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
-    val query: MatchAllDocsQuery = new MatchAllDocsQuery
-    val hits: TopDocs            = searcher.search(query, reader.numDocs)
+    val query: Query = getQuery(filters)
+
+    val hits: TopDocs = searcher.search(query, reader.numDocs)
 
     val results: List[Category] = hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).toList
 
     results
+  }
+
+  private def getQuery(filters: Map[SearchField, String]): Query = {
+    if (filters.isEmpty)
+      new MatchAllDocsQuery
+    else {
+      val booleanQuery = new BooleanQuery.Builder()
+      filters.foreach { case (k, v) =>
+        val term: Term       = new Term(k.value, v.toLowerCase)
+        val query: TermQuery = new TermQuery(term)
+        booleanQuery.add(query, BooleanClause.Occur.MUST)
+      }
+
+      booleanQuery.build()
+    }
   }
 
 }

@@ -1,7 +1,7 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util
 
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.{CategoryField, InstitutionField}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution, Manager}
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.{CategoryFields, InstitutionFields}
 import org.apache.lucene.document.Document
 
 trait DocumentConverter[A] {
@@ -13,27 +13,28 @@ object DocumentConverter {
 
   implicit def institutionConverter: DocumentConverter[Institution] = (document: Document) => {
     Institution(
-      id = document.get(InstitutionFields.ID),
-      o = Option(document.get(InstitutionFields.O)),
-      ou = Option(document.get(InstitutionFields.OU)),
-      aoo = Option(document.get(InstitutionFields.AOO)),
-      taxCode = document.get(InstitutionFields.TAX_CODE),
-      category = document.get(InstitutionFields.CATEGORY),
+      id = document.get(InstitutionField.ID.value),
+      o = Option(document.get(InstitutionField.O.value)),
+      ou = Option(document.get(InstitutionField.OU.value)),
+      aoo = Option(document.get(InstitutionField.AOO.value)),
+      taxCode = document.get(InstitutionField.TAX_CODE.value),
+      category = document.get(InstitutionField.CATEGORY.value),
       manager = Manager(
-        document.get(InstitutionFields.MANAGER_GIVEN_NAME),
-        document.get(InstitutionFields.MANAGER_FAMILY_NAME)
+        document.get(InstitutionField.MANAGER_GIVEN_NAME.value),
+        document.get(InstitutionField.MANAGER_FAMILY_NAME.value)
       ),
-      description = document.get(InstitutionFields.DESCRIPTION),
-      digitalAddress = document.get(InstitutionFields.DIGITAL_ADDRESS)
+      description = document.get(InstitutionField.DESCRIPTION.value),
+      digitalAddress = document.get(InstitutionField.DIGITAL_ADDRESS.value),
+      origin = document.get(InstitutionField.ORIGIN.value)
     )
   }
 
   implicit def categoryConverter: DocumentConverter[Category] = (document: Document) => {
     Category(
-      code = document.get(CategoryFields.CODE),
-      name = document.get(CategoryFields.NAME),
-      kind = document.get(CategoryFields.KIND),
-      origin = "IPA"
+      code = document.get(CategoryField.CODE.value),
+      name = document.get(CategoryField.NAME.value),
+      kind = document.get(CategoryField.KIND.value),
+      origin = document.get(CategoryField.ORIGIN.value)
     )
   }
 }
