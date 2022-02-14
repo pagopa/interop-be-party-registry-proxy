@@ -308,9 +308,10 @@ object ServiceSpecSupport {
     aoo = None,
     taxCode = "taxCode1",
     category = "cat1",
-    manager = Manager("name", "surname"),
     description = "Institution One",
     digitalAddress = "digitalAddress1",
+    address = "address1",
+    zipCode = "zipCode1",
     origin = "origin"
   )
 
@@ -321,9 +322,10 @@ object ServiceSpecSupport {
     aoo = None,
     taxCode = "taxCode2",
     category = "cat2",
-    manager = Manager("name", "surname"),
     description = "Institution Two",
     digitalAddress = "digitalAddress2",
+    address = "address2",
+    zipCode = "zipCode2",
     origin = "origin"
   )
 
@@ -334,9 +336,10 @@ object ServiceSpecSupport {
     aoo = None,
     taxCode = "taxCode3",
     category = "cat3",
-    manager = Manager("name", "surname"),
     description = "Institution Three",
     digitalAddress = "digitalAddress3",
+    address = "address3",
+    zipCode = "zipCode3",
     origin = "origin"
   )
 
@@ -347,9 +350,10 @@ object ServiceSpecSupport {
     aoo = None,
     taxCode = "taxCode4",
     category = "cat4",
-    manager = Manager("name", "surname"),
     description = "Institution Four",
     digitalAddress = "digitalAddress4",
+    address = "address4",
+    zipCode = "zipCode4",
     origin = "origin"
   )
 

@@ -1,7 +1,7 @@
 package it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util
 
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.{CategoryField, InstitutionField}
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution, Manager}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution}
 import org.apache.lucene.document.Document
 
 trait DocumentConverter[A] {
@@ -19,12 +19,10 @@ object DocumentConverter {
       aoo = Option(document.get(InstitutionField.AOO.value)),
       taxCode = document.get(InstitutionField.TAX_CODE.value),
       category = document.get(InstitutionField.CATEGORY.value),
-      manager = Manager(
-        document.get(InstitutionField.MANAGER_GIVEN_NAME.value),
-        document.get(InstitutionField.MANAGER_FAMILY_NAME.value)
-      ),
       description = document.get(InstitutionField.DESCRIPTION.value),
       digitalAddress = document.get(InstitutionField.DIGITAL_ADDRESS.value),
+      address = document.get(InstitutionField.ADDRESS.value),
+      zipCode = document.get(InstitutionField.ZIP_CODE.value),
       origin = document.get(InstitutionField.ORIGIN.value)
     )
   }

@@ -5,7 +5,7 @@ import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.ApplicationConfiguration
-import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution, Manager}
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.OpenDataService
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util.{
   OpenDataResponse,
@@ -40,16 +40,16 @@ final case class IPAOpenDataServiceImpl(http: HttpExt)(implicit system: ActorSys
 object IPAOpenDataServiceImpl {
 
   private object InstitutionsFields {
-    final val id                = "Codice_IPA"
-    final val description       = "Denominazione_ente"
-    final val taxCode           = "Codice_fiscale_ente"
-    final val category          = "Codice_Categoria"
-    final val managerGivenName  = "Nome_responsabile"
-    final val managerFamilyName = "Cognome_responsabile"
-    final val digitalAddress    = "Mail1"
+    final val id             = "Codice_IPA"
+    final val description    = "Denominazione_ente"
+    final val taxCode        = "Codice_fiscale_ente"
+    final val category       = "Codice_Categoria"
+    final val digitalAddress = "Mail1"
+    final val address        = "Indirizzo"
+    final val zipCode        = "CAP"
 
     final val fields: Set[String] =
-      Set(id, description, taxCode, category, managerGivenName, managerFamilyName, digitalAddress)
+      Set(id, description, taxCode, category, digitalAddress, address, zipCode)
   }
 
   private object CategoriesFields {
@@ -70,23 +70,24 @@ object IPAOpenDataServiceImpl {
 
     response.records.flatMap { record =>
       for {
-        id                <- record(mapped(InstitutionsFields.id)).select[String]
-        managerGivenName  <- record(mapped(InstitutionsFields.managerGivenName)).select[String]
-        managerFamilyName <- record(mapped(InstitutionsFields.managerFamilyName)).select[String]
-        taxCode           <- mapped.get(InstitutionsFields.taxCode).flatMap(idx => record(idx).select[String])
-        category          <- mapped.get(InstitutionsFields.category).flatMap(idx => record(idx).select[String])
-        description       <- record(mapped(InstitutionsFields.description)).select[String]
-        digitalAddress    <- mapped.get(InstitutionsFields.digitalAddress).flatMap(idx => record(idx).select[String])
+        id             <- record(mapped(InstitutionsFields.id)).select[String]
+        taxCode        <- mapped.get(InstitutionsFields.taxCode).flatMap(idx => record(idx).select[String])
+        category       <- mapped.get(InstitutionsFields.category).flatMap(idx => record(idx).select[String])
+        description    <- record(mapped(InstitutionsFields.description)).select[String]
+        digitalAddress <- mapped.get(InstitutionsFields.digitalAddress).flatMap(idx => record(idx).select[String])
+        address        <- mapped.get(InstitutionsFields.address).flatMap(idx => record(idx).select[String])
+        zipCode        <- mapped.get(InstitutionsFields.zipCode).flatMap(idx => record(idx).select[String])
       } yield Institution(
-        id = id,
-        o = Some(id),
+        id = id.toLowerCase,
+        o = Some(id.toLowerCase),
         ou = None,
         aoo = None,
         taxCode = taxCode,
         category = category,
-        manager = Manager(managerGivenName, managerFamilyName),
         description = description,
         digitalAddress = digitalAddress,
+        address = address,
+        zipCode = zipCode,
         origin = ApplicationConfiguration.ipaOrigin
       )
     }

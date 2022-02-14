@@ -90,10 +90,8 @@ package object impl {
       doc.add(new TextField(InstitutionField.TAX_CODE.value, institution.taxCode, Field.Store.YES))
       doc.add(new TextField(InstitutionField.CATEGORY.value, institution.category, Field.Store.YES))
       doc.add(new TextField(InstitutionField.DIGITAL_ADDRESS.value, institution.digitalAddress, Field.Store.YES))
-      doc.add(new TextField(InstitutionField.MANAGER_GIVEN_NAME.value, institution.manager.givenName, Field.Store.YES))
-      doc.add(
-        new TextField(InstitutionField.MANAGER_FAMILY_NAME.value, institution.manager.familyName, Field.Store.YES)
-      )
+      doc.add(new TextField(InstitutionField.ADDRESS.value, institution.address, Field.Store.YES))
+      doc.add(new TextField(InstitutionField.ZIP_CODE.value, institution.zipCode, Field.Store.YES))
       doc.add(new TextField(InstitutionField.ORIGIN.value, ApplicationConfiguration.ipaOrigin, Field.Store.YES))
 
       doc.addOptional(InstitutionField.O.value, institution.o)

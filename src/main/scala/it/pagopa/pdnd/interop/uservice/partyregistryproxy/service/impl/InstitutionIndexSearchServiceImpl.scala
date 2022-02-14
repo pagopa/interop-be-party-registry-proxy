@@ -21,10 +21,12 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
-    val query         = new TermQuery(new Term(InstitutionField.ID.value, id.toLowerCase))
-    val hits: TopDocs = searcher.search(query, 1)
+    val lowerId: String  = id.toLowerCase
+    val query: TermQuery = new TermQuery(new Term(InstitutionField.ID.value, lowerId))
+    val hits: TopDocs    = searcher.search(query, 1)
 
-    val results = hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).find(_.id == id)
+    val results: Option[Institution] =
+      hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).find(_.id == lowerId)
 
     results
   }

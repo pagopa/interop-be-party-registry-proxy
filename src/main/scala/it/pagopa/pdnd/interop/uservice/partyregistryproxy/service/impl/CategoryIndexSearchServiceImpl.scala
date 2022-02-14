@@ -21,7 +21,7 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
     val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
-    val query: TermQuery = new TermQuery(new Term(CategoryField.ID.value, id.toLowerCase))
+    val query: TermQuery = new TermQuery(new Term(CategoryField.ID.value, id))
     val hits: TopDocs    = searcher.search(query, 1)
 
     val results: Option[Category] =
