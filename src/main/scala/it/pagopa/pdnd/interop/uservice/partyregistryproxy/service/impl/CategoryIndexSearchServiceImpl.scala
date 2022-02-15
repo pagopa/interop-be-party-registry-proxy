@@ -4,6 +4,7 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.Applicat
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.{CategoryField, SearchField}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Category
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.analizer.CategoryTokenAnalyzer
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util.DocumentConverter
 import org.apache.lucene.index.{DirectoryReader, Term}
 import org.apache.lucene.search._
@@ -40,7 +41,7 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val documents: Try[(List[ScoreDoc], Long)] = {
-      val search = searchFunc(reader, searcher)
+      val search = searchFunc(reader, searcher, CategoryTokenAnalyzer)
       search(searchingField, searchText, page, limit)
     }
 
@@ -70,7 +71,7 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
     else {
       val booleanQuery = new BooleanQuery.Builder()
       filters.foreach { case (k, v) =>
-        val term: Term       = new Term(k.value, v.toLowerCase)
+        val term: Term       = new Term(k.value, v)
         val query: TermQuery = new TermQuery(term)
         booleanQuery.add(query, BooleanClause.Occur.MUST)
       }

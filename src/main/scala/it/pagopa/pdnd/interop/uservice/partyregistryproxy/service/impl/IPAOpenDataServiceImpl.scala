@@ -78,8 +78,8 @@ object IPAOpenDataServiceImpl {
         address        <- mapped.get(InstitutionsFields.address).flatMap(idx => record(idx).select[String])
         zipCode        <- mapped.get(InstitutionsFields.zipCode).flatMap(idx => record(idx).select[String])
       } yield Institution(
-        id = id.toLowerCase,
-        o = Some(id.toLowerCase),
+        id = id,
+        o = Some(id),
         ou = None,
         aoo = None,
         taxCode = taxCode,
