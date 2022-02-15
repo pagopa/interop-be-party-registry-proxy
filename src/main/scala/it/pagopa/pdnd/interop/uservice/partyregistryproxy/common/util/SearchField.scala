@@ -17,16 +17,16 @@ object CategoryField {
 abstract class InstitutionField(val value: String) extends SearchField
 
 object InstitutionField {
-  case object ID                  extends CategoryField("id")
-  case object O                   extends CategoryField("o")
-  case object OU                  extends CategoryField("ou")
-  case object AOO                 extends CategoryField("aoo")
-  case object TAX_CODE            extends CategoryField("taxCode")
-  case object CATEGORY            extends CategoryField("category")
-  case object MANAGER_GIVEN_NAME  extends CategoryField("managerGivenName")
-  case object MANAGER_FAMILY_NAME extends CategoryField("managerFamilyName")
-  case object DESCRIPTION         extends CategoryField("description")
-  case object DIGITAL_ADDRESS     extends CategoryField("digitalAddress")
-  case object ORIGIN              extends CategoryField("origin")
+  case object ID              extends CategoryField("id")
+  case object O               extends CategoryField("o")
+  case object OU              extends CategoryField("ou")
+  case object AOO             extends CategoryField("aoo")
+  case object TAX_CODE        extends CategoryField("taxCode")
+  case object CATEGORY        extends CategoryField("category")
+  case object DESCRIPTION     extends CategoryField("description")
+  case object DIGITAL_ADDRESS extends CategoryField("digitalAddress")
+  case object ADDRESS         extends CategoryField("address")
+  case object ZIP_CODE        extends CategoryField("zipCode")
+  case object ORIGIN          extends CategoryField("origin")
 
 }

@@ -7,11 +7,7 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.{
   createCategoryId
 }
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.{Category, Institution}
-import org.apache.lucene.analysis.it.ItalianAnalyzer
-import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilter
-import org.apache.lucene.analysis.ngram.NGramTokenFilter
-import org.apache.lucene.analysis.standard.StandardTokenizer
-import org.apache.lucene.analysis.{Analyzer, LowerCaseFilter, StopFilter}
+import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.document._
 import org.apache.lucene.index.{DirectoryReader, IndexWriter}
 import org.apache.lucene.queryparser.classic.QueryParser
@@ -23,18 +19,6 @@ import javax.naming.directory.SearchResult
 import scala.util.{Failure, Success, Try}
 
 package object impl {
-
-  case object NGramTokenAnalyzer extends Analyzer {
-
-    override def createComponents(fieldName: String): Analyzer.TokenStreamComponents = {
-      val source: StandardTokenizer    = new StandardTokenizer()
-      val lowerFilter: LowerCaseFilter = new LowerCaseFilter(source)
-      val stopFilter: StopFilter       = new StopFilter(lowerFilter, ItalianAnalyzer.getDefaultStopSet)
-      val ascii: ASCIIFoldingFilter    = new ASCIIFoldingFilter(stopFilter)
-      val ngram: NGramTokenFilter      = new NGramTokenFilter(ascii, 3, 5, true)
-      new Analyzer.TokenStreamComponents(source, ngram)
-    }
-  }
 
   def useWriter[A](writer: Try[IndexWriter], f: IndexWriter => Try[A], zero: A): Try[A] = writer match {
     case Success(wr)                           => f(wr)
@@ -60,13 +44,14 @@ package object impl {
 
   def searchFunc(
     reader: DirectoryReader,
-    searcher: IndexSearcher
+    searcher: IndexSearcher,
+    analyzer: Analyzer
   ): (String, String, Int, Int) => Try[(List[ScoreDoc], Long)] = (searchingField, searchTxt, page, limit) =>
     Try {
 
       val collector: TopScoreDocCollector = TopScoreDocCollector.create(reader.numDocs, Int.MaxValue)
       val startIndex: Int                 = (page - 1) * limit
-      val parser: QueryParser             = new QueryParser(searchingField, NGramTokenAnalyzer)
+      val parser: QueryParser             = new QueryParser(searchingField, analyzer)
       parser.setPhraseSlop(4)
       val query: Query           = parser.parse(searchTxt)
       val _                      = searcher.search(query, collector)
@@ -90,10 +75,8 @@ package object impl {
       doc.add(new TextField(InstitutionField.TAX_CODE.value, institution.taxCode, Field.Store.YES))
       doc.add(new TextField(InstitutionField.CATEGORY.value, institution.category, Field.Store.YES))
       doc.add(new TextField(InstitutionField.DIGITAL_ADDRESS.value, institution.digitalAddress, Field.Store.YES))
-      doc.add(new TextField(InstitutionField.MANAGER_GIVEN_NAME.value, institution.manager.givenName, Field.Store.YES))
-      doc.add(
-        new TextField(InstitutionField.MANAGER_FAMILY_NAME.value, institution.manager.familyName, Field.Store.YES)
-      )
+      doc.add(new TextField(InstitutionField.ADDRESS.value, institution.address, Field.Store.YES))
+      doc.add(new TextField(InstitutionField.ZIP_CODE.value, institution.zipCode, Field.Store.YES))
       doc.add(new TextField(InstitutionField.ORIGIN.value, ApplicationConfiguration.ipaOrigin, Field.Store.YES))
 
       doc.addOptional(InstitutionField.O.value, institution.o)
@@ -113,7 +96,6 @@ package object impl {
       doc.add(new TextField(CategoryField.ORIGIN.value, category.origin, Field.Store.YES))
       doc.add(new TextField(CategoryField.NAME.value, category.name, Field.Store.YES))
       doc.add(new TextField(CategoryField.KIND.value, category.kind, Field.Store.YES))
-      doc.add(new TextField(CategoryField.ORIGIN.value, category.origin, Field.Store.YES))
       doc
     }
   }

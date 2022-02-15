@@ -4,6 +4,7 @@ import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.system.Applicat
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.common.util.{InstitutionField, SearchField}
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.model.Institution
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.IndexSearchService
+import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.analizer.InstitutionTokenAnalyzer
 import it.pagopa.pdnd.interop.uservice.partyregistryproxy.service.impl.util.DocumentConverter
 import org.apache.lucene.index.{DirectoryReader, Term}
 import org.apache.lucene.search._
@@ -21,10 +22,11 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     val reader: DirectoryReader = getDirectoryReader(mainReader)
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
-    val query         = new TermQuery(new Term(InstitutionField.ID.value, id.toLowerCase))
-    val hits: TopDocs = searcher.search(query, 1)
+    val query: TermQuery = new TermQuery(new Term(InstitutionField.ID.value, id))
+    val hits: TopDocs    = searcher.search(query, 1)
 
-    val results = hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).find(_.id == id)
+    val results: Option[Institution] =
+      hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).find(_.id == id)
 
     results
   }
@@ -39,7 +41,7 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     val searcher: IndexSearcher = new IndexSearcher(reader)
 
     val documents: Try[(List[ScoreDoc], Long)] = {
-      val search = searchFunc(reader, searcher)
+      val search = searchFunc(reader, searcher, InstitutionTokenAnalyzer)
       search(searchingField, searchText, page, limit)
     }
 
