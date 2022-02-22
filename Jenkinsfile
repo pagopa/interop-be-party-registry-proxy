@@ -31,34 +31,58 @@ pipeline {
       }
     }
 
-    stage('Test and Deploy µservice') {
+    stage('Test, create and push ECR image') {
       agent { label 'sbt-template' }
       environment {
-        NEXUS = 'gateway.interop.pdnd.dev'
-        DOCKER_REPO = 'gateway.interop.pdnd.dev'
-        MAVEN_REPO = 'gateway.interop.pdnd.dev'
+        NEXUS = "${env.NEXUS}"
         NEXUS_CREDENTIALS = credentials('pdnd-nexus')
+        DOCKER_REPO = "${env.DOCKER_REPO}"
+        MAVEN_REPO = "${env.MAVEN_REPO}"
+        ECR_RW = credentials('ecr-rw')
         PDND_TRUST_STORE_PSW = credentials('pdnd-interop-trust-psw')
       }
       steps {
         container('sbt-container') {
           unstash "pdnd_trust_store"
           script {
-            sh '''docker login $NEXUS -u $NEXUS_CREDENTIALS_USR -p $NEXUS_CREDENTIALS_PSW'''
+            sh '''
+            export AWS_ACCESS_KEY_ID=$ECR_RW_USR
+            export AWS_SECRET_ACCESS_KEY=$ECR_RW_PSW
+            aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin $DOCKER_REPO
+            '''
             sbtAction 'test docker:publish "project client" publish'
           }
         }
       }
     }
 
+    stage('Create and push Github image') {
+      agent { label 'sbt-template' }
+      environment {
+        NEXUS = "${env.NEXUS}"
+        DOCKER_REPO = 'ghcr.io/pagopa'
+        MAVEN_REPO = "${env.MAVEN_REPO}"
+        NEXUS_CREDENTIALS = credentials('pdnd-nexus')
+        CR_PAT = credentials('container-registry-pat')
+        PDND_TRUST_STORE_PSW = credentials('pdnd-interop-trust-psw')
+      }
+      steps {
+        container('sbt-container') {
+          unstash "pdnd_trust_store"
+          script {
+            sh '''echo $CR_PAT_PSW | docker login $DOCKER_REPO  -u $CR_PAT_USR --password-stdin'''
+            sbtAction 'docker:publish'
+          }
+        }
+      }
+    }
+
+
+
     stage('Apply Kubernetes files') {
       agent { label 'sbt-template' }
       environment {
-        CASSANDRA = credentials('cassandra-db')
-        CASSANDRA_HOST = 'cluster1-dc1-service.cassandra-operator.svc.cluster.local:9042'
-        DOCKER_REPO = 'gateway.interop.pdnd.dev'
-        VAULT_TOKEN = credentials('vault-token')
-        VAULT_ADDR = credentials('vault-addr')
+        DOCKER_REPO = "${env.DOCKER_REPO}"
         REPLICAS_NR = 1
       }
       steps {
