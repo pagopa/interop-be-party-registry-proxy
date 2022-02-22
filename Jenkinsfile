@@ -63,7 +63,7 @@ pipeline {
         DOCKER_REPO = 'ghcr.io/pagopa'
         MAVEN_REPO = "${env.MAVEN_REPO}"
         NEXUS_CREDENTIALS = credentials('pdnd-nexus')
-        GITHUB_PAT = credentials('container-registry-pat')
+        GITHUB_PAT = credentials('github-pat')
         PDND_TRUST_STORE_PSW = credentials('pdnd-interop-trust-psw')
       }
       steps {
