@@ -31,31 +31,6 @@ pipeline {
       }
     }
 
-    stage('Test, create and push ECR image') {
-      agent { label 'sbt-template' }
-      environment {
-        NEXUS = "${env.NEXUS}"
-        NEXUS_CREDENTIALS = credentials('pdnd-nexus')
-        DOCKER_REPO = "${env.DOCKER_REPO}"
-        MAVEN_REPO = "${env.MAVEN_REPO}"
-        ECR_RW = credentials('ecr-rw')
-        PDND_TRUST_STORE_PSW = credentials('pdnd-interop-trust-psw')
-      }
-      steps {
-        container('sbt-container') {
-          unstash "pdnd_trust_store"
-          script {
-            sh '''
-            export AWS_ACCESS_KEY_ID=$ECR_RW_USR
-            export AWS_SECRET_ACCESS_KEY=$ECR_RW_PSW
-            aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin $DOCKER_REPO
-            '''
-            sbtAction 'test docker:publish "project client" publish'
-          }
-        }
-      }
-    }
-
     stage('Create and push Github image') {
       agent { label 'sbt-template' }
       environment {
@@ -71,18 +46,16 @@ pipeline {
           unstash "pdnd_trust_store"
           script {
             sh '''echo $GITHUB_PAT_PSW | docker login $DOCKER_REPO  -u $GITHUB_PAT_USR --password-stdin'''
-            sbtAction 'docker:publish'
+            sbtAction 'test docker:publish "project client" publish'
           }
         }
       }
     }
 
-
-
     stage('Apply Kubernetes files') {
       agent { label 'sbt-template' }
       environment {
-        DOCKER_REPO = "${env.DOCKER_REPO}"
+        DOCKER_REPO = 'ghcr.io/pagopa'
         REPLICAS_NR = 1
       }
       steps {
