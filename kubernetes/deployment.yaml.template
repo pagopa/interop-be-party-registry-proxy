@@ -19,19 +19,15 @@ spec:
       imagePullSecrets:
         - name: regcred
       volumes:
-        - name: application-conf
-          secret:
-            secretName: application.conf
-            defaultMode: 420
         - name: categories-index-volume
           emptyDir: {}
         - name: institutions-index-volume
           emptyDir: {}
       containers:
         - name: {{name}}
-          image: {{repository}}/services/{{name}}:{{version}}
+          image: {{repository}}/{{imageName}}:{{version}}
           command: ["bin/{{name}}"]
-          args: ["-Dconfig.file=etc/application.conf", "-Dconfig.override_with_env_vars=true"]
+          args: ["-Dconfig.override_with_env_vars=true"]
           imagePullPolicy: Always
           readinessProbe:
             httpGet:
@@ -61,16 +57,6 @@ spec:
             runAsUser: 1001
             allowPrivilegeEscalation: false
           env:
-            - name: VAULT_ADDR
-              valueFrom:
-                secretKeyRef:
-                  name: vault
-                  key: VAULT_ADDR
-            - name: VAULT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: vault
-                  key: VAULT_TOKEN
             - name: NAMESPACE
               valueFrom:
                 fieldRef:
@@ -82,8 +68,6 @@ spec:
             - name: PARTY_REGISTRY_INSTITUTIONS_URL
               value: "{{partyRegistryInstitutionsURL}}"
           volumeMounts:
-            - name: application-conf
-              mountPath: /opt/docker/etc
             - name: categories-index-volume
               mountPath: /opt/docker/index/categories
             - name: institutions-index-volume
