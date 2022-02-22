@@ -69,7 +69,7 @@ cleanFiles += baseDirectory.value / "client" / "target"
 
 lazy val generated = project
   .in(file("generated"))
-  .settings(scalacOptions := Seq())
+  .settings(scalacOptions := Seq(), scalafmtOnCompile := true)
   .setupBuildInfo
 
 lazy val client = project
