@@ -14,6 +14,6 @@ object Versions {
   lazy val vaultDriverVersion    = "5.1.0"
 }
 
-object PDNDVersions {
+object PagopaVersions {
   lazy val commonsVersion = "0.1.1-SNAPSHOT"
 }
