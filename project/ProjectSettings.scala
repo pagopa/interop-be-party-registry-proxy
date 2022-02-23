@@ -1,7 +1,4 @@
 import sbt.Project
-
-import scala.sys.process._
-import scala.util.Try
 import sbtbuildinfo.BuildInfoKeys.buildInfoOptions
 import sbtbuildinfo.BuildInfoPlugin.autoImport.{BuildInfoKey, buildInfoKeys}
 import sbtbuildinfo.{BuildInfoOption, BuildInfoPlugin}

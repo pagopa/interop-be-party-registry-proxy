@@ -1,4 +1,4 @@
-import PDNDVersions.commonsVersion
+import PagopaVersions.commonsVersion
 import Versions._
 import sbt._
 
@@ -46,7 +46,7 @@ object Dependencies {
   private[this] object pagopa {
     lazy val namespace = "it.pagopa"
 
-    lazy val commonsUtils = namespace %% "pdnd-interop-commons-utils" % commonsVersion
+    lazy val commonsUtils = namespace %% "interop-commons-utils" % commonsVersion
   }
 
   private[this] object scalatest {
