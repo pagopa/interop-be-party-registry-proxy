@@ -30,12 +30,12 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
 
     result.fold(
       ex => {
-        logger.error("Error while retrieving institution {}", institutionId, ex)
+        logger.error(s"Error while retrieving institution ${institutionId} - ${ex.getMessage}")
         getInstitutionById400(problemOf(StatusCodes.BadRequest, InvalidGetInstitutionRequest))
       },
       institution =>
         institution.fold({
-          logger.error("Error while retrieving institution {} - Institution not found", institutionId)
+          logger.error(s"Error while retrieving institution ${institutionId} - Institution not found")
           getInstitutionById404(problemOf(StatusCodes.NotFound, InstitutionNotFound))
         }) { institution =>
           logger.info("Institution {} retrieved", institutionId)
@@ -61,12 +61,12 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     result.fold(
       ex => {
         logger
-          .error("Error while searching for institution with following search string = {}", search, ex)
+          .error(s"Error while searching for institution with following search string = ${search} - ${ex.getMessage}")
         searchInstitution400(problemOf(StatusCodes.BadRequest, InvalidSearchInstitutionRequest))
       },
       tuple => {
         if (tuple._1.isEmpty) {
-          logger.error("Error while searching for institution with following search string = {} - Not Found", search)
+          logger.error(s"Error while searching for institution with following search string = ${search} - Not Found")
           searchInstitution404(problemOf(StatusCodes.NotFound, InstitutionsNotFound))
         } else {
           searchInstitution200(Institutions.tupled(tuple))

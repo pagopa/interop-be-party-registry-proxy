@@ -35,7 +35,7 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
         getCategories404(problemOf(StatusCodes.NotFound, CategoriesNotFound))
       case Success(values) => getCategories200(Categories(values))
       case Failure(ex) =>
-        logger.error("Error while retrieving categories", ex)
+        logger.error(s"Error while retrieving categories - ${ex.getMessage}")
         val error = problemOf(StatusCodes.InternalServerError, CategoriesError)
         complete(error.status, error)
     }
@@ -65,7 +65,7 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
         val error = problemOf(StatusCodes.NotFound, CategoryNotFound(code))
         value.fold(getCategory404(error))(getCategory200)
       case Failure(ex) =>
-        logger.error(s"Error while retrieving category $code", ex)
+        logger.error(s"Error while retrieving category $code - ${ex.getMessage}")
         val error = problemOf(StatusCodes.BadRequest, CategoriesError)
         getCategory400(error)
     }
