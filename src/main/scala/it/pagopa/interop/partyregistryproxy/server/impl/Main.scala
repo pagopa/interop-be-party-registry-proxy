@@ -27,7 +27,8 @@ import it.pagopa.interop.partyregistryproxy.service.impl.{
   CategoryIndexWriterServiceImpl,
   IPAOpenDataServiceImpl,
   InstitutionIndexSearchServiceImpl,
-  InstitutionIndexWriterServiceImpl
+  InstitutionIndexWriterServiceImpl,
+  PagopaOpenDataServiceImpl
 }
 import it.pagopa.interop.partyregistryproxy.service.{IndexSearchService, IndexWriterService, OpenDataService}
 import kamon.Kamon
@@ -57,6 +58,7 @@ object Main extends App with CorsSupport {
 
   locally {
     val _ = loadOpenData(openDataService, institutionsWriterService, categoriesWriterService)
+    val _ = loadOpenData(PagopaOpenDataServiceImpl, institutionsWriterService, categoriesWriterService)
     val _ = AkkaManagement.get(classicActorSystem).start()
   }
 
