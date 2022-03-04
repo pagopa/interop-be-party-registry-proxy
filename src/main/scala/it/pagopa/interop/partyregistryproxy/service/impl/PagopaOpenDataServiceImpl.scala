@@ -24,10 +24,28 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
           address = "Piazza Colonna 370, Roma",
           zipCode = "00187",
           origin = INTEROP_ORIGIN
+        ),
+        Institution(
+          id = "TestANPR",
+          o = Some("TestANPR"),
+          ou = None,
+          aoo = None,
+          taxCode = "99999988",
+          category = "ANPR",
+          description = "ANPR - Test",
+          digitalAddress = "testanprtest@test.it",
+          address = "Piazza del Viminale 1, Roma",
+          zipCode = "00184",
+          origin = INTEROP_ORIGIN
         )
       )
     )
 
   override def getAllCategories: Future[List[Category]] =
-    Future.successful(List(Category(code = "PGPA", name = "PagoPA", kind = "PGP", origin = INTEROP_ORIGIN)))
+    Future.successful(
+      List(
+        Category(code = "PGPA", name = "PagoPA", kind = "PGP", origin = INTEROP_ORIGIN),
+        Category(code = "ANPR", name = "ANPR", kind = "ANPR", origin = INTEROP_ORIGIN)
+      )
+    )
 }
