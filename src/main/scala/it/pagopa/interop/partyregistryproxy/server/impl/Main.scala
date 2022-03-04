@@ -55,10 +55,10 @@ object Main extends App with CorsSupport {
   val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
   val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
   val openDataService: OpenDataService                           = IPAOpenDataServiceImpl(http)(actorSystem, executionContext)
+  val pagopaDataService: OpenDataService                         = PagopaOpenDataServiceImpl
 
   locally {
-    val _ = loadOpenData(openDataService, institutionsWriterService, categoriesWriterService)
-    val _ = loadOpenData(PagopaOpenDataServiceImpl, institutionsWriterService, categoriesWriterService)
+    val _ = loadOpenData(openDataService, pagopaDataService, institutionsWriterService, categoriesWriterService)
     val _ = AkkaManagement.get(classicActorSystem).start()
   }
 
@@ -86,15 +86,18 @@ object Main extends App with CorsSupport {
 
   def loadOpenData(
     openDataService: OpenDataService,
+    pagopaDataService: OpenDataService,
     institutionsIndexWriterService: IndexWriterService[Institution],
     categoriesIndexWriterService: IndexWriterService[Category]
   ): Unit = {
     logger.info(s"Loading open data")
     val result: Future[Unit] = for {
-      institutions <- openDataService.getAllInstitutions
-      _            <- loadInstitutions(institutionsIndexWriterService, institutions)
-      categories   <- openDataService.getAllCategories
-      _            <- loadCategories(categoriesIndexWriterService, categories)
+      institutions       <- openDataService.getAllInstitutions
+      pagopaInstitutions <- pagopaDataService.getAllInstitutions
+      _                  <- loadInstitutions(institutionsIndexWriterService, institutions ++ pagopaInstitutions)
+      categories         <- openDataService.getAllCategories
+      pagopaCategories   <- pagopaDataService.getAllCategories
+      _                  <- loadCategories(categoriesIndexWriterService, categories ++ pagopaCategories)
     } yield ()
 
     result.onComplete {
