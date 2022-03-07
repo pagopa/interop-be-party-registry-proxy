@@ -1,6 +1,5 @@
 package it.pagopa.interop.partyregistryproxy.service
 
-import it.pagopa.interop.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.interop.partyregistryproxy.common.util.{CategoryField, InstitutionField, createCategoryId}
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
 import org.apache.lucene.analysis.Analyzer
