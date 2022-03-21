@@ -64,9 +64,8 @@ object Main extends App with CorsSupport {
     )(actorSystem, executionContext)
 
   locally {
-    val _ =
-      loadOpenData(openDataService, mockOpenDataServiceImpl, institutionsWriterService, categoriesWriterService)
-    val _ = AkkaManagement.get(classicActorSystem).start()
+    loadOpenData(openDataService, mockOpenDataServiceImpl, institutionsWriterService, categoriesWriterService)
+    AkkaManagement.get(classicActorSystem).start()
   }
 
   val institutionsSearchService: IndexSearchService[Institution] = InstitutionIndexSearchServiceImpl
