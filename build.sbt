@@ -122,4 +122,4 @@ lazy val root = (project in file("."))
   .enablePlugins(JavaAppPackaging, JavaAgent)
   .setupBuildInfo
 
-javaAgents += "io.kamon" % "kanela-agent" % "1.0.11"
+javaAgents += "io.kamon" % "kanela-agent" % "1.0.14"
