@@ -1,5 +1,6 @@
 package it.pagopa.interop.partyregistryproxy.server.impl
 
+import akka.actor.CoordinatedShutdown
 import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.management.scaladsl.AkkaManagement
@@ -14,7 +15,6 @@ import it.pagopa.interop.partyregistryproxy.api.impl.{
 import it.pagopa.interop.partyregistryproxy.api.{CategoryApi, HealthApi, InstitutionApi}
 import it.pagopa.interop.partyregistryproxy.common.system.{
   ApplicationConfiguration,
-  Authenticator,
   CorsSupport,
   actorSystem,
   classicActorSystem,
@@ -33,10 +33,19 @@ import it.pagopa.interop.partyregistryproxy.service.impl.{
 import it.pagopa.interop.partyregistryproxy.service.{IndexSearchService, IndexWriterService, OpenDataService}
 import kamon.Kamon
 import org.slf4j.LoggerFactory
+import it.pagopa.interop.commons.jwt.service.JWTReader
+import it.pagopa.interop.commons.jwt.service.impl.{DefaultJWTReader, getClaimsVerifier}
+import it.pagopa.interop.commons.jwt.{JWTConfiguration, KID, PublicKeysHolder, SerializedKey}
+import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier
+import com.nimbusds.jose.proc.SecurityContext
+import it.pagopa.interop.commons.utils.AkkaUtils
+import it.pagopa.interop.commons.utils.TypeConversions._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success}
+
+case object StartupErrorShutdown extends CoordinatedShutdown.Reason
 
 object Main extends App with CorsSupport {
 
@@ -44,45 +53,63 @@ object Main extends App with CorsSupport {
 
   Kamon.init()
 
-  final val http: HttpExt = Http()
+  val dependenciesLoaded: Future[JWTReader] = for {
+    keyset <- JWTConfiguration.jwtReader.loadKeyset().toFuture
+    jwtValidator = new DefaultJWTReader with PublicKeysHolder {
+      var publicKeyset: Map[KID, SerializedKey] = keyset
+      override protected val claimsVerifier: DefaultJWTClaimsVerifier[SecurityContext] =
+        getClaimsVerifier(audience = ApplicationConfiguration.jwtAudience)
+    }
+  } yield jwtValidator
 
-  val healthApi: HealthApi = new HealthApi(
-    new HealthApiServiceImpl(),
-    new HealthApiMarshallerImpl(),
-    SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
-  )
-
-  val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
-  val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
-  val openDataService: OpenDataService                           = IPAOpenDataServiceImpl(http)(actorSystem, executionContext)
-  val pagopaDataService: OpenDataService                         = PagopaOpenDataServiceImpl
-
-  locally {
-    val _ = loadOpenData(openDataService, pagopaDataService, institutionsWriterService, categoriesWriterService)
-    val _ = AkkaManagement.get(classicActorSystem).start()
+  dependenciesLoaded.transformWith {
+    case Success(jwtValidator) => launchApp(jwtValidator)
+    case Failure(ex) =>
+      classicActorSystem.log.error("Startup error: {}", ex.getMessage)
+      classicActorSystem.log.error(ex.getStackTrace.mkString("\n"))
+      CoordinatedShutdown(classicActorSystem).run(StartupErrorShutdown)
   }
 
-  val institutionsSearchService: IndexSearchService[Institution] = InstitutionIndexSearchServiceImpl
-  val categoriesSearchService: IndexSearchService[Category]      = CategoryIndexSearchServiceImpl
+  private def launchApp(jwtReader: JWTReader): Future[Http.ServerBinding] = {
+    val http: HttpExt = Http()
 
-  val institutionApi: InstitutionApi = new InstitutionApi(
-    InstitutionApiServiceImpl(institutionsSearchService),
-    InstitutionApiMarshallerImpl,
-    SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
-  )
+    val healthApi: HealthApi = new HealthApi(
+      new HealthApiServiceImpl(),
+      new HealthApiMarshallerImpl(),
+      SecurityDirectives.authenticateOAuth2("SecurityRealm", AkkaUtils.PassThroughAuthenticator)
+    )
 
-  val categoryApi: CategoryApi = new CategoryApi(
-    CategoryApiServiceImpl(categoriesSearchService),
-    CategoryApiMarshallerImpl,
-    SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
-  )
+    val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
+    val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
+    val openDataService: OpenDataService                           = IPAOpenDataServiceImpl(http)(actorSystem, executionContext)
+    val pagopaDataService: OpenDataService                         = PagopaOpenDataServiceImpl
 
-  val controller = new Controller(category = categoryApi, health = healthApi, institution = institutionApi)
+    locally {
+      val _ = loadOpenData(openDataService, pagopaDataService, institutionsWriterService, categoriesWriterService)
+      val _ = AkkaManagement.get(classicActorSystem).start()
+    }
 
-  logger.error(s"Started build info = ${buildinfo.BuildInfo.toString}")
+    val institutionsSearchService: IndexSearchService[Institution] = InstitutionIndexSearchServiceImpl
+    val categoriesSearchService: IndexSearchService[Category]      = CategoryIndexSearchServiceImpl
 
-  val bindingFuture =
+    val institutionApi: InstitutionApi = new InstitutionApi(
+      InstitutionApiServiceImpl(institutionsSearchService),
+      InstitutionApiMarshallerImpl,
+      jwtReader.OAuth2JWTValidatorAsContexts
+    )
+
+    val categoryApi: CategoryApi = new CategoryApi(
+      CategoryApiServiceImpl(categoriesSearchService),
+      CategoryApiMarshallerImpl,
+      jwtReader.OAuth2JWTValidatorAsContexts
+    )
+
+    val controller = new Controller(category = categoryApi, health = healthApi, institution = institutionApi)
+
+    logger.info(s"Started build info = ${buildinfo.BuildInfo.toString}")
+
     http.newServerAt("0.0.0.0", ApplicationConfiguration.serverPort).bind(corsHandler(controller.routes))
+  }
 
   def loadOpenData(
     openDataService: OpenDataService,

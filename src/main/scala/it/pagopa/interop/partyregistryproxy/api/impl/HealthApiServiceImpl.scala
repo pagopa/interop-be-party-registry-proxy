@@ -8,7 +8,10 @@ import it.pagopa.interop.partyregistryproxy.model.Problem
 
 class HealthApiServiceImpl extends HealthApiService {
 
-  override def getStatus()(implicit toEntityMarshallerProblem: ToEntityMarshaller[Problem]): Route = {
+  override def getStatus()(implicit
+    contexts: Seq[(String, String)],
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+  ): Route = {
     val response: Problem = Problem(
       `type` = "about:blank",
       status = StatusCodes.OK.intValue,

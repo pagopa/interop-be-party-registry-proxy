@@ -13,6 +13,8 @@ info:
 servers:
   - url: '/party-registry-proxy/{{version}}'
     description: This service is the proxy to the party registry
+security:
+  - bearerAuth: []
 tags:
   - name: institution
     description: Retrieve information about institution
@@ -353,3 +355,9 @@ components:
       required:
         - code
         - detail
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).
+      scheme: bearer
+      bearerFormat: JWT
