@@ -74,11 +74,11 @@ object MockOpenDataServiceImpl {
 
   def extractInstitutions(origin: String)(response: OpenDataResponse): List[Institution] = {
 
-    val indexed: List[(OpenDataResponseField, Int)] = response.fields.zipWithIndex
+    val indexed: List[(OpenDataResponseField, Int)]  = response.fields.zipWithIndex
     val filtered: List[(OpenDataResponseField, Int)] = indexed.filter { case (field, _) =>
       InstitutionsFields.fields.contains(field.id)
     }
-    val mapped: Map[String, Int] = filtered.map { case (k, v) => k.id -> v }.toMap
+    val mapped: Map[String, Int]                     = filtered.map { case (k, v) => k.id -> v }.toMap
 
     response.records.flatMap { record =>
       for {
@@ -107,11 +107,11 @@ object MockOpenDataServiceImpl {
 
   def extractCategories(origin: String)(response: OpenDataResponse): List[Category] = {
 
-    val indexed: List[(OpenDataResponseField, Int)] = response.fields.zipWithIndex
+    val indexed: List[(OpenDataResponseField, Int)]  = response.fields.zipWithIndex
     val filtered: List[(OpenDataResponseField, Int)] = indexed.filter { case (field, _) =>
       CategoriesFields.fields.contains(field.id)
     }
-    val mapped: Map[String, Int] = filtered.map { case (k, v) => k.id -> v }.toMap
+    val mapped: Map[String, Int]                     = filtered.map { case (k, v) => k.id -> v }.toMap
 
     response.records.flatMap { record =>
       for {

@@ -54,7 +54,7 @@ object Main extends App with CorsSupport {
 
   val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
   val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
-  val openDataService: OpenDataService                           = IPAOpenDataServiceImpl(http)(actorSystem, executionContext)
+  val openDataService: OpenDataService                 = IPAOpenDataServiceImpl(http)(actorSystem, executionContext)
   val mockOpenDataServiceImpl: MockOpenDataServiceImpl =
     MockOpenDataServiceImpl(
       institutionsMockOpenDataUrl = ApplicationConfiguration.institutionsMockOpenDataUrl,
@@ -107,7 +107,7 @@ object Main extends App with CorsSupport {
     } yield ()
 
     result.onComplete {
-      case Success(_) => logger.info(s"Open data committed")
+      case Success(_)  => logger.info(s"Open data committed")
       case Failure(ex) =>
         logger.error(s"Error trying to populate index - ${ex.getMessage}")
     }
