@@ -5,7 +5,7 @@ object Versions {
   lazy val json4sVersion         = "4.0.4"
   lazy val kamonVersion          = "2.2.3"
   lazy val logbackVersion        = "1.2.11"
-  lazy val luceneVersion         = "8.9.0"
+  lazy val luceneVersion         = "8.11.1"
   lazy val mockitoVersion        = "3.7.7"
   lazy val mustacheVersion       = "0.9.10"
   lazy val openapi4jVersion      = "1.0.7"
