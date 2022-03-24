@@ -16,7 +16,7 @@ object ApplicationConfiguration {
     config.getString("party-registry-proxy.sources.ipa.institutions.open-data-url")
   lazy val categoriesIpaOpenDataUrl: String   =
     config.getString("party-registry-proxy.sources.ipa.categories.open-data-url")
-  lazy val ipaOrigin: String                  = config.getString("party-registry-proxy.ipa.origin")
+  lazy val ipaOrigin: String                  = config.getString("party-registry-proxy.sources.ipa.origin")
 
   lazy val institutionsMockOpenDataUrl: Option[String] = Try(
     config.getString("party-registry-proxy.sources.mock.institutions.open-data-url")
