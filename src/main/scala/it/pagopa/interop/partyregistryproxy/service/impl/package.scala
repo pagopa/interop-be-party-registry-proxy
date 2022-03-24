@@ -48,10 +48,10 @@ package object impl {
       val startIndex: Int                 = (page - 1) * limit
       val parser: QueryParser             = new QueryParser(searchingField, analyzer)
       parser.setPhraseSlop(4)
-      val query: Query           = parser.parse(searchTxt)
-      val _                      = searcher.search(query, collector)
-      val hits: TopDocs          = collector.topDocs(startIndex, limit)
-      val scores: List[ScoreDoc] = hits.scoreDocs.toList
+      val query: Query                    = parser.parse(searchTxt)
+      val _                               = searcher.search(query, collector)
+      val hits: TopDocs                   = collector.topDocs(startIndex, limit)
+      val scores: List[ScoreDoc]          = hits.scoreDocs.toList
 
       (scores, hits.totalHits.value)
     }

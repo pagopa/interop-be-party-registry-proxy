@@ -55,7 +55,7 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
     val wrappingDirective: Directive1[Unit] = SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
 
     val institutionApiService: InstitutionApiService = InstitutionApiServiceImpl(institutionSearchService)
-    val institutionApi: InstitutionApi =
+    val institutionApi: InstitutionApi               =
       new InstitutionApi(institutionApiService, institutionApiMarshaller, wrappingDirective)
 
     val categoryApiService: CategoryApiService = CategoryApiServiceImpl(categorySearchService)
@@ -371,8 +371,8 @@ object ServiceSpecSupport {
 
   final lazy val categories = List(categoryOne, categoryTwo, categoryOThree)
 
-  final lazy val responseInstitutionsNotFound         = problemOf(StatusCodes.NotFound, InstitutionsNotFound)
-  final lazy val responseInvalidSearch                = problemOf(StatusCodes.BadRequest, InvalidSearchInstitutionRequest)
-  final lazy val responseCategoriesNotFound           = problemOf(StatusCodes.NotFound, CategoriesNotFound)
+  final lazy val responseInstitutionsNotFound = problemOf(StatusCodes.NotFound, InstitutionsNotFound)
+  final lazy val responseInvalidSearch        = problemOf(StatusCodes.BadRequest, InvalidSearchInstitutionRequest)
+  final lazy val responseCategoriesNotFound   = problemOf(StatusCodes.NotFound, CategoriesNotFound)
   def responseCategoryNotFound(code: String): Problem = problemOf(StatusCodes.NotFound, CategoryNotFound(code))
 }
