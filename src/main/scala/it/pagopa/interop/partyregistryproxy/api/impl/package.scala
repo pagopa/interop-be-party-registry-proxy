@@ -18,9 +18,9 @@ package object impl extends DefaultJsonProtocol {
       override def write(obj: LocalDate): JsValue = JsString(obj.format(formatter))
 
       override def read(json: JsValue): LocalDate = json match {
-        case JsString(s) =>
+        case JsString(s)  =>
           Try(LocalDate.parse(s, formatter)) match {
-            case Success(result) => result
+            case Success(result)    => result
             case Failure(exception) =>
               deserializationError(s"could not parse $s as java LocalDate", exception)
           }

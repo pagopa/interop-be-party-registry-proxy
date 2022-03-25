@@ -3,6 +3,8 @@ package it.pagopa.interop.partyregistryproxy.common.system
 import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.jdk.CollectionConverters.CollectionHasAsScala
+import scala.util.Try
+
 
 object ApplicationConfiguration {
   lazy val config: Config = ConfigFactory.load()
@@ -10,12 +12,22 @@ object ApplicationConfiguration {
   lazy val serverPort: Int = config.getInt("party-registry-proxy.port")
 
   lazy val jwtAudience: Set[String] = config.getStringList("party-registry-proxy.jwt.audience").asScala.toSet
+  
+  lazy val institutionsIndexDir: String = config.getString("party-registry-proxy.index.institutions.folder")
+  lazy val categoriesIndexDir: String   = config.getString("party-registry-proxy.index.categories.folder")
 
-  lazy val institutionsIndexDir: String       = config.getString("party-registry-proxy.index.institutions.folder")
-  lazy val institutionsIpaOpenDataUrl: String = config.getString("party-registry-proxy.ipa.institutions.open-data-url")
+  lazy val institutionsIpaOpenDataUrl: String =
+    config.getString("party-registry-proxy.sources.ipa.institutions.open-data-url")
+  lazy val categoriesIpaOpenDataUrl: String   =
+    config.getString("party-registry-proxy.sources.ipa.categories.open-data-url")
+  lazy val ipaOrigin: String                  = config.getString("party-registry-proxy.sources.ipa.origin")
 
-  lazy val categoriesIndexDir: String       = config.getString("party-registry-proxy.index.categories.folder")
-  lazy val categoriesIpaOpenDataUrl: String = config.getString("party-registry-proxy.ipa.categories.open-data-url")
+  lazy val institutionsMockOpenDataUrl: Option[String] = Try(
+    config.getString("party-registry-proxy.sources.mock.institutions.open-data-url")
+  ).toOption
+  lazy val categoriesMockOpenDataUrl: Option[String]   = Try(
+    config.getString("party-registry-proxy.sources.mock.categories.open-data-url")
+  ).toOption
+  lazy val mockOrigin: Option[String] = Try(config.getString("party-registry-proxy.mock.origin")).toOption
 
-  lazy val ipaOrigin: String = config.getString("party-registry-proxy.ipa.origin")
 }

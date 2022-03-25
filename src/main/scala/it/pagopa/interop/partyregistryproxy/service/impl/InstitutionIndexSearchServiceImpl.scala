@@ -53,7 +53,7 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     results
   }
 
-  //TODO add pagination, low priority
+  // TODO add pagination, low priority
   override def getAllItems(filters: Map[SearchField, String]): Try[List[Institution]] = Failure(
     new RuntimeException("Not implemented")
   )
