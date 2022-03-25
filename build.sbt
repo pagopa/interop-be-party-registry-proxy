@@ -1,15 +1,10 @@
 import ProjectSettings.ProjectFrom
 import com.typesafe.sbt.packager.docker.Cmd
 
-ThisBuild / scalaVersion := "2.13.6"
+ThisBuild / scalaVersion := "2.13.8"
 ThisBuild / organization := "it.pagopa"
 ThisBuild / organizationName := "Pagopa S.p.A."
-ThisBuild / libraryDependencies := Dependencies.Jars.`server`.map(m =>
-  if (scalaVersion.value.startsWith("3.0"))
-    m.withDottyCompat(scalaVersion.value)
-  else
-    m
-)
+ThisBuild / libraryDependencies := Dependencies.Jars.`server`
 
 ThisBuild / version := ComputeVersion.version
 
@@ -60,8 +55,6 @@ generateCode := {
 (Compile / compile) := ((Compile / compile) dependsOn generateCode).value
 (Test / test) := ((Test / test) dependsOn generateCode).value
 
-Compile / PB.targets := Seq(scalapb.gen() -> (Compile / sourceManaged).value / "protobuf")
-
 cleanFiles += baseDirectory.value / "generated" / "src"
 
 cleanFiles += baseDirectory.value / "generated" / "target"
@@ -84,12 +77,7 @@ lazy val client = project
     scalacOptions := Seq(),
     scalafmtOnCompile := true,
     version := (ThisBuild / version).value,
-    libraryDependencies := Dependencies.Jars.client.map(m =>
-      if (scalaVersion.value.startsWith("3.0"))
-        m.withDottyCompat(scalaVersion.value)
-      else
-        m
-    ),
+    libraryDependencies := Dependencies.Jars.client,
     updateOptions := updateOptions.value.withGigahorse(false),
     Docker / publish := {},
     publishTo := {
@@ -122,4 +110,4 @@ lazy val root = (project in file("."))
   .enablePlugins(JavaAppPackaging, JavaAgent)
   .setupBuildInfo
 
-javaAgents += "io.kamon" % "kanela-agent" % "1.0.11"
+javaAgents += "io.kamon" % "kanela-agent" % "1.0.14"

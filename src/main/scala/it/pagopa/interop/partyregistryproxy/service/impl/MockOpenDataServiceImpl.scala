@@ -4,10 +4,10 @@ import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import it.pagopa.interop.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
 import it.pagopa.interop.partyregistryproxy.service.OpenDataService
 import it.pagopa.interop.partyregistryproxy.service.impl.util.{
+  MockData,
   OpenDataResponse,
   OpenDataResponseField,
   OpenDataResponseMarshaller
@@ -15,19 +15,32 @@ import it.pagopa.interop.partyregistryproxy.service.impl.util.{
 
 import scala.concurrent.{ExecutionContext, Future}
 
-final case class IPAOpenDataServiceImpl(http: HttpExt)(implicit system: ActorSystem[Nothing], ec: ExecutionContext)
+final case class MockOpenDataServiceImpl(
+  institutionsMockOpenDataUrl: Option[String],
+  categoriesMockOpenDataUrl: Option[String],
+  mockOrigin: Option[String],
+  http: HttpExt
+)(implicit system: ActorSystem[Nothing], ec: ExecutionContext)
     extends OpenDataService
     with OpenDataResponseMarshaller {
 
-  def getAllInstitutions: Future[List[Institution]] = {
-    retrieveOpenData(ApplicationConfiguration.institutionsIpaOpenDataUrl).map(
-      IPAOpenDataServiceImpl.extractInstitutions
-    )
+  private val mockData: Option[MockData] = {
+    for {
+      institutionsOpenDataUrl <- institutionsMockOpenDataUrl
+      categoriesOpenDataUrl   <- categoriesMockOpenDataUrl
+      origin                  <- mockOrigin
+    } yield MockData(institutionsOpenDataUrl, categoriesOpenDataUrl, origin)
   }
 
-  override def getAllCategories: Future[List[Category]] = {
-    retrieveOpenData(ApplicationConfiguration.categoriesIpaOpenDataUrl).map(IPAOpenDataServiceImpl.extractCategories)
-  }
+  override def getAllInstitutions: Future[List[Institution]] =
+    mockData.fold(Future.successful(List.empty[Institution]))(data =>
+      retrieveOpenData(data.institutionsOpenDataUrl).map(MockOpenDataServiceImpl.extractInstitutions(data.origin))
+    )
+
+  override def getAllCategories: Future[List[Category]] =
+    mockData.fold(Future.successful(List.empty[Category]))(data =>
+      retrieveOpenData(data.categoriesOpenDataUrl).map(MockOpenDataServiceImpl.extractCategories(data.origin))
+    )
 
   private def retrieveOpenData(uri: String): Future[OpenDataResponse] = {
     for {
@@ -37,8 +50,7 @@ final case class IPAOpenDataServiceImpl(http: HttpExt)(implicit system: ActorSys
   }
 }
 
-object IPAOpenDataServiceImpl {
-
+object MockOpenDataServiceImpl {
   private object InstitutionsFields {
     final val id             = "Codice_IPA"
     final val description    = "Denominazione_ente"
@@ -60,7 +72,7 @@ object IPAOpenDataServiceImpl {
     final val fields: Set[String] = Set(code, name, kind)
   }
 
-  def extractInstitutions(response: OpenDataResponse): List[Institution] = {
+  def extractInstitutions(origin: String)(response: OpenDataResponse): List[Institution] = {
 
     val indexed: List[(OpenDataResponseField, Int)]  = response.fields.zipWithIndex
     val filtered: List[(OpenDataResponseField, Int)] = indexed.filter { case (field, _) =>
@@ -88,12 +100,12 @@ object IPAOpenDataServiceImpl {
         digitalAddress = digitalAddress,
         address = address,
         zipCode = zipCode,
-        origin = ApplicationConfiguration.ipaOrigin
+        origin = origin
       )
     }
   }
 
-  def extractCategories(response: OpenDataResponse): List[Category] = {
+  def extractCategories(origin: String)(response: OpenDataResponse): List[Category] = {
 
     val indexed: List[(OpenDataResponseField, Int)]  = response.fields.zipWithIndex
     val filtered: List[(OpenDataResponseField, Int)] = indexed.filter { case (field, _) =>
@@ -106,7 +118,7 @@ object IPAOpenDataServiceImpl {
         code <- record(mapped(CategoriesFields.code)).select[String]
         name <- record(mapped(CategoriesFields.name)).select[String]
         kind <- record(mapped(CategoriesFields.kind)).select[String]
-      } yield Category(code = code, name = name, kind = kind, origin = ApplicationConfiguration.ipaOrigin)
+      } yield Category(code = code, name = name, kind = kind, origin = origin)
     }
 
   }

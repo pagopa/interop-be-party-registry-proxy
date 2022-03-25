@@ -28,7 +28,7 @@ import it.pagopa.interop.partyregistryproxy.service.impl.{
   IPAOpenDataServiceImpl,
   InstitutionIndexSearchServiceImpl,
   InstitutionIndexWriterServiceImpl,
-  PagopaOpenDataServiceImpl
+  MockOpenDataServiceImpl
 }
 import it.pagopa.interop.partyregistryproxy.service.{IndexSearchService, IndexWriterService, OpenDataService}
 import kamon.Kamon
@@ -54,12 +54,18 @@ object Main extends App with CorsSupport {
 
   val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
   val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
-  val openDataService: OpenDataService                           = IPAOpenDataServiceImpl(http)(actorSystem, executionContext)
-  val pagopaDataService: OpenDataService                         = PagopaOpenDataServiceImpl
+  val openDataService: OpenDataService                 = IPAOpenDataServiceImpl(http)(actorSystem, executionContext)
+  val mockOpenDataServiceImpl: MockOpenDataServiceImpl =
+    MockOpenDataServiceImpl(
+      institutionsMockOpenDataUrl = ApplicationConfiguration.institutionsMockOpenDataUrl,
+      categoriesMockOpenDataUrl = ApplicationConfiguration.categoriesMockOpenDataUrl,
+      mockOrigin = ApplicationConfiguration.mockOrigin,
+      http = http
+    )(actorSystem, executionContext)
 
   locally {
-    val _ = loadOpenData(openDataService, pagopaDataService, institutionsWriterService, categoriesWriterService)
-    val _ = AkkaManagement.get(classicActorSystem).start()
+    loadOpenData(openDataService, mockOpenDataServiceImpl, institutionsWriterService, categoriesWriterService)
+    AkkaManagement.get(classicActorSystem).start()
   }
 
   val institutionsSearchService: IndexSearchService[Institution] = InstitutionIndexSearchServiceImpl
@@ -86,22 +92,22 @@ object Main extends App with CorsSupport {
 
   def loadOpenData(
     openDataService: OpenDataService,
-    pagopaDataService: OpenDataService,
+    mockOpenDataServiceImpl: OpenDataService,
     institutionsIndexWriterService: IndexWriterService[Institution],
     categoriesIndexWriterService: IndexWriterService[Category]
   ): Unit = {
     logger.info(s"Loading open data")
     val result: Future[Unit] = for {
-      institutions       <- openDataService.getAllInstitutions
-      pagopaInstitutions <- pagopaDataService.getAllInstitutions
-      _                  <- loadInstitutions(institutionsIndexWriterService, institutions ++ pagopaInstitutions)
-      categories         <- openDataService.getAllCategories
-      pagopaCategories   <- pagopaDataService.getAllCategories
-      _                  <- loadCategories(categoriesIndexWriterService, categories ++ pagopaCategories)
+      institutions     <- openDataService.getAllInstitutions
+      mockInstitutions <- mockOpenDataServiceImpl.getAllInstitutions
+      _                <- loadInstitutions(institutionsIndexWriterService, institutions ++ mockInstitutions)
+      categories       <- openDataService.getAllCategories
+      mockCategories   <- mockOpenDataServiceImpl.getAllCategories
+      _                <- loadCategories(categoriesIndexWriterService, categories ++ mockCategories)
     } yield ()
 
     result.onComplete {
-      case Success(_) => logger.info(s"Open data committed")
+      case Success(_)  => logger.info(s"Open data committed")
       case Failure(ex) =>
         logger.error(s"Error trying to populate index - ${ex.getMessage}")
     }

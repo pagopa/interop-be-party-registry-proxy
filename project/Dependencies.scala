@@ -64,7 +64,7 @@ object Dependencies {
   }
 
   private[this] object shapeless {
-    lazy val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
+    lazy val shapeless = "com.chuusai" %% "shapeless" % "2.3.8"
   }
 
   object Jars {
