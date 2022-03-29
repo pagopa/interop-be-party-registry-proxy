@@ -3,8 +3,6 @@ package it.pagopa.interop.partyregistryproxy.common
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
 import akka.actor.typed.{ActorSystem, Scheduler}
-import akka.http.scaladsl.server.Directives.Authenticator
-import akka.http.scaladsl.server.directives.Credentials
 import akka.util.Timeout
 import akka.{actor => classic}
 
@@ -23,9 +21,5 @@ package object system {
   implicit val timeout: Timeout = 3.seconds
 
   implicit val scheduler: Scheduler = actorSystem.scheduler
-
-  object Authenticator extends Authenticator[Unit] {
-    override def apply(credentials: Credentials): Option[Unit] = Some(())
-  }
 
 }

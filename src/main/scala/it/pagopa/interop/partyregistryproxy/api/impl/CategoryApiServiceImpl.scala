@@ -23,6 +23,7 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
     * Code: 404, Message: Categories not found, DataType: Problem
     */
   override def getCategories(origin: Option[String])(implicit
+    contexts: Seq[(String, String)],
     toEntityMarshallerCategories: ToEntityMarshaller[Categories],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
@@ -50,6 +51,7 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
     * Code: 404, Message: Category not found, DataType: Problem
     */
   override def getCategory(origin: String, code: String)(implicit
+    contexts: Seq[(String, String)],
     toEntityMarshallerCategory: ToEntityMarshaller[Category],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {

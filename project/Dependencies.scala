@@ -47,6 +47,7 @@ object Dependencies {
     lazy val namespace = "it.pagopa"
 
     lazy val commonsUtils = namespace %% "interop-commons-utils" % commonsVersion
+    lazy val commonsJwt   = namespace %% "interop-commons-jwt"   % commonsVersion
   }
 
   private[this] object scalatest {
@@ -89,6 +90,7 @@ object Dependencies {
       lucene.queryParser       % Compile,
       mustache.mustache        % Compile,
       pagopa.commonsUtils      % Compile,
+      pagopa.commonsJwt        % Compile,
       shapeless.shapeless      % Compile,
       scalatest.core           % Test,
       scalamock.core           % Test

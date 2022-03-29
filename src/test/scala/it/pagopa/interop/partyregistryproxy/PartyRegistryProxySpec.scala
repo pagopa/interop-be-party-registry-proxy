@@ -3,11 +3,11 @@ package it.pagopa.interop.partyregistryproxy
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directive1
-import akka.http.scaladsl.server.directives.SecurityDirectives
+import akka.http.scaladsl.server.directives.{AuthenticationDirective, SecurityDirectives}
+import it.pagopa.interop.commons.utils.AkkaUtils.Authenticator
 import it.pagopa.interop.partyregistryproxy.api._
 import it.pagopa.interop.partyregistryproxy.api.impl.{CategoryApiMarshallerImpl, _}
-import it.pagopa.interop.partyregistryproxy.common.system.{Authenticator, classicActorSystem, executionContext}
+import it.pagopa.interop.partyregistryproxy.common.system.{classicActorSystem, executionContext}
 import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.DESCRIPTION
 import it.pagopa.interop.partyregistryproxy.common.util.createCategoryId
 import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors.{
@@ -52,7 +52,8 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
   override def beforeAll(): Unit = {
 
-    val wrappingDirective: Directive1[Unit] = SecurityDirectives.authenticateBasic("SecurityRealm", Authenticator)
+    val wrappingDirective: AuthenticationDirective[Seq[(String, String)]] =
+      SecurityDirectives.authenticateOAuth2("SecurityRealm", Authenticator)
 
     val institutionApiService: InstitutionApiService = InstitutionApiServiceImpl(institutionSearchService)
     val institutionApi: InstitutionApi               =

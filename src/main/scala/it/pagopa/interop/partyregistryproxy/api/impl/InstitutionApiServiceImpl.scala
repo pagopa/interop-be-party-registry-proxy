@@ -22,6 +22,7 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     * Code: 404, Message: Institution not found, DataType: ErrorResponse
     */
   override def getInstitutionById(institutionId: String)(implicit
+    contexts: Seq[(String, String)],
     toEntityMarshallerInstitutionIPA: ToEntityMarshaller[Institution],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
@@ -50,6 +51,7 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     * Code: 404, Message: Institution not found, DataType: Problem
     */
   override def searchInstitution(search: String, page: Int, limit: Int)(implicit
+    contexts: Seq[(String, String)],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem],
     toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions]
   ): Route = {
