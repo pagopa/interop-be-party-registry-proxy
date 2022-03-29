@@ -28,6 +28,6 @@ object ApplicationConfiguration {
   lazy val categoriesMockOpenDataUrl: Option[String]   = Try(
     config.getString("party-registry-proxy.sources.mock.categories.open-data-url")
   ).toOption
-  lazy val mockOrigin: Option[String] = Try(config.getString("party-registry-proxy.mock.origin")).toOption
+  lazy val mockOrigin: Option[String] = Try(config.getString("party-registry-proxy.sources.mock.origin")).toOption
 
 }
