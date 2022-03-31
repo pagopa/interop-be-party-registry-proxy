@@ -5,14 +5,14 @@ import sbt._
 object Dependencies {
 
   private[this] object akka {
-    lazy val namespace  = "com.typesafe.akka"
-    lazy val actorTyped = namespace                       %% "akka-actor-typed"     % akkaVersion
-    lazy val actor      = namespace                       %% "akka-actor"           % akkaVersion
-    lazy val stream     = namespace                       %% "akka-stream"          % akkaVersion
-    lazy val http       = namespace                       %% "akka-http"            % akkaHttpVersion
-    lazy val httpJson   = namespace                       %% "akka-http-spray-json" % akkaHttpVersion
-    lazy val httpJson4s = "de.heikoseeberger"             %% "akka-http-json4s"     % "1.38.2"
-    lazy val management = "com.lightbend.akka.management" %% "akka-management"      % akkaManagementVersion
+    lazy val namespace           = "com.typesafe.akka"
+    lazy val actorTyped          = namespace                       %% "akka-actor-typed"     % akkaVersion
+    lazy val actor               = namespace                       %% "akka-actor"           % akkaVersion
+    lazy val stream              = namespace                       %% "akka-stream"          % akkaVersion
+    lazy val http                = namespace                       %% "akka-http"            % akkaHttpVersion
+    lazy val httpJson            = namespace                       %% "akka-http-spray-json" % akkaHttpVersion
+    lazy val httpJson4s          = "de.heikoseeberger"             %% "akka-http-json4s"     % "1.38.2"
+    lazy val management          = "com.lightbend.akka.management" %% "akka-management"      % akkaManagementVersion
     lazy val managementLogLevels =
       "com.lightbend.akka.management" %% "akka-management-loglevels-logback" % akkaManagementVersion
     lazy val slf4j = namespace %% "akka-slf4j" % akkaVersion
@@ -20,10 +20,10 @@ object Dependencies {
 
   private[this] object lucene {
     lazy val namespace       = "org.apache.lucene"
-    lazy val core            = namespace % "lucene-core"             % luceneVersion
-    lazy val analyzersCommon = namespace % "lucene-analyzers-common" % luceneVersion
-    lazy val queryParser     = namespace % "lucene-queryparser"      % luceneVersion
-    lazy val luceneSuggest   = namespace % "lucene-suggest"          % luceneVersion
+    lazy val core            = namespace % "lucene-core"            % luceneVersion
+    lazy val analyzersCommon = namespace % "lucene-analysis-common" % luceneVersion
+    lazy val queryParser     = namespace % "lucene-queryparser"     % luceneVersion
+    lazy val luceneSuggest   = namespace % "lucene-suggest"         % luceneVersion
   }
 
   private[this] object json4s {
@@ -71,7 +71,7 @@ object Dependencies {
   object Jars {
     lazy val `server`: Seq[ModuleID] = Seq(
       // For making Java 12 happy
-      "javax.annotation" % "javax.annotation-api" % "1.3.2" % "compile",
+      "javax.annotation"       % "javax.annotation-api" % "1.3.2" % "compile",
       //
       akka.actor               % Compile,
       akka.actorTyped          % Compile,
@@ -95,7 +95,7 @@ object Dependencies {
       scalatest.core           % Test,
       scalamock.core           % Test
     )
-    lazy val client: Seq[ModuleID] =
+    lazy val client: Seq[ModuleID]   =
       Seq(
         akka.stream     % Compile,
         akka.http       % Compile,

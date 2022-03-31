@@ -5,14 +5,13 @@ import com.typesafe.config.{Config, ConfigFactory}
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.util.Try
 
-
 object ApplicationConfiguration {
   lazy val config: Config = ConfigFactory.load()
 
   lazy val serverPort: Int = config.getInt("party-registry-proxy.port")
 
   lazy val jwtAudience: Set[String] = config.getStringList("party-registry-proxy.jwt.audience").asScala.toSet
-  
+
   lazy val institutionsIndexDir: String = config.getString("party-registry-proxy.index.institutions.folder")
   lazy val categoriesIndexDir: String   = config.getString("party-registry-proxy.index.categories.folder")
 
