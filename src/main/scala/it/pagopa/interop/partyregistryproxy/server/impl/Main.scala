@@ -56,7 +56,7 @@ object Main extends App with CorsSupport {
   val dependenciesLoaded: Future[JWTReader] = for {
     keyset <- JWTConfiguration.jwtReader.loadKeyset().toFuture
     jwtValidator = new DefaultJWTReader with PublicKeysHolder {
-      var publicKeyset: Map[KID, SerializedKey] = keyset
+      var publicKeyset: Map[KID, SerializedKey]                                        = keyset
       override protected val claimsVerifier: DefaultJWTClaimsVerifier[SecurityContext] =
         getClaimsVerifier(audience = ApplicationConfiguration.jwtAudience)
     }
@@ -64,7 +64,7 @@ object Main extends App with CorsSupport {
 
   dependenciesLoaded.transformWith {
     case Success(jwtValidator) => launchApp(jwtValidator)
-    case Failure(ex) =>
+    case Failure(ex)           =>
       classicActorSystem.log.error("Startup error: {}", ex.getMessage)
       classicActorSystem.log.error(ex.getStackTrace.mkString("\n"))
       CoordinatedShutdown(classicActorSystem).run(StartupErrorShutdown)
@@ -89,7 +89,7 @@ object Main extends App with CorsSupport {
         mockOrigin = ApplicationConfiguration.mockOrigin,
         http = http
       )(actorSystem, executionContext)
-  
+
     locally {
       loadOpenData(openDataService, mockOpenDataServiceImpl, institutionsWriterService, categoriesWriterService)
       AkkaManagement.get(classicActorSystem).start()
