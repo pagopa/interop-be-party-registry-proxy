@@ -18,6 +18,7 @@ abstract class InstitutionField(val value: String) extends SearchField
 
 object InstitutionField {
   case object ID              extends CategoryField("id")
+  case object ORIGIN_ID       extends CategoryField("originId")
   case object O               extends CategoryField("o")
   case object OU              extends CategoryField("ou")
   case object AOO             extends CategoryField("aoo")

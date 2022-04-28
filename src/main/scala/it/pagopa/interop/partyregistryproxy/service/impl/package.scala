@@ -65,6 +65,7 @@ package object impl {
     def toDocument: Document = {
       val doc = new Document
       doc.add(new StringField(InstitutionField.ID.value, institution.id, Field.Store.YES))
+      doc.add(new StringField(InstitutionField.ORIGIN_ID.value, institution.originId, Field.Store.YES))
       doc.add(new SortedDocValuesField(InstitutionField.DESCRIPTION.value, new BytesRef(institution.description)))
       doc.add(new TextField(InstitutionField.DESCRIPTION.value, institution.description, Field.Store.YES))
       doc.add(new TextField(InstitutionField.TAX_CODE.value, institution.taxCode, Field.Store.YES))

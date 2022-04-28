@@ -52,7 +52,7 @@ final case class MockOpenDataServiceImpl(
 
 object MockOpenDataServiceImpl {
   private object InstitutionsFields {
-    final val id             = "Codice_IPA"
+    final val originId       = "Codice_IPA"
     final val description    = "Denominazione_ente"
     final val taxCode        = "Codice_fiscale_ente"
     final val category       = "Codice_Categoria"
@@ -61,7 +61,7 @@ object MockOpenDataServiceImpl {
     final val zipCode        = "CAP"
 
     final val fields: Set[String] =
-      Set(id, description, taxCode, category, digitalAddress, address, zipCode)
+      Set(originId, description, taxCode, category, digitalAddress, address, zipCode)
   }
 
   private object CategoriesFields {
@@ -82,7 +82,8 @@ object MockOpenDataServiceImpl {
 
     response.records.flatMap { record =>
       for {
-        id             <- record(mapped(InstitutionsFields.id)).select[String]
+        id             <- record(mapped(InstitutionsFields.taxCode)).select[String]
+        originId       <- record(mapped(InstitutionsFields.originId)).select[String]
         taxCode        <- mapped.get(InstitutionsFields.taxCode).flatMap(idx => record(idx).select[String])
         category       <- mapped.get(InstitutionsFields.category).flatMap(idx => record(idx).select[String])
         description    <- record(mapped(InstitutionsFields.description)).select[String]
@@ -91,6 +92,7 @@ object MockOpenDataServiceImpl {
         zipCode        <- mapped.get(InstitutionsFields.zipCode).flatMap(idx => record(idx).select[String])
       } yield Institution(
         id = id,
+        originId = originId,
         o = Some(id),
         ou = None,
         aoo = None,

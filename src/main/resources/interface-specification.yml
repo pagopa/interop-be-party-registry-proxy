@@ -178,47 +178,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
-  /origins/{origin}/institutions/{originId}:
-    get:
-      tags:
-        - institution
-      summary: Find institution by origin ID
-      description: Returns a single institution
-      operationId: getInstitutionByOriginId
-      parameters:
-        - name: origin
-          in: path
-          description: institution origin
-          required: true
-          schema:
-            type: string
-            maxLength: 32
-        - name: institutionId
-          in: path
-          description: originID of institution to return
-          required: true
-          schema:
-            type: string
-            maxLength: 32
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Institution'
-        '400':
-          description: Invalid ID supplied
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
-          description: Institution not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
   /status:
     get:
       tags:
