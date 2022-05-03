@@ -200,12 +200,12 @@ components:
       properties:
         id:
           type: string
-          description: external id
+          description: semantic id to recognize a party between origins (or externalId)
           example: age
           maxLength: 32
         originId:
           type: string
-          description: iPA code
+          description: id of the institution from its origin (IPAcode in case of origin IPA)
           example: age
           pattern: '^[a-z]{1,12}$'
           maxLength: 12
