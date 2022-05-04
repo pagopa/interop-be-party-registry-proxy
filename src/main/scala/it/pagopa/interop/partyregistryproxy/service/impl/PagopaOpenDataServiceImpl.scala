@@ -14,6 +14,7 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
       List(
         Institution(
           id = "PagoPA",
+          originId = "PagoPA",
           o = Some("PAGOPA"),
           ou = None,
           aoo = None,
@@ -27,6 +28,7 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
         ),
         Institution(
           id = "TestANPR",
+          originId = "TestANPR",
           o = Some("TestANPR"),
           ou = None,
           aoo = None,
