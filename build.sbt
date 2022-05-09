@@ -30,7 +30,7 @@ generateCode := {
   import sys.process._
 
   val openApiCommand: String = {
-    if(System.getProperty("os.name").toLowerCase.contains("win")) {
+    if (System.getProperty("os.name").toLowerCase.contains("win")) {
       "openapi-generator-cli-win.bat"
     } else {
       "openapi-generator-cli"
@@ -58,6 +58,13 @@ generateCode := {
              |                               -p dateLibrary=java8
              |                               -o client""".stripMargin).!!
 
+}
+
+val runStandalone = inputKey[Unit]("Run the app using standalone configuration")
+
+runStandalone := {
+  task(System.setProperty("config.file", "src/main/resources/application-standalone.conf")).value
+  (Compile / run).evaluated
 }
 
 (Compile / compile) := ((Compile / compile) dependsOn generateCode).value

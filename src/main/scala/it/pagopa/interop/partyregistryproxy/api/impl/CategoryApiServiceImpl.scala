@@ -10,14 +10,13 @@ import it.pagopa.interop.partyregistryproxy.common.util.{SearchField, createCate
 import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors._
 import it.pagopa.interop.partyregistryproxy.model._
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
-import org.slf4j.{Logger, LoggerFactory}
-
+import com.typesafe.scalalogging.Logger
 import scala.util.{Failure, Success, Try}
 
 final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchService[Category])
     extends CategoryApiService {
 
-  val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  val logger: Logger = Logger(this.getClass)
 
   /** Code: 200, Message: successful operation, DataType: Categories
     * Code: 404, Message: Categories not found, DataType: Problem
@@ -36,7 +35,7 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
         getCategories404(problemOf(StatusCodes.NotFound, CategoriesNotFound))
       case Success(values)                   => getCategories200(Categories(values))
       case Failure(ex)                       =>
-        logger.error(s"Error while retrieving categories - ${ex.getMessage}")
+        logger.error(s"Error while retrieving categories", ex)
         val error = problemOf(StatusCodes.InternalServerError, CategoriesError)
         complete(error.status, error)
     }
@@ -67,7 +66,7 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
         val error = problemOf(StatusCodes.NotFound, CategoryNotFound(code))
         value.fold(getCategory404(error))(getCategory200)
       case Failure(ex)    =>
-        logger.error(s"Error while retrieving category $code - ${ex.getMessage}")
+        logger.error(s"Error while retrieving category $code", ex)
         val error = problemOf(StatusCodes.BadRequest, CategoriesError)
         getCategory400(error)
     }

@@ -6,27 +6,36 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.util.Try
 
 object ApplicationConfiguration {
-  lazy val config: Config = ConfigFactory.load()
+  System.setProperty("kanela.show-banner", "false")
 
-  lazy val serverPort: Int = config.getInt("party-registry-proxy.port")
+  val config: Config = ConfigFactory.load()
 
-  lazy val jwtAudience: Set[String] = config.getStringList("party-registry-proxy.jwt.audience").asScala.toSet
+  val serverPort: Int = config.getInt("party-registry-proxy.port")
 
-  lazy val institutionsIndexDir: String = config.getString("party-registry-proxy.index.institutions.folder")
-  lazy val categoriesIndexDir: String   = config.getString("party-registry-proxy.index.categories.folder")
+  val jwtAudience: Set[String] = config.getStringList("party-registry-proxy.jwt.audience").asScala.toSet
 
-  lazy val institutionsIpaOpenDataUrl: String =
+  require(jwtAudience.nonEmpty, "Audience cannot be empty")
+
+  val institutionsIndexDir: String = config.getString("party-registry-proxy.index.institutions.folder")
+
+  val categoriesIndexDir: String = config.getString("party-registry-proxy.index.categories.folder")
+
+  val institutionsIpaOpenDataUrl: String =
     config.getString("party-registry-proxy.sources.ipa.institutions.open-data-url")
-  lazy val categoriesIpaOpenDataUrl: String   =
-    config.getString("party-registry-proxy.sources.ipa.categories.open-data-url")
-  lazy val ipaOrigin: String                  = config.getString("party-registry-proxy.sources.ipa.origin")
 
-  lazy val institutionsMockOpenDataUrl: Option[String] = Try(
+  val categoriesIpaOpenDataUrl: String =
+    config.getString("party-registry-proxy.sources.ipa.categories.open-data-url")
+
+  val ipaOrigin: String = config.getString("party-registry-proxy.sources.ipa.origin")
+
+  val institutionsMockOpenDataUrl: Option[String] = Try(
     config.getString("party-registry-proxy.sources.mock.institutions.open-data-url")
   ).toOption
-  lazy val categoriesMockOpenDataUrl: Option[String]   = Try(
+
+  val categoriesMockOpenDataUrl: Option[String] = Try(
     config.getString("party-registry-proxy.sources.mock.categories.open-data-url")
   ).toOption
-  lazy val mockOrigin: Option[String] = Try(config.getString("party-registry-proxy.sources.mock.origin")).toOption
+
+  val mockOrigin: Option[String] = Try(config.getString("party-registry-proxy.sources.mock.origin")).toOption
 
 }

@@ -30,12 +30,12 @@ object DocumentConverter {
     )
   }
 
-  implicit def categoryConverter: DocumentConverter[Category] = (document: Document) => {
+  implicit def categoryConverter: DocumentConverter[Category] = (document: Document) =>
     Category(
       code = document.get(CODE.value),
       name = document.get(NAME.value),
       kind = document.get(KIND.value),
       origin = document.get(CategoryField.ORIGIN.value)
     )
-  }
+
 }
