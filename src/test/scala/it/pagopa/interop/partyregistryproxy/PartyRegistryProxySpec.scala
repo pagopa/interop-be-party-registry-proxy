@@ -7,7 +7,6 @@ import akka.http.scaladsl.server.directives.{AuthenticationDirective, SecurityDi
 import it.pagopa.interop.commons.utils.AkkaUtils.Authenticator
 import it.pagopa.interop.partyregistryproxy.api._
 import it.pagopa.interop.partyregistryproxy.api.impl.{CategoryApiMarshallerImpl, _}
-import it.pagopa.interop.partyregistryproxy.common.system.{classicActorSystem, executionContext}
 import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.DESCRIPTION
 import it.pagopa.interop.partyregistryproxy.common.util.createCategoryId
 import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors.{
@@ -20,16 +19,18 @@ import it.pagopa.interop.partyregistryproxy.model._
 import it.pagopa.interop.partyregistryproxy.server.Controller
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
-class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with MockFactory {
+import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
+import akka.actor.typed.ActorSystem
+import scala.concurrent.ExecutionContext
+
+class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecLike with MockFactory {
 
   import ServiceSpecSupport._
 
@@ -41,6 +42,9 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
     "PARTY_REGISTRY_INSTITUTIONS_URL",
     "https://indicepa.gov.it/ipa-dati/datastore/dump/d09adf99-dc10-4349-8c53-27b1e5aa97b6?format=json"
   )
+
+  implicit val ec: ExecutionContext       = implicitly[ActorSystem[_]].executionContext
+  implicit val as: akka.actor.ActorSystem = implicitly[ActorSystem[_]].classicSystem
 
   val institutionApiMarshaller: InstitutionApiMarshaller = InstitutionApiMarshallerImpl
   val categoryApiMarshaller: CategoryApiMarshaller       = CategoryApiMarshallerImpl
@@ -86,7 +90,7 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
   }
 
-  "Asking for institutions" must {
+  "Asking for institutions" should {
     "work successfully for page = 1 and limit = 1" in {
 
       val searchTxt = "Institution"
@@ -106,8 +110,8 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val expected = institutions.filter(_.id == "27f8dce0-0a5b-476b-9fdd-a7a658eb9211")
 
-      response.status must be(StatusCodes.OK)
-      response.body must be(Institutions(expected, expected.size.toLong))
+      response.status should be(StatusCodes.OK)
+      response.body should be(Institutions(expected, expected.size.toLong))
 
     }
 
@@ -130,8 +134,8 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val expected = institutions.filter(_.id == "27f8dce0-0a5b-476b-9fdd-a7a658eb9212")
 
-      response.status must be(StatusCodes.OK)
-      response.body must be(Institutions(expected, expected.size.toLong))
+      response.status should be(StatusCodes.OK)
+      response.body should be(Institutions(expected, expected.size.toLong))
 
     }
 
@@ -154,8 +158,8 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val expected = institutions
 
-      response.status must be(StatusCodes.OK)
-      response.body must be(Institutions(expected, expected.size.toLong))
+      response.status should be(StatusCodes.OK)
+      response.body should be(Institutions(expected, expected.size.toLong))
 
     }
 
@@ -178,8 +182,8 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
       val expected = institutions.filter(i =>
         Set("27f8dce0-0a5b-476b-9fdd-a7a658eb9213", "27f8dce0-0a5b-476b-9fdd-a7a658eb9214").contains(i.id)
       )
-      response.body must be(Institutions(expected, expected.size.toLong))
-      response.status must be(StatusCodes.OK)
+      response.body should be(Institutions(expected, expected.size.toLong))
+      response.status should be(StatusCodes.OK)
 
     }
 
@@ -196,7 +200,7 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val body = makeRequest[Problem](s"institutions?search=$searchTxt&page=1&limit=1")
 
-      body must be(SpecResult(StatusCodes.NotFound, responseInstitutionsNotFound))
+      body should be(SpecResult(StatusCodes.NotFound, responseInstitutionsNotFound))
 
     }
     "return 400 for an invalid request" in {
@@ -208,13 +212,13 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val body = makeRequest[Problem](s"institutions?search=text&page=1&limit=1")
 
-      body must be(SpecResult(StatusCodes.BadRequest, responseInvalidSearch))
+      body should be(SpecResult(StatusCodes.BadRequest, responseInvalidSearch))
 
     }
 
   }
 
-  "Asking for categories" must {
+  "Asking for categories" should {
     "retrieve all categories" in {
 
       (categorySearchService.getAllItems _)
@@ -224,7 +228,7 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val response = makeRequest[Categories](s"categories")
 
-      response must be(SpecResult(StatusCodes.OK, Categories(categories)))
+      response should be(SpecResult(StatusCodes.OK, Categories(categories)))
 
     }
 
@@ -237,7 +241,7 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val response = makeRequest[Categories](s"categories?origin=$originOne")
 
-      response must be(SpecResult(StatusCodes.OK, Categories(categories.filter(_.origin == originOne))))
+      response should be(SpecResult(StatusCodes.OK, Categories(categories.filter(_.origin == originOne))))
 
     }
 
@@ -250,7 +254,7 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val response = makeRequest[Problem](s"categories?origin=$originThree")
 
-      response must be(SpecResult(StatusCodes.NotFound, responseCategoriesNotFound))
+      response should be(SpecResult(StatusCodes.NotFound, responseCategoriesNotFound))
 
     }
 
@@ -263,7 +267,7 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val response = makeRequest[Category](s"origins/$originOne/categories/$categoryCodeOne")
 
-      response must be(SpecResult(StatusCodes.OK, categoryOne))
+      response should be(SpecResult(StatusCodes.OK, categoryOne))
 
     }
 
@@ -276,7 +280,7 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val response = makeRequest[Problem](s"origins/$originOne/categories/$categoryCodeFour")
 
-      response must be(SpecResult(StatusCodes.NotFound, responseCategoryNotFound(categoryCodeFour)))
+      response should be(SpecResult(StatusCodes.NotFound, responseCategoryNotFound(categoryCodeFour)))
 
     }
 
@@ -289,7 +293,7 @@ class PartyRegistryProxySpec extends AnyWordSpec with Matchers with BeforeAndAft
 
       val response = makeRequest[Problem](s"origins/$originThree/categories/$categoryCodeOne")
 
-      response must be(SpecResult(StatusCodes.NotFound, responseCategoryNotFound(categoryCodeOne)))
+      response should be(SpecResult(StatusCodes.NotFound, responseCategoryNotFound(categoryCodeOne)))
 
     }
 

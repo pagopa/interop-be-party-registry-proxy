@@ -15,7 +15,8 @@ object Dependencies {
     lazy val management          = "com.lightbend.akka.management" %% "akka-management"      % akkaManagementVersion
     lazy val managementLogLevels =
       "com.lightbend.akka.management" %% "akka-management-loglevels-logback" % akkaManagementVersion
-    lazy val slf4j = namespace %% "akka-slf4j" % akkaVersion
+    lazy val slf4j   = namespace %% "akka-slf4j"               % akkaVersion
+    lazy val testkit = namespace %% "akka-actor-testkit-typed" % akkaVersion
   }
 
   private[this] object lucene {
@@ -93,7 +94,8 @@ object Dependencies {
       pagopa.commonsJwt        % Compile,
       shapeless.shapeless      % Compile,
       scalatest.core           % Test,
-      scalamock.core           % Test
+      scalamock.core           % Test,
+      akka.testkit             % Test
     )
     lazy val client: Seq[ModuleID]   =
       Seq(

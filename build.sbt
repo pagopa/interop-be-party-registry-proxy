@@ -30,7 +30,7 @@ generateCode := {
   import sys.process._
 
   val openApiCommand: String = {
-    if(System.getProperty("os.name").toLowerCase.contains("win")) {
+    if (System.getProperty("os.name").toLowerCase.contains("win")) {
       "openapi-generator-cli-win.bat"
     } else {
       "openapi-generator-cli"
@@ -72,6 +72,8 @@ cleanFiles += baseDirectory.value / "client" / "src"
 cleanFiles += baseDirectory.value / "client" / "target"
 
 ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+
+scalacOptions -= "-Xfatal-warnings"
 
 lazy val generated = project
   .in(file("generated"))

@@ -1,168 +1,65 @@
 package it.pagopa.interop.partyregistryproxy.server.impl
 
-import akka.actor.CoordinatedShutdown
-import akka.http.scaladsl.server.directives.SecurityDirectives
-import akka.http.scaladsl.{Http, HttpExt}
+import it.pagopa.interop.commons.logging.renderBuildInfo
+import akka.http.scaladsl.Http.ServerBinding
 import akka.management.scaladsl.AkkaManagement
-import it.pagopa.interop.partyregistryproxy.api.impl.{
-  CategoryApiMarshallerImpl,
-  CategoryApiServiceImpl,
-  HealthApiMarshallerImpl,
-  HealthApiServiceImpl,
-  InstitutionApiMarshallerImpl,
-  InstitutionApiServiceImpl
-}
-import it.pagopa.interop.partyregistryproxy.api.{CategoryApi, HealthApi, InstitutionApi}
-import it.pagopa.interop.partyregistryproxy.common.system.{
-  ApplicationConfiguration,
-  CorsSupport,
-  actorSystem,
-  classicActorSystem,
-  executionContext
-}
-import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
+import it.pagopa.interop.partyregistryproxy.common.system.{ApplicationConfiguration, CorsSupport}
 import it.pagopa.interop.partyregistryproxy.server.Controller
-import it.pagopa.interop.partyregistryproxy.service.impl.{
-  CategoryIndexSearchServiceImpl,
-  CategoryIndexWriterServiceImpl,
-  IPAOpenDataServiceImpl,
-  InstitutionIndexSearchServiceImpl,
-  InstitutionIndexWriterServiceImpl,
-  MockOpenDataServiceImpl
-}
-import it.pagopa.interop.partyregistryproxy.service.{IndexSearchService, IndexWriterService, OpenDataService}
 import kamon.Kamon
-import org.slf4j.LoggerFactory
-import it.pagopa.interop.commons.jwt.service.JWTReader
-import it.pagopa.interop.commons.jwt.service.impl.{DefaultJWTReader, getClaimsVerifier}
-import it.pagopa.interop.commons.jwt.{JWTConfiguration, KID, PublicKeysHolder, SerializedKey}
-import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier
-import com.nimbusds.jose.proc.SecurityContext
-import it.pagopa.interop.commons.utils.AkkaUtils
+import it.pagopa.interop.commons.jwt.JWTConfiguration
+
 import it.pagopa.interop.commons.utils.TypeConversions._
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success}
+import com.typesafe.scalalogging.Logger
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.ActorSystem
+import buildinfo.BuildInfo
+import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.Future
+import scala.util.{Success, Failure}
 
-case object StartupErrorShutdown extends CoordinatedShutdown.Reason
+object Main extends App with CorsSupport with Dependencies {
 
-object Main extends App with CorsSupport {
+  private implicit val logger = Logger(this.getClass)
 
-  private val logger = LoggerFactory.getLogger(this.getClass)
+  val system = ActorSystem[Nothing](
+    Behaviors.setup[Nothing] { context =>
+      implicit val actorSystem: ActorSystem[Nothing] = context.system
+      implicit val ec: ExecutionContextExecutor      = actorSystem.executionContext
 
-  Kamon.init()
+      Kamon.init()
 
-  val dependenciesLoaded: Future[JWTReader] = for {
-    keyset <- JWTConfiguration.jwtReader.loadKeyset().toFuture
-    jwtValidator = new DefaultJWTReader with PublicKeysHolder {
-      var publicKeyset: Map[KID, SerializedKey]                                        = keyset
-      override protected val claimsVerifier: DefaultJWTClaimsVerifier[SecurityContext] =
-        getClaimsVerifier(audience = ApplicationConfiguration.jwtAudience)
-    }
-  } yield jwtValidator
+      loadOpenData(openDataService(), mockOpenDataServiceImpl(), institutionsWriterService, categoriesWriterService)
 
-  dependenciesLoaded.transformWith {
-    case Success(jwtValidator) => launchApp(jwtValidator)
-    case Failure(ex)           =>
-      classicActorSystem.log.error("Startup error: {}", ex.getMessage)
-      classicActorSystem.log.error(ex.getStackTrace.mkString("\n"))
-      CoordinatedShutdown(classicActorSystem).run(StartupErrorShutdown)
-  }
+      AkkaManagement.get(actorSystem.classicSystem).start()
 
-  private def launchApp(jwtReader: JWTReader): Future[Http.ServerBinding] = {
-    val http: HttpExt = Http()
+      logger.info(renderBuildInfo(BuildInfo))
 
-    val healthApi: HealthApi = new HealthApi(
-      new HealthApiServiceImpl(),
-      new HealthApiMarshallerImpl(),
-      SecurityDirectives.authenticateOAuth2("SecurityRealm", AkkaUtils.PassThroughAuthenticator)
-    )
+      val serverBinding: Future[ServerBinding] = for {
+        jwtReader <- JWTConfiguration.jwtReader.loadKeyset().toFuture.map(createJwtReader)
+        controller = new Controller(
+          category = categoryApi()(jwtReader),
+          health = healthApi,
+          institution = institutionApi()(jwtReader)
+        )(actorSystem.classicSystem)
+        binding <- http()
+          .newServerAt("0.0.0.0", ApplicationConfiguration.serverPort)
+          .bind(corsHandler(controller.routes))
+      } yield binding
 
-    val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
-    val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
-    val openDataService: OpenDataService                 = IPAOpenDataServiceImpl(http)(actorSystem, executionContext)
-    val mockOpenDataServiceImpl: MockOpenDataServiceImpl =
-      MockOpenDataServiceImpl(
-        institutionsMockOpenDataUrl = ApplicationConfiguration.institutionsMockOpenDataUrl,
-        categoriesMockOpenDataUrl = ApplicationConfiguration.categoriesMockOpenDataUrl,
-        mockOrigin = ApplicationConfiguration.mockOrigin,
-        http = http
-      )(actorSystem, executionContext)
+      serverBinding.onComplete {
+        case Success(b) =>
+          logger.info(s"Started server at ${b.localAddress.getHostString()}:${b.localAddress.getPort()}")
+        case Failure(e) =>
+          actorSystem.terminate()
+          logger.error("Startup error: ", e)
+      }
 
-    locally {
-      loadOpenData(openDataService, mockOpenDataServiceImpl, institutionsWriterService, categoriesWriterService)
-      AkkaManagement.get(classicActorSystem).start()
-    }
+      Behaviors.same
+    },
+    BuildInfo.name
+  )
 
-    val institutionsSearchService: IndexSearchService[Institution] = InstitutionIndexSearchServiceImpl
-    val categoriesSearchService: IndexSearchService[Category]      = CategoryIndexSearchServiceImpl
+  system.whenTerminated.onComplete { case _ => Kamon.stop() }(scala.concurrent.ExecutionContext.global)
 
-    val institutionApi: InstitutionApi = new InstitutionApi(
-      InstitutionApiServiceImpl(institutionsSearchService),
-      InstitutionApiMarshallerImpl,
-      jwtReader.OAuth2JWTValidatorAsContexts
-    )
-
-    val categoryApi: CategoryApi = new CategoryApi(
-      CategoryApiServiceImpl(categoriesSearchService),
-      CategoryApiMarshallerImpl,
-      jwtReader.OAuth2JWTValidatorAsContexts
-    )
-
-    val controller = new Controller(category = categoryApi, health = healthApi, institution = institutionApi)
-
-    logger.info(s"Started build info = ${buildinfo.BuildInfo.toString}")
-
-    http.newServerAt("0.0.0.0", ApplicationConfiguration.serverPort).bind(corsHandler(controller.routes))
-  }
-
-  def loadOpenData(
-    openDataService: OpenDataService,
-    mockOpenDataServiceImpl: OpenDataService,
-    institutionsIndexWriterService: IndexWriterService[Institution],
-    categoriesIndexWriterService: IndexWriterService[Category]
-  ): Unit = {
-    logger.info(s"Loading open data")
-    val result: Future[Unit] = for {
-      institutions     <- openDataService.getAllInstitutions
-      mockInstitutions <- mockOpenDataServiceImpl.getAllInstitutions
-      _                <- loadInstitutions(institutionsIndexWriterService, institutions ++ mockInstitutions)
-      categories       <- openDataService.getAllCategories
-      mockCategories   <- mockOpenDataServiceImpl.getAllCategories
-      _                <- loadCategories(categoriesIndexWriterService, categories ++ mockCategories)
-    } yield ()
-
-    result.onComplete {
-      case Success(_)  => logger.info(s"Open data committed")
-      case Failure(ex) =>
-        logger.error(s"Error trying to populate index - ${ex.getMessage}")
-    }
-
-    Await.result(result, Duration.Inf)
-  }
-
-  private def loadInstitutions(
-    institutionsIndexWriterService: IndexWriterService[Institution],
-    institutions: List[Institution]
-  ): Future[Unit] = Future.fromTry {
-    logger.info("Loading institutions index from iPA")
-    for {
-      _ <- institutionsIndexWriterService.adds(institutions)
-      _ = logger.info(s"Institutions inserted")
-      _ <- institutionsIndexWriterService.commit()
-    } yield ()
-  }
-
-  private def loadCategories(
-    categoriesIndexWriterService: IndexWriterService[Category],
-    categories: List[Category]
-  ): Future[Unit] = Future.fromTry {
-    logger.info("Loading categories index from iPA")
-    for {
-      _ <- categoriesIndexWriterService.adds(categories)
-      _ = logger.info(s"Categories inserted")
-      _ <- categoriesIndexWriterService.commit()
-    } yield ()
-  }
 }
