@@ -1,9 +1,7 @@
 package it.pagopa.interop.partyregistryproxy.server.impl
 
-import akka.actor.CoordinatedShutdown
 import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.http.scaladsl.{Http, HttpExt}
-import akka.management.scaladsl.AkkaManagement
 import it.pagopa.interop.partyregistryproxy.api.impl.{
   CategoryApiMarshallerImpl,
   CategoryApiServiceImpl,
@@ -13,9 +11,8 @@ import it.pagopa.interop.partyregistryproxy.api.impl.{
   InstitutionApiServiceImpl
 }
 import it.pagopa.interop.partyregistryproxy.api.{CategoryApi, HealthApi, InstitutionApi}
-import it.pagopa.interop.partyregistryproxy.common.system.{ApplicationConfiguration, CorsSupport}
+import it.pagopa.interop.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
-import it.pagopa.interop.partyregistryproxy.server.Controller
 import it.pagopa.interop.partyregistryproxy.service.impl.{
   CategoryIndexSearchServiceImpl,
   CategoryIndexWriterServiceImpl,
@@ -25,15 +22,12 @@ import it.pagopa.interop.partyregistryproxy.service.impl.{
   MockOpenDataServiceImpl
 }
 import it.pagopa.interop.partyregistryproxy.service.{IndexSearchService, IndexWriterService, OpenDataService}
-import kamon.Kamon
-import org.slf4j.LoggerFactory
 import it.pagopa.interop.commons.jwt.service.JWTReader
 import it.pagopa.interop.commons.jwt.service.impl.{DefaultJWTReader, getClaimsVerifier}
-import it.pagopa.interop.commons.jwt.{JWTConfiguration, KID, PublicKeysHolder, SerializedKey}
+import it.pagopa.interop.commons.jwt.{KID, PublicKeysHolder, SerializedKey}
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier
 import com.nimbusds.jose.proc.SecurityContext
 import it.pagopa.interop.commons.utils.AkkaUtils
-import it.pagopa.interop.commons.utils.TypeConversions._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -62,8 +56,7 @@ trait Dependencies {
 
     result.onComplete {
       case Success(_)  => logger.info(s"Open data committed")
-      case Failure(ex) =>
-        logger.error(s"Error trying to populate index - ${ex.getMessage}")
+      case Failure(ex) => logger.error(s"Error trying to populate index", ex)
     }
 
     Await.result(result, Duration.Inf)

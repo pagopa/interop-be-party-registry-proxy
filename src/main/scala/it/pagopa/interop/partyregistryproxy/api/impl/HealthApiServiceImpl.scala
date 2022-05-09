@@ -11,14 +11,14 @@ class HealthApiServiceImpl extends HealthApiService {
   override def getStatus()(implicit
     contexts: Seq[(String, String)],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
-  ): Route = {
-    val response: Problem = Problem(
+  ): Route = getStatus200(
+    Problem(
       `type` = "about:blank",
       status = StatusCodes.OK.intValue,
       title = StatusCodes.OK.defaultMessage,
       detail = None,
       errors = Seq.empty
     )
-    getStatus200(response)
-  }
+  )
+
 }

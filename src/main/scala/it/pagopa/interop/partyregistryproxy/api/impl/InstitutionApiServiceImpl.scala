@@ -8,14 +8,14 @@ import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.DESCRIP
 import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors._
 import it.pagopa.interop.partyregistryproxy.model._
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
-import org.slf4j.{Logger, LoggerFactory}
+import com.typesafe.scalalogging.Logger
 
 import scala.util.Try
 
 final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearchService[Institution])
     extends InstitutionApiService {
 
-  val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  val logger: Logger = Logger(this.getClass)
 
   /** Code: 200, Message: successful operation, DataType: InstitutionIPA
     * Code: 400, Message: Invalid ID supplied, DataType: ErrorResponse
@@ -31,7 +31,7 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
 
     result.fold(
       ex => {
-        logger.error(s"Error while retrieving institution ${institutionId} - ${ex.getMessage}")
+        logger.error(s"Error while retrieving institution ${institutionId}", ex)
         getInstitutionById400(problemOf(StatusCodes.BadRequest, InvalidGetInstitutionRequest))
       },
       institution =>
@@ -63,7 +63,7 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     result.fold(
       ex => {
         logger
-          .error(s"Error while searching for institution with following search string = ${search} - ${ex.getMessage}")
+          .error(s"Error while searching for institution with following search string = ${search}", ex)
         searchInstitution400(problemOf(StatusCodes.BadRequest, InvalidSearchInstitutionRequest))
       },
       tuple => {
