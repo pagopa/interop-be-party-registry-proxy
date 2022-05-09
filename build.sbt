@@ -60,6 +60,13 @@ generateCode := {
 
 }
 
+val runStandalone = inputKey[Unit]("Run the app using standalone configuration")
+
+runStandalone := {
+  task(System.setProperty("config.file", "src/main/resources/application-standalone.conf")).value
+  (Compile / run).evaluated
+}
+
 (Compile / compile) := ((Compile / compile) dependsOn generateCode).value
 (Test / test)       := ((Test / test) dependsOn generateCode).value
 
@@ -72,8 +79,6 @@ cleanFiles += baseDirectory.value / "client" / "src"
 cleanFiles += baseDirectory.value / "client" / "target"
 
 ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
-
-scalacOptions -= "-Xfatal-warnings"
 
 lazy val generated = project
   .in(file("generated"))
