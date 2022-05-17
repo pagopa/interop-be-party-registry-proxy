@@ -29,13 +29,17 @@ object Main extends App with CorsSupport with Dependencies {
 
       Kamon.init()
 
-      loadOpenData(openDataService(), mockOpenDataServiceImpl(), institutionsWriterService, categoriesWriterService)
-
       AkkaManagement.get(actorSystem.classicSystem).start()
 
       logger.info(renderBuildInfo(BuildInfo))
 
       val serverBinding: Future[ServerBinding] = for {
+        _         <- loadOpenData(
+          openDataService(),
+          mockOpenDataServiceImpl(),
+          institutionsWriterService,
+          categoriesWriterService
+        )
         jwtReader <- JWTConfiguration.jwtReader.loadKeyset().toFuture.map(createJwtReader)
         controller = new Controller(
           category = categoryApi()(jwtReader),

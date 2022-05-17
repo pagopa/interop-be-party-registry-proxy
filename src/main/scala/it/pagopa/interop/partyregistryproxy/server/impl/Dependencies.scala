@@ -1,7 +1,15 @@
 package it.pagopa.interop.partyregistryproxy.server.impl
 
+import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.http.scaladsl.{Http, HttpExt}
+import com.nimbusds.jose.proc.SecurityContext
+import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier
+import com.typesafe.scalalogging.Logger
+import it.pagopa.interop.commons.jwt.service.JWTReader
+import it.pagopa.interop.commons.jwt.service.impl.{DefaultJWTReader, getClaimsVerifier}
+import it.pagopa.interop.commons.jwt.{KID, PublicKeysHolder, SerializedKey}
+import it.pagopa.interop.commons.utils.AkkaUtils
 import it.pagopa.interop.partyregistryproxy.api.impl.{
   CategoryApiMarshallerImpl,
   CategoryApiServiceImpl,
@@ -21,20 +29,10 @@ import it.pagopa.interop.partyregistryproxy.service.impl.{
   InstitutionIndexWriterServiceImpl,
   MockOpenDataServiceImpl
 }
-import it.pagopa.interop.partyregistryproxy.service.{IndexSearchService, IndexWriterService, OpenDataService}
-import it.pagopa.interop.commons.jwt.service.JWTReader
-import it.pagopa.interop.commons.jwt.service.impl.{DefaultJWTReader, getClaimsVerifier}
-import it.pagopa.interop.commons.jwt.{KID, PublicKeysHolder, SerializedKey}
-import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier
-import com.nimbusds.jose.proc.SecurityContext
-import it.pagopa.interop.commons.utils.AkkaUtils
+import it.pagopa.interop.partyregistryproxy.service.{IndexWriterService, OpenDataService}
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext
-import com.typesafe.scalalogging.Logger
-import akka.actor.typed.ActorSystem
 
 trait Dependencies {
 
@@ -43,7 +41,7 @@ trait Dependencies {
     mockOpenDataServiceImpl: OpenDataService,
     institutionsIndexWriterService: IndexWriterService[Institution],
     categoriesIndexWriterService: IndexWriterService[Category]
-  )(implicit ec: ExecutionContext, logger: Logger): Unit = {
+  )(implicit ec: ExecutionContext, logger: Logger): Future[Unit] = {
     logger.info(s"Loading open data")
     val result: Future[Unit] = for {
       institutions     <- openDataService.getAllInstitutions
@@ -59,7 +57,8 @@ trait Dependencies {
       case Failure(ex) => logger.error(s"Error trying to populate index", ex)
     }
 
-    Await.result(result, Duration.Inf)
+    result
+
   }
 
   private def loadInstitutions(
@@ -105,17 +104,14 @@ trait Dependencies {
       http = http()
     )
 
-  val institutionsSearchService: IndexSearchService[Institution] = InstitutionIndexSearchServiceImpl
-  val categoriesSearchService: IndexSearchService[Category]      = CategoryIndexSearchServiceImpl
-
   def institutionApi()(implicit jwtReader: JWTReader): InstitutionApi = new InstitutionApi(
-    InstitutionApiServiceImpl(institutionsSearchService),
+    InstitutionApiServiceImpl(InstitutionIndexSearchServiceImpl),
     InstitutionApiMarshallerImpl,
     jwtReader.OAuth2JWTValidatorAsContexts
   )
 
   def categoryApi()(implicit jwtReader: JWTReader): CategoryApi = new CategoryApi(
-    CategoryApiServiceImpl(categoriesSearchService),
+    CategoryApiServiceImpl(CategoryIndexSearchServiceImpl),
     CategoryApiMarshallerImpl,
     jwtReader.OAuth2JWTValidatorAsContexts
   )
