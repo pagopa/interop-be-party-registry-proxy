@@ -12,7 +12,7 @@ object ApplicationConfiguration {
   val serverPort: Int = config.getInt("party-registry-proxy.port")
 
   val jwtAudience: Set[String] =
-    config.getString("authorization-process.jwt.audience").split(",").toSet.filter(_.nonEmpty)
+    config.getString("party-registry-proxy.jwt.audience").split(",").toSet.filter(_.nonEmpty)
 
   require(jwtAudience.nonEmpty, "Audience cannot be empty")
 
