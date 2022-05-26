@@ -2,7 +2,6 @@ package it.pagopa.interop.partyregistryproxy.common.system
 
 import com.typesafe.config.{Config, ConfigFactory}
 
-import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.util.Try
 
 object ApplicationConfiguration {
