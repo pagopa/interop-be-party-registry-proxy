@@ -89,7 +89,8 @@ trait Dependencies {
   val healthApi: HealthApi = new HealthApi(
     new HealthApiServiceImpl(),
     new HealthApiMarshallerImpl(),
-    SecurityDirectives.authenticateOAuth2("SecurityRealm", AkkaUtils.PassThroughAuthenticator)
+    SecurityDirectives.authenticateOAuth2("SecurityRealm", AkkaUtils.PassThroughAuthenticator),
+    loggingEnabled = false
   )
 
   val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
