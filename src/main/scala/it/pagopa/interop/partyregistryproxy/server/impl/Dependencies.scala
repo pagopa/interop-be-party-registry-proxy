@@ -33,6 +33,7 @@ import it.pagopa.interop.partyregistryproxy.service.{IndexWriterService, OpenDat
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContextExecutor
 
 trait Dependencies {
 
@@ -40,10 +41,12 @@ trait Dependencies {
     openDataService: OpenDataService,
     mockOpenDataServiceImpl: OpenDataService,
     institutionsIndexWriterService: IndexWriterService[Institution],
-    categoriesIndexWriterService: IndexWriterService[Category]
-  )(implicit ec: ExecutionContext, logger: Logger): Future[Unit] = {
+    categoriesIndexWriterService: IndexWriterService[Category],
+    blockingEc: ExecutionContextExecutor
+  )(implicit logger: Logger): Future[Unit] = {
+    implicit val ec: ExecutionContext = blockingEc
     logger.info(s"Loading open data")
-    val result: Future[Unit] = for {
+    val result: Future[Unit]          = for {
       institutions     <- openDataService.getAllInstitutions
       mockInstitutions <- mockOpenDataServiceImpl.getAllInstitutions
       _                <- loadInstitutions(institutionsIndexWriterService, institutions ++ mockInstitutions)

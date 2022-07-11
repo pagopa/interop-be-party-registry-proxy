@@ -14,9 +14,10 @@ import com.typesafe.scalalogging.Logger
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.ActorSystem
 import buildinfo.BuildInfo
-import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.Future
 import scala.util.{Success, Failure}
+import akka.actor.typed.DispatcherSelector
+import scala.concurrent.ExecutionContextExecutor
 
 object Main extends App with CorsSupport with Dependencies {
 
@@ -26,6 +27,9 @@ object Main extends App with CorsSupport with Dependencies {
     Behaviors.setup[Nothing] { context =>
       implicit val actorSystem: ActorSystem[Nothing] = context.system
       implicit val ec: ExecutionContextExecutor      = actorSystem.executionContext
+
+      val selector: DispatcherSelector         = DispatcherSelector.fromConfig("futures-dispatcher")
+      val blockingEc: ExecutionContextExecutor = actorSystem.dispatchers.lookup(selector)
 
       Kamon.init()
 
@@ -38,9 +42,10 @@ object Main extends App with CorsSupport with Dependencies {
           openDataService(),
           mockOpenDataServiceImpl(),
           institutionsWriterService,
-          categoriesWriterService
+          categoriesWriterService,
+          blockingEc
         )
-        jwtReader <- JWTConfiguration.jwtReader.loadKeyset().toFuture.map(createJwtReader)
+        jwtReader <- JWTConfiguration.jwtReader.loadKeyset().map(createJwtReader).toFuture
         controller = new Controller(
           category = categoryApi()(jwtReader),
           health = healthApi,
