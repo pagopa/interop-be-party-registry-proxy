@@ -9,7 +9,7 @@ object Versions {
   lazy val mustacheVersion       = "0.9.10"
   lazy val openapi4jVersion      = "1.0.7"
   lazy val scalaMockVersion      = "5.2.0"
-  lazy val scalatestVersion      = "3.2.12"
+  lazy val scalatestVersion      = "3.2.13"
   lazy val vaultDriverVersion    = "5.1.0"
 }
 
