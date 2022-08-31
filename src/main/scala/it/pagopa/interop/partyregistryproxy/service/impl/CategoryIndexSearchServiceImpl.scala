@@ -53,32 +53,19 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
     results
   }
 
-  override def getAllItems(filters: Map[SearchField, String]): Try[List[Category]] = Try {
-    val reader: DirectoryReader = getDirectoryReader(mainReader)
-    val searcher: IndexSearcher = new IndexSearcher(reader)
+  override def getAllItems(filters: Map[SearchField, String], page: Int, limit: Int): Try[(List[Category], Long)] =
+    Try {
+      val reader: DirectoryReader = getDirectoryReader(mainReader)
+      val searcher: IndexSearcher = new IndexSearcher(reader)
 
-    val query: Query = getQuery(filters)
+      val query: Query = getQuery(filters)
 
-    val hits: TopDocs = searcher.search(query, reader.numDocs)
+      val hits: TopDocs = searcher.search(query, reader.numDocs)
 
-    val results: List[Category] = hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).toList
+      val results: (List[Category], Long) =
+        hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).toList -> reader.numDocs().toLong
 
-    results
-  }
-
-  private def getQuery(filters: Map[SearchField, String]): Query = {
-    if (filters.isEmpty)
-      new MatchAllDocsQuery
-    else {
-      val booleanQuery = new BooleanQuery.Builder()
-      filters.foreach { case (k, v) =>
-        val term: Term       = new Term(k.value, v)
-        val query: TermQuery = new TermQuery(term)
-        booleanQuery.add(query, BooleanClause.Occur.MUST)
-      }
-
-      booleanQuery.build()
+      results
     }
-  }
 
 }

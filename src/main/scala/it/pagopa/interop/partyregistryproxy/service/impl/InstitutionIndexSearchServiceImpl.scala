@@ -12,8 +12,7 @@ import org.apache.lucene.search._
 import org.apache.lucene.store.FSDirectory
 
 import java.nio.file.Paths
-import scala.util.{Failure, Try}
-
+import scala.util.Try
 case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institution] {
 
   private val dir: FSDirectory            = FSDirectory.open(Paths.get(ApplicationConfiguration.institutionsIndexDir))
@@ -53,9 +52,27 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     results
   }
 
-  // TODO add pagination, low priority
-  override def getAllItems(filters: Map[SearchField, String]): Try[List[Institution]] = Failure(
-    new RuntimeException("Not implemented")
-  )
+  override def getAllItems(filters: Map[SearchField, String], page: Int, limit: Int): Try[(List[Institution], Long)] =
+    Try {
+      val reader: DirectoryReader = getDirectoryReader(mainReader)
+      val searcher: IndexSearcher = new IndexSearcher(reader)
+
+      val query: Query = getQuery(filters)
+
+      val collector: TopScoreDocCollector = TopScoreDocCollector.create(reader.numDocs(), reader.numDocs())
+
+      val startIndex = (page - 1) * limit
+
+      searcher.search(query, collector)
+
+      val hits: TopDocs = collector.topDocs(startIndex, limit)
+
+      val results: (List[Institution], Long) =
+        hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).toList -> reader
+          .numDocs()
+          .toLong
+
+      results
+    }
 
 }

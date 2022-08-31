@@ -31,12 +31,12 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
 
     result.fold(
       ex => {
-        logger.error(s"Error while retrieving institution ${institutionId}", ex)
+        logger.error(s"Error while retrieving institution $institutionId", ex)
         getInstitutionById400(problemOf(StatusCodes.BadRequest, InvalidGetInstitutionRequest))
       },
       institution =>
         institution.fold({
-          logger.error(s"Error while retrieving institution ${institutionId} - Institution not found")
+          logger.error(s"Error while retrieving institution $institutionId - Institution not found")
           getInstitutionById404(problemOf(StatusCodes.NotFound, InstitutionNotFound))
         }) { institution =>
           logger.info("Institution {} retrieved", institutionId)
@@ -46,11 +46,12 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
 
   }
 
-  /** Code: 200, Message: successful operation, DataType: Institutions
-    * Code: 400, Message: Invalid ID supplied, DataType: Problem
-    * Code: 404, Message: Institution not found, DataType: Problem
-    */
-  override def searchInstitution(search: String, page: Int, limit: Int)(implicit
+  /**
+   * Code: 200, Message: successful operation, DataType: Institutions
+   * Code: 400, Message: Invalid ID supplied, DataType: Problem
+   * Code: 404, Message: Institution not found, DataType: Problem
+   */
+  override def searchInstitution(search: Option[String], page: Option[Int], limit: Option[Int])(implicit
     contexts: Seq[(String, String)],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem],
     toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions]
@@ -58,17 +59,24 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     logger.info("Searching for institution with following search string = {}", search)
 
     val result: Try[(List[Institution], Long)] =
-      institutionSearchService.searchByText(DESCRIPTION.value, search, page, limit)
+      search
+        .map(searchTxt =>
+          institutionSearchService
+            .searchByText(DESCRIPTION.value, searchTxt, page.getOrElse(defaultPage), limit.getOrElse(defaultLimit))
+        )
+        .getOrElse(
+          institutionSearchService.getAllItems(Map.empty, page.getOrElse(defaultPage), limit.getOrElse(defaultLimit))
+        )
 
     result.fold(
       ex => {
         logger
-          .error(s"Error while searching for institution with following search string = ${search}", ex)
+          .error(s"Error while searching for institution with following search string = $search", ex)
         searchInstitution400(problemOf(StatusCodes.BadRequest, InvalidSearchInstitutionRequest))
       },
       tuple => {
         if (tuple._1.isEmpty) {
-          logger.error(s"Error while searching for institution with following search string = ${search} - Not Found")
+          logger.error(s"Error while searching for institution with following search string = $search - Not Found")
           searchInstitution404(problemOf(StatusCodes.NotFound, InstitutionsNotFound))
         } else {
           searchInstitution200(Institutions.tupled(tuple))

@@ -18,23 +18,23 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
 
   val logger: Logger = Logger(this.getClass)
 
-  /** Code: 200, Message: successful operation, DataType: Categories
-    * Code: 404, Message: Categories not found, DataType: Problem
-    */
-  override def getCategories(origin: Option[String])(implicit
+  /**
+   * Code: 200, Message: successful operation, DataType: Categories
+   * Code: 404, Message: Categories not found, DataType: Problem
+   */
+  override def getCategories(origin: Option[String], page: Option[Int], limit: Option[Int])(implicit
     contexts: Seq[(String, String)],
     toEntityMarshallerCategories: ToEntityMarshaller[Categories],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
     logger.info("Retrieving categories")
 
-    val filters: Map[SearchField, String] = getCategoryFilters(origin)
-    val categories: Try[List[Category]]   = categoriesSearchService.getAllItems(filters)
+    val filters: Map[SearchField, String]       = getCategoryFilters(origin)
+    val categories: Try[(List[Category], Long)] =
+      categoriesSearchService.getAllItems(filters, page.getOrElse(defaultPage), limit.getOrElse(defaultLimit))
     categories match {
-      case Success(values) if values.isEmpty =>
-        getCategories404(problemOf(StatusCodes.NotFound, CategoriesNotFound))
-      case Success(values)                   => getCategories200(Categories(values))
-      case Failure(ex)                       =>
+      case Success(values) => getCategories200(Categories(values._1, values._2))
+      case Failure(ex)     =>
         logger.error(s"Error while retrieving categories", ex)
         val error = problemOf(StatusCodes.InternalServerError, CategoriesError)
         complete(error.status, error)

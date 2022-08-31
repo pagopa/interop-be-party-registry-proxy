@@ -11,6 +11,9 @@ import scala.util.{Failure, Success, Try}
 
 package object impl extends DefaultJsonProtocol {
 
+  final val defaultPage: Int  = 1
+  final val defaultLimit: Int = 100
+
   final val formatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE
 
   implicit val localDateFormat: JsonFormat[LocalDate] =
@@ -32,7 +35,7 @@ package object impl extends DefaultJsonProtocol {
   implicit val institutionFormat: RootJsonFormat[Institution]   = jsonFormat12(Institution)
   implicit val institutionsFormat: RootJsonFormat[Institutions] = jsonFormat2(Institutions)
   implicit val categoryFormat: RootJsonFormat[Category]         = jsonFormat4(Category)
-  implicit val categoriesFormat: RootJsonFormat[Categories]     = jsonFormat1(Categories)
+  implicit val categoriesFormat: RootJsonFormat[Categories]     = jsonFormat2(Categories)
   implicit val problemErrorFormat: RootJsonFormat[ProblemError] = jsonFormat2(ProblemError)
   implicit val problemFormat: RootJsonFormat[Problem]           = jsonFormat5(Problem)
 

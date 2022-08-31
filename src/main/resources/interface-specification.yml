@@ -76,18 +76,15 @@ paths:
       parameters:
         - in: query
           name: search
-          required: true
           schema:
             type: string
         - in: query
           name: page
-          required: true
           schema:
             type: integer
             format: int32
         - in: query
           name: limit
-          required: true
           schema:
             type: integer
             format: int32
@@ -124,6 +121,16 @@ paths:
           schema:
             type: string
             maxLength: 32
+        - in: query
+          name: page
+          schema:
+            type: integer
+            format: int32
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            format: int32
       responses:
         '200':
           description: successful operation
@@ -276,12 +283,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Institution'
-        count:
+        totalCount:
           type: integer
           format: int64
       required:
         - items
-        - count
+        - totalCount
     Category:
       type: object
       additionalProperties: false
@@ -305,8 +312,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Category'
+        totalCount:
+          type: integer
+          format: int64
       required:
         - items
+        - totalCount
     Problem:
       properties:
         type:

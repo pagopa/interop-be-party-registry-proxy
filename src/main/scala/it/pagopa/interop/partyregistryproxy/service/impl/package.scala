@@ -1,10 +1,10 @@
 package it.pagopa.interop.partyregistryproxy.service
 
-import it.pagopa.interop.partyregistryproxy.common.util.{CategoryField, InstitutionField, createCategoryId}
+import it.pagopa.interop.partyregistryproxy.common.util.{CategoryField, InstitutionField, SearchField, createCategoryId}
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.document._
-import org.apache.lucene.index.{DirectoryReader, IndexWriter}
+import org.apache.lucene.index.{DirectoryReader, IndexWriter, Term}
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
 import org.apache.lucene.store.LockObtainFailedException
@@ -14,6 +14,21 @@ import javax.naming.directory.SearchResult
 import scala.util.{Failure, Success, Try}
 
 package object impl {
+
+  def getQuery(filters: Map[SearchField, String]): Query = {
+    if (filters.isEmpty)
+      new MatchAllDocsQuery
+    else {
+      val booleanQuery = new BooleanQuery.Builder()
+      filters.foreach { case (k, v) =>
+        val term: Term       = new Term(k.value, v)
+        val query: TermQuery = new TermQuery(term)
+        booleanQuery.add(query, BooleanClause.Occur.MUST)
+      }
+
+      booleanQuery.build()
+    }
+  }
 
   def useWriter[A](writer: Try[IndexWriter], f: IndexWriter => Try[A], zero: A): Try[A] = writer match {
     case Success(wr)                           => f(wr)

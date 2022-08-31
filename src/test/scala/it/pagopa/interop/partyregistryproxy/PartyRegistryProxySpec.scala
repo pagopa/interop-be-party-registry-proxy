@@ -222,39 +222,44 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
     "retrieve all categories" in {
 
       (categorySearchService.getAllItems _)
-        .expects(*)
-        .returning(Success(categories))
+        .expects(*, *, *)
+        .returning(Success(categories -> categories.size.toLong))
         .once()
 
       val response = makeRequest[Categories](s"categories")
 
-      response should be(SpecResult(StatusCodes.OK, Categories(categories)))
+      response should be(SpecResult(StatusCodes.OK, Categories(categories, categories.size.toLong)))
 
     }
 
     "retrieve all categories specifying origin" in {
 
       (categorySearchService.getAllItems _)
-        .expects(*)
-        .returning(Success(categories.filter(_.origin == originOne)))
+        .expects(*, *, *)
+        .returning(Success(categories.filter(_.origin == originOne) -> categories.count(_.origin == originOne).toLong))
         .once()
 
       val response = makeRequest[Categories](s"categories?origin=$originOne")
 
-      response should be(SpecResult(StatusCodes.OK, Categories(categories.filter(_.origin == originOne))))
+      response should be(
+        SpecResult(
+          StatusCodes.OK,
+          Categories(categories.filter(_.origin == originOne), categories.count(_.origin == originOne).toLong)
+        )
+      )
 
     }
 
-    "return 404 if the specified origin does not exist" in {
+    "return an empty result if the specified origin does not exist" in {
 
       (categorySearchService.getAllItems _)
-        .expects(*)
-        .returning(Success(List.empty))
+        .expects(*, *, *)
+        .returning(Success(List.empty -> 0))
         .once()
 
-      val response = makeRequest[Problem](s"categories?origin=$originThree")
+      val response = makeRequest[Categories](s"categories?origin=$originThree")
 
-      response should be(SpecResult(StatusCodes.NotFound, responseCategoriesNotFound))
+      response should be(SpecResult(StatusCodes.OK, Categories(List.empty, 0L)))
 
     }
 
