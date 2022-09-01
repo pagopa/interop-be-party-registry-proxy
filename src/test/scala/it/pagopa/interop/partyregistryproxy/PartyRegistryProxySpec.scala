@@ -1,5 +1,7 @@
 package it.pagopa.interop.partyregistryproxy
 
+import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
+import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
@@ -9,12 +11,7 @@ import it.pagopa.interop.partyregistryproxy.api._
 import it.pagopa.interop.partyregistryproxy.api.impl.{CategoryApiMarshallerImpl, _}
 import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.DESCRIPTION
 import it.pagopa.interop.partyregistryproxy.common.util.createCategoryId
-import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors.{
-  CategoriesNotFound,
-  CategoryNotFound,
-  InstitutionsNotFound,
-  InvalidSearchInstitutionRequest
-}
+import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors.CategoryNotFound
 import it.pagopa.interop.partyregistryproxy.model._
 import it.pagopa.interop.partyregistryproxy.server.Controller
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
@@ -22,13 +19,9 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
-import scala.util.{Failure, Success}
-
-import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
-import akka.actor.typed.ActorSystem
-import scala.concurrent.ExecutionContext
+import scala.util.Success
 
 class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecLike with MockFactory {
 
@@ -91,7 +84,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
   }
 
   "Asking for institutions" should {
-    "work successfully for page = 1 and limit = 1" in {
+    "work successfully searching for Institution text with page = 1 and limit = 1" in {
 
       val searchTxt = "Institution"
       val page      = 1
@@ -115,7 +108,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
-    "work successfully for page = 2 and limit = 1" in {
+    "work successfully searching for Institution text with page = 2 and limit = 1" in {
 
       val searchTxt = "Institution"
       val page      = 2
@@ -139,7 +132,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
-    "work successfully for page = 1 and limit = 4" in {
+    "work successfully searching for Institution text with page = 1 and limit = 4" in {
 
       val searchTxt = "Institution"
       val page      = 1
@@ -163,7 +156,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
-    "work successfully for page = 2 and limit = 2" in {
+    "work successfully searching for Institution text with page = 2 and limit = 2" in {
 
       val searchTxt = "Institution"
       val page      = 2
@@ -187,7 +180,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
-    "return 404 for an organization not found" in {
+    "return an empty result if the specified search text does not match with any institution's records." in {
 
       val searchTxt = "Organization"
 
@@ -198,21 +191,9 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
         .returning(Success(searchResponse -> searchResponse.size.toLong))
         .once()
 
-      val body = makeRequest[Problem](s"institutions?search=$searchTxt&page=1&limit=1")
+      val body = makeRequest[Institutions](s"institutions?search=$searchTxt&page=1&limit=1")
 
-      body should be(SpecResult(StatusCodes.NotFound, responseInstitutionsNotFound))
-
-    }
-    "return 400 for an invalid request" in {
-
-      (institutionSearchService.searchByText _)
-        .expects(*, *, *, *)
-        .returning(Failure(new RuntimeException("Something goes wrong")))
-        .once()
-
-      val body = makeRequest[Problem](s"institutions?search=text&page=1&limit=1")
-
-      body should be(SpecResult(StatusCodes.BadRequest, responseInvalidSearch))
+      body should be(SpecResult(StatusCodes.OK, Institutions(List.empty, 0L)))
 
     }
 
@@ -385,8 +366,5 @@ object ServiceSpecSupport {
 
   final lazy val categories = List(categoryOne, categoryTwo, categoryOThree)
 
-  final lazy val responseInstitutionsNotFound = problemOf(StatusCodes.NotFound, InstitutionsNotFound)
-  final lazy val responseInvalidSearch        = problemOf(StatusCodes.BadRequest, InvalidSearchInstitutionRequest)
-  final lazy val responseCategoriesNotFound   = problemOf(StatusCodes.NotFound, CategoriesNotFound)
   def responseCategoryNotFound(code: String): Problem = problemOf(StatusCodes.NotFound, CategoryNotFound(code))
 }

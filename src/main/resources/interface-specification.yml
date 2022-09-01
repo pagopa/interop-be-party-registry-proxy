@@ -54,12 +54,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Institution'
-        '400':
-          description: Invalid ID supplied
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
         '404':
           description: Institution not found
           content:
@@ -95,18 +89,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Institutions'
-        '400':
-          description: Invalid ID supplied
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
-          description: Institution not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
   /categories:
     get:
       tags:
@@ -138,12 +120,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Categories'
-        '404':
-          description: Categories not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
   /origins/{origin}/categories/{code}:
     get:
       tags:

@@ -10,8 +10,8 @@ import it.pagopa.interop.partyregistryproxy.model._
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
 import com.typesafe.scalalogging.Logger
 
-import scala.util.Try
-
+import scala.util.{Failure, Success, Try}
+import akka.http.scaladsl.server.Directives.complete
 final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearchService[Institution])
     extends InstitutionApiService {
 
@@ -29,21 +29,19 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     logger.info("Retrieving institution {}", institutionId)
     val result: Try[Option[Institution]] = institutionSearchService.searchById(institutionId)
 
-    result.fold(
-      ex => {
-        logger.error(s"Error while retrieving institution $institutionId", ex)
-        getInstitutionById400(problemOf(StatusCodes.BadRequest, InvalidGetInstitutionRequest))
-      },
-      institution =>
-        institution.fold({
+    result match {
+      case Success(institution) =>
+        institution.fold {
           logger.error(s"Error while retrieving institution $institutionId - Institution not found")
-          getInstitutionById404(problemOf(StatusCodes.NotFound, InstitutionNotFound))
-        }) { institution =>
-          logger.info("Institution {} retrieved", institutionId)
+          getInstitutionById404(problemOf(StatusCodes.NotFound, InstitutionNotFound(institutionId)))
+        } { institution =>
+          logger.info(s"Institution $institutionId retrieved")
           getInstitutionById200(institution)
         }
-    )
-
+      case Failure(ex)          =>
+        logger.error(s"Error while retrieving institution $institutionId", ex)
+        complete(problemOf(StatusCodes.InternalServerError, InstitutionsError(ex.getMessage)))
+    }
   }
 
   /**
@@ -53,9 +51,10 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
    */
   override def searchInstitution(search: Option[String], page: Option[Int], limit: Option[Int])(implicit
     contexts: Seq[(String, String)],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
     toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions]
   ): Route = {
+    import InstitutionApiMarshallerImpl.toEntityMarshallerProblem
+
     logger.info("Searching for institution with following search string = {}", search)
 
     val result: Try[(List[Institution], Long)] = search match {
@@ -66,21 +65,14 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
         institutionSearchService.getAllItems(Map.empty, page.getOrElse(defaultPage), limit.getOrElse(defaultLimit))
     }
 
-    result.fold(
-      ex => {
+    result match {
+      case Success(value) => searchInstitution200(Institutions.tupled(value))
+      case Failure(ex)    =>
         logger
           .error(s"Error while searching for institution with following search string = $search", ex)
-        searchInstitution400(problemOf(StatusCodes.BadRequest, InvalidSearchInstitutionRequest))
-      },
-      tuple => {
-        if (tuple._1.isEmpty) {
-          logger.error(s"Error while searching for institution with following search string = $search - Not Found")
-          searchInstitution404(problemOf(StatusCodes.NotFound, InstitutionsNotFound))
-        } else {
-          searchInstitution200(Institutions.tupled(tuple))
-        }
-      }
-    )
+        val error = problemOf(StatusCodes.InternalServerError, InstitutionsError(ex.getMessage))
+        complete(error.status, error)
+    }
 
   }
 

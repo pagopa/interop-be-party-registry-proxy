@@ -20,13 +20,14 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
 
   /**
    * Code: 200, Message: successful operation, DataType: Categories
-   * Code: 404, Message: Categories not found, DataType: Problem
    */
   override def getCategories(origin: Option[String], page: Option[Int], limit: Option[Int])(implicit
     contexts: Seq[(String, String)],
-    toEntityMarshallerCategories: ToEntityMarshaller[Categories],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+    toEntityMarshallerCategories: ToEntityMarshaller[Categories]
   ): Route = {
+
+    import CategoryApiMarshallerImpl.toEntityMarshallerProblem
+
     logger.info("Retrieving categories")
 
     val filters: Map[SearchField, String]       = getCategoryFilters(origin)
@@ -36,7 +37,7 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
       case Success(values) => getCategories200(Categories(values._1, values._2))
       case Failure(ex)     =>
         logger.error(s"Error while retrieving categories", ex)
-        val error = problemOf(StatusCodes.InternalServerError, CategoriesError)
+        val error = problemOf(StatusCodes.InternalServerError, CategoriesError(ex.getMessage))
         complete(error.status, error)
     }
   }
@@ -64,11 +65,17 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
     category match {
       case Success(value) =>
         val error = problemOf(StatusCodes.NotFound, CategoryNotFound(code))
-        value.fold(getCategory404(error))(getCategory200)
+        value.fold {
+          logger.error(s"Error while retrieving category $code - Category not found")
+          getCategory404(error)
+        } {
+          logger.info(s"Category $code retrieved")
+          getCategory200
+        }
       case Failure(ex)    =>
         logger.error(s"Error while retrieving category $code", ex)
-        val error = problemOf(StatusCodes.BadRequest, CategoriesError)
-        getCategory400(error)
+        val error = problemOf(StatusCodes.InternalServerError, CategoriesError(ex.getMessage))
+        complete(error.status, error)
     }
   }
 
