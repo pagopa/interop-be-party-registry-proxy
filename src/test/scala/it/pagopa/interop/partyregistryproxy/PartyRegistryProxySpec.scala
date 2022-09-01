@@ -5,10 +5,12 @@ import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.directives.{AuthenticationDirective, SecurityDirectives}
 import it.pagopa.interop.commons.utils.AkkaUtils.Authenticator
+import it.pagopa.interop.commons.utils.OpenapiUtils
 import it.pagopa.interop.partyregistryproxy.api._
-import it.pagopa.interop.partyregistryproxy.api.impl.{CategoryApiMarshallerImpl, _}
+import it.pagopa.interop.partyregistryproxy.api.impl._
 import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.DESCRIPTION
 import it.pagopa.interop.partyregistryproxy.common.util.createCategoryId
 import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors.CategoryNotFound
@@ -63,7 +65,18 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     val healthApi: HealthApi = mock[HealthApi]
 
-    controller = Some(new Controller(health = healthApi, institution = institutionApi, category = categoryApi))
+    controller = Some(
+      new Controller(
+        health = healthApi,
+        institution = institutionApi,
+        category = categoryApi,
+        validationExceptionToRoute = Some(report => {
+          val error =
+            problemOf(StatusCodes.BadRequest, OpenapiUtils.errorFromRequestValidationReport(report))
+          complete(error.status, error)(entityMarshallerProblem)
+        })
+      )
+    )
 
     controller foreach { controller =>
       bindServer = Some(
@@ -84,6 +97,29 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
   }
 
   "Asking for institutions" should {
+
+    "work successfully searching for Institution text using default value (page=1,limit=10)" in {
+
+      val searchTxt = "Institution"
+      val page      = 1
+      val limit     = 10
+
+      val luceneResponse =
+        institutions.filter(_.description.contains(searchTxt)).sortBy(_.id).slice(page - 1, page + limit - 1)
+
+      (institutionSearchService.searchByText _)
+        .expects(DESCRIPTION.value, searchTxt, page, limit)
+        .returning(Success(luceneResponse -> luceneResponse.size.toLong))
+        .once()
+
+      val response =
+        makeRequest[Institutions](s"institutions?search=$searchTxt")
+
+      response.status should be(StatusCodes.OK)
+      response.body should be(Institutions(institutions, institutions.size.toLong))
+
+    }
+
     "work successfully searching for Institution text with page = 1 and limit = 1" in {
 
       val searchTxt = "Institution"
@@ -197,6 +233,77 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
+    "fail using with page < 1" in {
+
+      val searchTxt = "Institution"
+      val page      = 0
+
+      val response = makeRequest[Problem](s"institutions?search=$searchTxt&page=${page.toString}")
+
+      response.status shouldBe StatusCodes.BadRequest
+      response.body.errors.head.detail shouldBe "page is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)"
+
+    }
+
+    "fail using with limit < 1" in {
+
+      val searchTxt = "Institution"
+      val limit     = 0
+
+      val response = makeRequest[Problem](s"institutions?search=$searchTxt&limit=${limit.toString}")
+
+      response.status shouldBe StatusCodes.BadRequest
+      response.body.errors.head.detail shouldBe "limit is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)"
+
+    }
+
+    "fail using with limit > 100" in {
+
+      val searchTxt = "Institution"
+      val limit     = 101
+
+      val response = makeRequest[Problem](s"institutions?search=$searchTxt&limit=${limit.toString}")
+
+      response.status shouldBe StatusCodes.BadRequest
+
+      response.body.errors.head.detail shouldBe "limit is not valid - Numeric instance is greater than the required maximum (maximum: 100, found: 101)"
+
+    }
+
+    "fail using with page < 1 and limit < 1" in {
+
+      val searchTxt = "Institution"
+      val page      = 0
+      val limit     = 0
+
+      val response =
+        makeRequest[Problem](s"institutions?search=$searchTxt&page=${page.toString}&limit=${limit.toString}")
+
+      response.status shouldBe StatusCodes.BadRequest
+      response.body.errors.map(_.detail) should contain allOf (
+        "page is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)",
+        "limit is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)"
+      )
+
+    }
+
+    "fail using with page < 1 and limit > 100" in {
+
+      val searchTxt = "Institution"
+      val page      = 0
+      val limit     = 101
+
+      val response =
+        makeRequest[Problem](s"institutions?search=$searchTxt&page=${page.toString}&limit=${limit.toString}")
+
+      response.status shouldBe StatusCodes.BadRequest
+      response.body.errors.map(_.detail) should contain allOf (
+        "page is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)",
+        "limit is not valid - Numeric instance is greater than the required maximum (maximum: 100, found: 101)"
+      )
+
+    }
+
   }
 
   "Asking for categories" should {
@@ -210,6 +317,86 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
       val response = makeRequest[Categories](s"categories")
 
       response should be(SpecResult(StatusCodes.OK, Categories(categories, categories.size.toLong)))
+
+    }
+
+    "retrieve all categories with page = 1 and limit = 1" in {
+
+      val page  = 1
+      val limit = 1
+
+      (categorySearchService.getAllItems _)
+        .expects(*, page, limit)
+        .returning(
+          Success(
+            categories.slice(page - 1, page + limit - 1) -> categories.slice(page - 1, page + limit - 1).size.toLong
+          )
+        )
+        .once()
+
+      val response = makeRequest[Categories](s"categories?page=$page&limit=$limit")
+
+      response should be(
+        SpecResult(
+          StatusCodes.OK,
+          Categories(
+            categories.slice(page - 1, page + limit - 1),
+            categories.slice(page - 1, page + limit - 1).size.toLong
+          )
+        )
+      )
+
+    }
+
+    "retrieve all categories with page = 2 and limit = 1" in {
+
+      val page  = 2
+      val limit = 1
+
+      (categorySearchService.getAllItems _)
+        .expects(*, page, limit)
+        .returning(
+          Success(
+            categories.slice(page - 1, page + limit - 1) -> categories.slice(page - 1, page + limit - 1).size.toLong
+          )
+        )
+        .once()
+
+      val response = makeRequest[Categories](s"categories?page=$page&limit=$limit")
+
+      response should be(
+        SpecResult(
+          StatusCodes.OK,
+          Categories(
+            categories.slice(page - 1, page + limit - 1),
+            categories.slice(page - 1, page + limit - 1).size.toLong
+          )
+        )
+      )
+
+    }
+
+    "retrieve all categories with page = 1 and limit = 100" in {
+
+      val page  = 1
+      val limit = 100
+
+      (categorySearchService.getAllItems _)
+        .expects(*, page, limit)
+        .returning(Success(categories -> categories.size.toLong))
+        .once()
+
+      val response = makeRequest[Categories](s"categories?page=$page&limit=$limit")
+
+      response should be(
+        SpecResult(
+          StatusCodes.OK,
+          Categories(
+            categories.slice(page - 1, page + limit - 1),
+            categories.slice(page - 1, page + limit - 1).size.toLong
+          )
+        )
+      )
 
     }
 
@@ -241,6 +428,69 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
       val response = makeRequest[Categories](s"categories?origin=$originThree")
 
       response should be(SpecResult(StatusCodes.OK, Categories(List.empty, 0L)))
+
+    }
+
+    "fail using with page < 1" in {
+
+      val page     = 0
+      val response = makeRequest[Problem](s"categories?origin=$originThree&page=$page")
+
+      response.status shouldBe StatusCodes.BadRequest
+      response.body.errors.map(_.detail) should contain(
+        "page is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)"
+      )
+
+    }
+
+    "fail using with limit < 1" in {
+
+      val limit    = 0
+      val response = makeRequest[Problem](s"categories?origin=$originThree&limit=$limit")
+
+      response.status shouldBe StatusCodes.BadRequest
+      response.body.errors.map(_.detail) should contain(
+        "limit is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)"
+      )
+
+    }
+
+    "fail using with limit > 100" in {
+
+      val limit    = 101
+      val response = makeRequest[Problem](s"categories?origin=$originThree&limit=$limit")
+
+      response.status shouldBe StatusCodes.BadRequest
+      response.body.errors.map(_.detail) should contain(
+        "limit is not valid - Numeric instance is greater than the required maximum (maximum: 100, found: 101)"
+      )
+
+    }
+
+    "fail using with page < 1 and limit < 1" in {
+
+      val page     = 0
+      val limit    = 0
+      val response = makeRequest[Problem](s"categories?origin=$originThree&page=$page&limit=$limit")
+
+      response.status shouldBe StatusCodes.BadRequest
+      response.body.errors.map(_.detail) should contain allOf (
+        "page is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)",
+        "limit is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)"
+      )
+    }
+
+    "fail using with page < 1 and limit > 100" in {
+
+      val page     = 0
+      val limit    = 101
+      val response = makeRequest[Problem](s"categories?origin=$originThree&page=$page&limit=$limit")
+
+      response.status shouldBe StatusCodes.BadRequest
+      response.body.errors.map(_.detail) should contain allOf (
+        "page is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)",
+        "limit is not valid - Numeric instance is greater than the required maximum (maximum: 100, found: 101)"
+      )
 
     }
 
@@ -366,5 +616,5 @@ object ServiceSpecSupport {
 
   final lazy val categories = List(categoryOne, categoryTwo, categoryOThree)
 
-  def responseCategoryNotFound(code: String): Problem = problemOf(StatusCodes.NotFound, CategoryNotFound(code))
+  def responseCategoryNotFound(code: String): Problem = problemOf(StatusCodes.NotFound, List(CategoryNotFound(code)))
 }

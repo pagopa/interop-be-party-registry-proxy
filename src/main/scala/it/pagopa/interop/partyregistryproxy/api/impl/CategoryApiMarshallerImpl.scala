@@ -11,5 +11,5 @@ object CategoryApiMarshallerImpl extends CategoryApiMarshaller with SprayJsonSup
 
   override implicit def toEntityMarshallerCategories: ToEntityMarshaller[Categories] = sprayJsonMarshaller
 
-  override implicit def toEntityMarshallerProblem: ToEntityMarshaller[Problem] = sprayJsonMarshaller
+  override implicit def toEntityMarshallerProblem: ToEntityMarshaller[Problem] = entityMarshallerProblem
 }

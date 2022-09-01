@@ -7,6 +7,7 @@ import it.pagopa.interop.partyregistryproxy.model.Institution
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
 import it.pagopa.interop.partyregistryproxy.service.impl.analizer.InstitutionTokenAnalyzer
 import it.pagopa.interop.partyregistryproxy.service.impl.util.DocumentConverter
+import it.pagopa.interop.partyregistryproxy.service.impl.util.DocumentConverter._
 import org.apache.lucene.index.{DirectoryReader, Term}
 import org.apache.lucene.search._
 import org.apache.lucene.store.FSDirectory
@@ -53,26 +54,6 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
   }
 
   override def getAllItems(filters: Map[SearchField, String], page: Int, limit: Int): Try[(List[Institution], Long)] =
-    Try {
-      val reader: DirectoryReader = getDirectoryReader(mainReader)
-      val searcher: IndexSearcher = new IndexSearcher(reader)
-
-      val query: Query = getQuery(filters)
-
-      val collector: TopScoreDocCollector = TopScoreDocCollector.create(reader.numDocs(), reader.numDocs())
-
-      val startIndex = (page - 1) * limit
-
-      searcher.search(query, collector)
-
-      val hits: TopDocs = collector.topDocs(startIndex, limit)
-
-      val results: (List[Institution], Long) =
-        hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).toList -> reader
-          .numDocs()
-          .toLong
-
-      results
-    }
+    Try(getDirectoryReader(mainReader)).flatMap(getItems[Institution](filters, page, limit))
 
 }

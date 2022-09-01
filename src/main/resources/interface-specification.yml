@@ -14,7 +14,7 @@ servers:
   - url: '/party-registry-proxy/{{version}}'
     description: This service is the proxy to the party registry
 security:
-  - bearerAuth: []
+  - bearerAuth: [ ]
 tags:
   - name: institution
     description: Retrieve information about institution
@@ -64,12 +64,14 @@ paths:
     get:
       tags:
         - institution
-      summary: Find institution by ID
-      description: Returns a single institution
-      operationId: searchInstitution
+      summary: Find institutions
+      description: | 
+        Returns a list of Institutions.
+      operationId: searchInstitutions
       parameters:
         - in: query
           name: search
+          description: if passed, the result is filtered based on the contained value.
           schema:
             type: string
         - in: query
@@ -77,11 +79,16 @@ paths:
           schema:
             type: integer
             format: int32
+            default: 1
+            minimum: 1
         - in: query
           name: limit
           schema:
             type: integer
             format: int32
+            default: 10
+            minimum: 1
+            maximum: 100
       responses:
         '200':
           description: successful operation
@@ -89,6 +96,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Institutions'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /categories:
     get:
       tags:
@@ -108,11 +121,16 @@ paths:
           schema:
             type: integer
             format: int32
+            default: 1
+            minimum: 1
         - in: query
           name: limit
           schema:
             type: integer
             format: int32
+            default: 10
+            minimum: 1
+            maximum: 100
       responses:
         '200':
           description: successful operation
@@ -120,6 +138,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Categories'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /origins/{origin}/categories/{code}:
     get:
       tags:

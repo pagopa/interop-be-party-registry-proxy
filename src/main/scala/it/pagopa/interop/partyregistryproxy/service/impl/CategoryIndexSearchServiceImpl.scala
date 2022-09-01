@@ -54,18 +54,6 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
   }
 
   override def getAllItems(filters: Map[SearchField, String], page: Int, limit: Int): Try[(List[Category], Long)] =
-    Try {
-      val reader: DirectoryReader = getDirectoryReader(mainReader)
-      val searcher: IndexSearcher = new IndexSearcher(reader)
-
-      val query: Query = getQuery(filters)
-
-      val hits: TopDocs = searcher.search(query, reader.numDocs)
-
-      val results: (List[Category], Long) =
-        hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).toList -> reader.numDocs().toLong
-
-      results
-    }
+    Try(getDirectoryReader(mainReader)).flatMap(getItems[Category](filters, page, limit))
 
 }
