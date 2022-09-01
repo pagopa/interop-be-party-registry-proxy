@@ -58,15 +58,13 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
   ): Route = {
     logger.info("Searching for institution with following search string = {}", search)
 
-    val result: Try[(List[Institution], Long)] =
-      search
-        .map(searchTxt =>
-          institutionSearchService
-            .searchByText(DESCRIPTION.value, searchTxt, page.getOrElse(defaultPage), limit.getOrElse(defaultLimit))
-        )
-        .getOrElse(
-          institutionSearchService.getAllItems(Map.empty, page.getOrElse(defaultPage), limit.getOrElse(defaultLimit))
-        )
+    val result: Try[(List[Institution], Long)] = search match {
+      case Some(searchTxt) =>
+        institutionSearchService
+          .searchByText(DESCRIPTION.value, searchTxt, page.getOrElse(defaultPage), limit.getOrElse(defaultLimit))
+      case None            =>
+        institutionSearchService.getAllItems(Map.empty, page.getOrElse(defaultPage), limit.getOrElse(defaultLimit))
+    }
 
     result.fold(
       ex => {
