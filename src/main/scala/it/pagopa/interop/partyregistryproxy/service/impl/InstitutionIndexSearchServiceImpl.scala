@@ -7,13 +7,13 @@ import it.pagopa.interop.partyregistryproxy.model.Institution
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
 import it.pagopa.interop.partyregistryproxy.service.impl.analizer.InstitutionTokenAnalyzer
 import it.pagopa.interop.partyregistryproxy.service.impl.util.DocumentConverter
+import it.pagopa.interop.partyregistryproxy.service.impl.util.DocumentConverter._
 import org.apache.lucene.index.{DirectoryReader, Term}
 import org.apache.lucene.search._
 import org.apache.lucene.store.FSDirectory
 
 import java.nio.file.Paths
-import scala.util.{Failure, Try}
-
+import scala.util.Try
 case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institution] {
 
   private val dir: FSDirectory            = FSDirectory.open(Paths.get(ApplicationConfiguration.institutionsIndexDir))
@@ -53,9 +53,7 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     results
   }
 
-  // TODO add pagination, low priority
-  override def getAllItems(filters: Map[SearchField, String]): Try[List[Institution]] = Failure(
-    new RuntimeException("Not implemented")
-  )
+  override def getAllItems(filters: Map[SearchField, String], page: Int, limit: Int): Try[(List[Institution], Long)] =
+    Try(getDirectoryReader(mainReader)).flatMap(getItems[Institution](filters, page, limit))
 
 }

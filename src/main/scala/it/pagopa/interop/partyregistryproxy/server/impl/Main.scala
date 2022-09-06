@@ -1,23 +1,24 @@
 package it.pagopa.interop.partyregistryproxy.server.impl
 
-import it.pagopa.interop.commons.logging.renderBuildInfo
+import akka.actor.typed.{ActorSystem, DispatcherSelector}
+import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http.ServerBinding
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives.complete
 import akka.management.scaladsl.AkkaManagement
+import buildinfo.BuildInfo
+import com.typesafe.scalalogging.Logger
+import it.pagopa.interop.commons.jwt.JWTConfiguration
+import it.pagopa.interop.commons.logging.renderBuildInfo
+import it.pagopa.interop.commons.utils.OpenapiUtils
+import it.pagopa.interop.commons.utils.TypeConversions._
+import it.pagopa.interop.partyregistryproxy.api.impl._
 import it.pagopa.interop.partyregistryproxy.common.system.{ApplicationConfiguration, CorsSupport}
 import it.pagopa.interop.partyregistryproxy.server.Controller
 import kamon.Kamon
-import it.pagopa.interop.commons.jwt.JWTConfiguration
 
-import it.pagopa.interop.commons.utils.TypeConversions._
-
-import com.typesafe.scalalogging.Logger
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.ActorSystem
-import buildinfo.BuildInfo
-import scala.concurrent.Future
-import scala.util.{Success, Failure}
-import akka.actor.typed.DispatcherSelector
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.util.{Failure, Success}
 
 object Main extends App with CorsSupport with Dependencies {
 
@@ -49,7 +50,12 @@ object Main extends App with CorsSupport with Dependencies {
         controller = new Controller(
           category = categoryApi()(jwtReader),
           health = healthApi,
-          institution = institutionApi()(jwtReader)
+          institution = institutionApi()(jwtReader),
+          validationExceptionToRoute = Some(report => {
+            val error =
+              problemOf(StatusCodes.BadRequest, OpenapiUtils.errorFromRequestValidationReport(report))
+            complete(error.status, error)(entityMarshallerProblem)
+          })
         )(actorSystem.classicSystem)
         binding <- http()
           .newServerAt("0.0.0.0", ApplicationConfiguration.serverPort)

@@ -11,7 +11,7 @@ trait DocumentConverter[A] {
 }
 
 object DocumentConverter {
-  def to[A: DocumentConverter](document: Document): A = implicitly[DocumentConverter[A]].to(document)
+  def to[A](document: Document)(implicit dc: DocumentConverter[A]): A = dc.to(document)
 
   implicit def institutionConverter: DocumentConverter[Institution] = (document: Document) => {
     Institution(

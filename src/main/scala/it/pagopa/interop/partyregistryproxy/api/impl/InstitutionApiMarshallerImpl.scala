@@ -11,5 +11,5 @@ object InstitutionApiMarshallerImpl extends InstitutionApiMarshaller with SprayJ
 
   override implicit def toEntityMarshallerInstitution: ToEntityMarshaller[Institution] = sprayJsonMarshaller
 
-  override implicit def toEntityMarshallerProblem: ToEntityMarshaller[Problem] = sprayJsonMarshaller
+  override implicit def toEntityMarshallerProblem: ToEntityMarshaller[Problem] = entityMarshallerProblem
 }

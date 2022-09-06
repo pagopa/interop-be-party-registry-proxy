@@ -1,19 +1,59 @@
 package it.pagopa.interop.partyregistryproxy.service
 
-import it.pagopa.interop.partyregistryproxy.common.util.{CategoryField, InstitutionField, createCategoryId}
+import it.pagopa.interop.partyregistryproxy.common.util.{CategoryField, InstitutionField, SearchField, createCategoryId}
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
+import it.pagopa.interop.partyregistryproxy.service.impl.util.DocumentConverter
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.document._
-import org.apache.lucene.index.{DirectoryReader, IndexWriter}
+import org.apache.lucene.index.{DirectoryReader, IndexWriter, Term}
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
 import org.apache.lucene.store.LockObtainFailedException
 import org.apache.lucene.util.BytesRef
 
 import javax.naming.directory.SearchResult
+import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
 package object impl {
+
+  def getItems[A: ClassTag](filters: Map[SearchField, String], page: Int, limit: Int)(
+    reader: DirectoryReader
+  )(implicit documentConverter: DocumentConverter[A]): Try[(List[A], Long)] = Try {
+    val searcher: IndexSearcher = new IndexSearcher(reader)
+    val query: Query            = getQuery(filters)
+
+    val collector: TopScoreDocCollector = TopScoreDocCollector.create(reader.numDocs(), reader.numDocs())
+
+    val startIndex = (page - 1) * limit
+
+    searcher.search(query, collector)
+
+    val hits: TopDocs = collector.topDocs(startIndex, limit)
+
+    val results: (List[A], Long) =
+      hits.scoreDocs.map(sc => DocumentConverter.to[A](searcher.doc(sc.doc))).toList -> reader
+        .numDocs()
+        .toLong
+
+    results
+
+  }
+
+  private def getQuery(filters: Map[SearchField, String]): Query = {
+    if (filters.isEmpty)
+      new MatchAllDocsQuery
+    else {
+      val booleanQuery = new BooleanQuery.Builder()
+      filters.foreach { case (k, v) =>
+        val term: Term       = new Term(k.value, v)
+        val query: TermQuery = new TermQuery(term)
+        booleanQuery.add(query, BooleanClause.Occur.MUST)
+      }
+
+      booleanQuery.build()
+    }
+  }
 
   def useWriter[A](writer: Try[IndexWriter], f: IndexWriter => Try[A], zero: A): Try[A] = writer match {
     case Success(wr)                           => f(wr)
@@ -26,9 +66,8 @@ package object impl {
     writer.close()
   }
 
-  def getDirectoryReader(reader: DirectoryReader): DirectoryReader = {
+  def getDirectoryReader(reader: DirectoryReader): DirectoryReader =
     Option(DirectoryReader.openIfChanged(reader)).getOrElse(reader)
-  }
 
   implicit class SearchResultOps(val result: SearchResult) extends AnyVal {
     def extract(attributeName: String): Option[String] = {
