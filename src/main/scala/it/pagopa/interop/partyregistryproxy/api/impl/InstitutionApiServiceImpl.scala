@@ -56,13 +56,11 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
 
     logger.info("Searching for institutions with following search string = {}", search)
 
-    val result: Try[(List[Institution], Long)] = search match {
-      case Some(searchTxt) =>
+    val result: Try[(List[Institution], Long)] =
+      search.fold(institutionSearchService.getAllItems(Map.empty, page, limit))(searchTxt =>
         institutionSearchService
           .searchByText(DESCRIPTION.value, searchTxt, page, limit)
-      case None            =>
-        institutionSearchService.getAllItems(Map.empty, page, limit)
-    }
+      )
 
     result match {
       case Success(value) => searchInstitutions200(Institutions.tupled(value))

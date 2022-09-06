@@ -19,27 +19,25 @@ package object impl {
 
   def getItems[A: ClassTag](filters: Map[SearchField, String], page: Int, limit: Int)(
     reader: DirectoryReader
-  )(implicit documentConverter: DocumentConverter[A]): Try[(List[A], Long)] = {
-    Try {
-      val searcher: IndexSearcher = new IndexSearcher(reader)
-      val query: Query            = getQuery(filters)
+  )(implicit documentConverter: DocumentConverter[A]): Try[(List[A], Long)] = Try {
+    val searcher: IndexSearcher = new IndexSearcher(reader)
+    val query: Query            = getQuery(filters)
 
-      val collector: TopScoreDocCollector = TopScoreDocCollector.create(reader.numDocs(), reader.numDocs())
+    val collector: TopScoreDocCollector = TopScoreDocCollector.create(reader.numDocs(), reader.numDocs())
 
-      val startIndex = (page - 1) * limit
+    val startIndex = (page - 1) * limit
 
-      searcher.search(query, collector)
+    searcher.search(query, collector)
 
-      val hits: TopDocs = collector.topDocs(startIndex, limit)
+    val hits: TopDocs = collector.topDocs(startIndex, limit)
 
-      val results: (List[A], Long) =
-        hits.scoreDocs.map(sc => DocumentConverter.to[A](searcher.doc(sc.doc))).toList -> reader
-          .numDocs()
-          .toLong
+    val results: (List[A], Long) =
+      hits.scoreDocs.map(sc => DocumentConverter.to[A](searcher.doc(sc.doc))).toList -> reader
+        .numDocs()
+        .toLong
 
-      results
+    results
 
-    }
   }
 
   private def getQuery(filters: Map[SearchField, String]): Query = {
