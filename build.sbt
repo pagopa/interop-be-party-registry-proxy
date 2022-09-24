@@ -1,12 +1,11 @@
 import ProjectSettings.ProjectFrom
 import com.typesafe.sbt.packager.docker.Cmd
 
-ThisBuild / scalaVersion        := "2.13.8"
+ThisBuild / scalaVersion        := "2.13.9"
 ThisBuild / organization        := "it.pagopa"
 ThisBuild / organizationName    := "Pagopa S.p.A."
 ThisBuild / libraryDependencies := Dependencies.Jars.`server`
-Global / onChangedBuildSource := ReloadOnSourceChanges
-
+Global / onChangedBuildSource   := ReloadOnSourceChanges
 
 ThisBuild / version := ComputeVersion.version
 
