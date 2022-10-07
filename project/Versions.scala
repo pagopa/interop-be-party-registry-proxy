@@ -2,7 +2,7 @@ object Versions {
   lazy val akkaHttpVersion       = "10.2.6"
   lazy val akkaManagementVersion = "1.1.1"
   lazy val akkaVersion           = "2.6.17"
-  lazy val kamonVersion          = "2.5.5"
+  lazy val kamonVersion          = "2.5.8"
   lazy val json4sVersion         = "4.0.4"
   lazy val logbackVersion        = "1.4.3"
   lazy val luceneVersion         = "9.2.0"
