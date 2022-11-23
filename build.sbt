@@ -6,11 +6,10 @@ ThisBuild / organization        := "it.pagopa"
 ThisBuild / organizationName    := "Pagopa S.p.A."
 ThisBuild / libraryDependencies := Dependencies.Jars.`server`
 Global / onChangedBuildSource   := ReloadOnSourceChanges
-
-ThisBuild / version := ComputeVersion.version
-
-ThisBuild / resolvers += "Pagopa Nexus Snapshots" at s"https://${System.getenv("MAVEN_REPO")}/nexus/repository/maven-snapshots/"
-ThisBuild / resolvers += "Pagopa Nexus Releases" at s"https://${System.getenv("MAVEN_REPO")}/nexus/repository/maven-releases/"
+ThisBuild / version             := ComputeVersion.version
+ThisBuild / githubOwner         := "pagopa"
+ThisBuild / githubRepository    := "interop-be-party-registry-proxy"
+ThisBuild / resolvers += Resolver.githubPackages("pagopa")
 
 lazy val generateCode = taskKey[Unit]("A task for generating the code starting from the swagger definition")
 
@@ -79,11 +78,10 @@ cleanFiles += baseDirectory.value / "client" / "src"
 
 cleanFiles += baseDirectory.value / "client" / "target"
 
-ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
-
 lazy val generated = project
   .in(file("generated"))
   .settings(scalacOptions := Seq(), scalafmtOnCompile := true)
+  .enablePlugins(NoPublishPlugin)
   .setupBuildInfo
 
 lazy val client = project
@@ -95,15 +93,7 @@ lazy val client = project
     version             := (ThisBuild / version).value,
     libraryDependencies := Dependencies.Jars.client,
     updateOptions       := updateOptions.value.withGigahorse(false),
-    Docker / publish    := {},
-    publishTo           := {
-      val nexus = s"https://${System.getenv("MAVEN_REPO")}/nexus/repository/"
-
-      if (isSnapshot.value)
-        Some("snapshots" at nexus + "maven-snapshots/")
-      else
-        Some("releases" at nexus + "maven-releases/")
-    }
+    Docker / publish    := {}
   )
 
 lazy val root = (project in file("."))
@@ -112,7 +102,7 @@ lazy val root = (project in file("."))
     Test / parallelExecution    := false,
     scalafmtOnCompile           := true,
     dockerBuildOptions ++= Seq("--network=host"),
-    dockerRepository            := Some(System.getenv("DOCKER_REPO")),
+    dockerRepository            := Some(System.getenv("ECR_REGISTRY")),
     dockerBaseImage             := "adoptopenjdk:11-jdk-hotspot",
     daemonUser                  := "daemon",
     Docker / version            := (ThisBuild / version).value.replaceAll("-SNAPSHOT", "-latest").toLowerCase,
@@ -124,6 +114,7 @@ lazy val root = (project in file("."))
   .aggregate(client)
   .dependsOn(generated)
   .enablePlugins(JavaAppPackaging, JavaAgent)
+  .enablePlugins(NoPublishPlugin)
   .setupBuildInfo
 
 javaAgents += "io.kamon" % "kanela-agent" % "1.0.16"
