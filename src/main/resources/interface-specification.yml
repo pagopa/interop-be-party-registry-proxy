@@ -60,6 +60,41 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+  /institutions/externalId/origin/{origin}/originId/{originId}:
+    get:
+      tags:
+        - institution
+      summary: Find institution by ExternalId
+      description: Returns a single institution using ExternalId
+      operationId: getInstitutionByExternalId
+      parameters:
+        - name: origin
+          in: path
+          description: institution origin
+          required: true
+          schema:
+            type: string
+            maxLength: 32
+        - name: originId
+          in: path
+          description: institution origin id
+          required: true
+          schema:
+            type: string
+            maxLength: 32
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institution'
+        '404':
+          description: Institution not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /institutions:
     get:
       tags:

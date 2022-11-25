@@ -1,7 +1,8 @@
 package it.pagopa.interop.partyregistryproxy.service.impl
 
 import it.pagopa.interop.partyregistryproxy.common.system.ApplicationConfiguration
-import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.ID
+import it.pagopa.interop.partyregistryproxy.common.util.CategoryField.ORIGIN
+import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.{ID, ORIGIN_ID}
 import it.pagopa.interop.partyregistryproxy.common.util.SearchField
 import it.pagopa.interop.partyregistryproxy.model.Institution
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
@@ -9,6 +10,7 @@ import it.pagopa.interop.partyregistryproxy.service.impl.analizer.InstitutionTok
 import it.pagopa.interop.partyregistryproxy.service.impl.util.DocumentConverter
 import it.pagopa.interop.partyregistryproxy.service.impl.util.DocumentConverter._
 import org.apache.lucene.index.{DirectoryReader, Term}
+import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.search._
 import org.apache.lucene.store.FSDirectory
 
@@ -28,6 +30,24 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
 
     val results: Option[Institution] =
       hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).find(_.id == id)
+
+    results
+  }
+
+  override def searchByExternalId(origin: String, originId: String): Try[Option[Institution]] = Try {
+    val reader: DirectoryReader = getDirectoryReader(mainReader)
+    val searcher: IndexSearcher = new IndexSearcher(reader)
+
+    val queryBuilder: BooleanQuery.Builder = new BooleanQuery.Builder
+    queryBuilder.add(new TermQuery(new Term(ORIGIN.value, origin)), Occur.MUST)
+    queryBuilder.add(new TermQuery(new Term(ORIGIN_ID.value, originId)), Occur.MUST)
+
+    val hits: TopDocs = searcher.search(queryBuilder.build(), 1)
+
+    val results: Option[Institution] =
+      hits.scoreDocs
+        .map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc)))
+        .find(ist => ist.origin == origin && ist.originId == originId)
 
     results
   }

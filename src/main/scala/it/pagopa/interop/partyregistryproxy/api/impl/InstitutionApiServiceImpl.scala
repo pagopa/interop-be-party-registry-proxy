@@ -45,6 +45,35 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
   }
 
   /**
+   * Code: 200, Message: successful operation, DataType: Institution
+   * Code: 404, Message: Institution not found, DataType: Problem
+   */
+  override def getInstitutionByExternalId(origin: String, originId: String)(implicit
+    contexts: Seq[(String, String)],
+    toEntityMarshallerInstitution: ToEntityMarshaller[Institution],
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+  ): Route = {
+    logger.info(s"Retrieving institution origin=$origin/originId=$originId")
+    val result: Try[Option[Institution]] = institutionSearchService.searchByExternalId(origin, originId)
+
+    result match {
+      case Success(institution) =>
+        institution.fold {
+          logger.error(s"Error while retrieving institution origin=$origin/originId=$originId - Institution not found")
+          getInstitutionById404(
+            problemOf(StatusCodes.NotFound, List(InstitutionNotFound(s"origin=$origin/originId=$originId")))
+          )
+        } { institution =>
+          logger.info(s"Institution origin=$origin/originId=$originId retrieved")
+          getInstitutionById200(institution)
+        }
+      case Failure(ex)          =>
+        logger.error(s"Error while retrieving institution origin=$origin/originId=$originId", ex)
+        complete(problemOf(StatusCodes.InternalServerError, List(InstitutionsError(ex.getMessage))))
+    }
+  }
+
+  /**
    * Code: 200, Message: successful operation, DataType: Institutions
    * Code: 400, Message: Invalid input, DataType: Problem
    */
