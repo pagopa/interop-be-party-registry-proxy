@@ -80,8 +80,14 @@ cleanFiles += baseDirectory.value / "client" / "target"
 
 lazy val generated = project
   .in(file("generated"))
-  .settings(scalacOptions := Seq(), scalafmtOnCompile := true)
-  .enablePlugins(NoPublishPlugin)
+  .settings(
+    scalacOptions     := Seq(),
+    scalafmtOnCompile := true,
+    publish / skip    := true,
+    publish           := (()),
+    publishLocal      := (()),
+    publishTo         := None
+  )
   .setupBuildInfo
 
 lazy val client = project
@@ -113,7 +119,7 @@ lazy val root = (project in file("."))
   )
   .aggregate(client)
   .dependsOn(generated)
-  .enablePlugins(JavaAppPackaging, JavaAgent)
+  .enablePlugins(JavaAppPackaging, JavaAgent, DockerPlugin)
   .enablePlugins(NoPublishPlugin)
   .setupBuildInfo
 
