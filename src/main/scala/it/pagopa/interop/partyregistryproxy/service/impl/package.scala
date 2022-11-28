@@ -11,7 +11,6 @@ import org.apache.lucene.search._
 import org.apache.lucene.store.LockObtainFailedException
 import org.apache.lucene.util.BytesRef
 
-import javax.naming.directory.SearchResult
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
@@ -69,13 +68,6 @@ package object impl {
   def getDirectoryReader(reader: DirectoryReader): DirectoryReader =
     Option(DirectoryReader.openIfChanged(reader)).getOrElse(reader)
 
-  implicit class SearchResultOps(val result: SearchResult) extends AnyVal {
-    def extract(attributeName: String): Option[String] = {
-      Option(result.getAttributes.get(attributeName)).map(_.get().asInstanceOf[String])
-
-    }
-  }
-
   def searchFunc(
     reader: DirectoryReader,
     searcher: IndexSearcher,
@@ -104,6 +96,7 @@ package object impl {
     def toDocument: Document = {
       val doc = new Document
       doc.add(new StringField(InstitutionField.ID.value, institution.id, Field.Store.YES))
+      doc.add(new StringField(InstitutionField.ORIGIN.value, institution.origin, Field.Store.YES))
       doc.add(new StringField(InstitutionField.ORIGIN_ID.value, institution.originId, Field.Store.YES))
       doc.add(new SortedDocValuesField(InstitutionField.DESCRIPTION.value, new BytesRef(institution.description)))
       doc.add(new TextField(InstitutionField.DESCRIPTION.value, institution.description, Field.Store.YES))
@@ -112,7 +105,6 @@ package object impl {
       doc.add(new TextField(InstitutionField.DIGITAL_ADDRESS.value, institution.digitalAddress, Field.Store.YES))
       doc.add(new TextField(InstitutionField.ADDRESS.value, institution.address, Field.Store.YES))
       doc.add(new TextField(InstitutionField.ZIP_CODE.value, institution.zipCode, Field.Store.YES))
-      doc.add(new TextField(InstitutionField.ORIGIN.value, institution.origin, Field.Store.YES))
 
       doc.addOptional(InstitutionField.O.value, institution.o)
       doc.addOptional(InstitutionField.OU.value, institution.ou)
@@ -127,8 +119,8 @@ package object impl {
       val doc = new Document
       val id  = createCategoryId(code = category.code, origin = category.origin)
       doc.add(new StringField(CategoryField.ID.value, id, Field.Store.NO))
-      doc.add(new TextField(CategoryField.CODE.value, category.code, Field.Store.YES))
-      doc.add(new TextField(CategoryField.ORIGIN.value, category.origin, Field.Store.YES))
+      doc.add(new StringField(CategoryField.CODE.value, category.code, Field.Store.YES))
+      doc.add(new StringField(CategoryField.ORIGIN.value, category.origin, Field.Store.YES))
       doc.add(new TextField(CategoryField.NAME.value, category.name, Field.Store.YES))
       doc.add(new TextField(CategoryField.KIND.value, category.kind, Field.Store.YES))
       doc
