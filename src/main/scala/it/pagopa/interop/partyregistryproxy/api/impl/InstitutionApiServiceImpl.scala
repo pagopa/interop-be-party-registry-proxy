@@ -18,9 +18,9 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
   val logger: Logger = Logger(this.getClass)
 
   override def getInstitutionById(institutionId: String)(implicit
-    contexts: Seq[(String, String)],
     toEntityMarshallerInstitutionIPA: ToEntityMarshaller[Institution],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
+    contexts: Seq[(String, String)]
   ): Route = {
     logger.info("Retrieving institution {}", institutionId)
     val result: Try[Option[Institution]] = institutionSearchService.searchById(institutionId)
@@ -41,9 +41,9 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
   }
 
   override def getInstitutionByExternalId(origin: String, originId: String)(implicit
-    contexts: Seq[(String, String)],
     toEntityMarshallerInstitution: ToEntityMarshaller[Institution],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
+    contexts: Seq[(String, String)]
   ): Route = {
     logger.info(s"Retrieving institution origin=$origin/originId=$originId")
     val result: Try[Option[Institution]] = institutionSearchService.searchByExternalId(origin, originId)
@@ -66,9 +66,9 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
   }
 
   override def searchInstitutions(search: Option[String], page: Int, limit: Int)(implicit
-    contexts: Seq[(String, String)],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem],
-    toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions]
+    toEntityMarshallerInstitutions: ToEntityMarshaller[Institutions],
+    contexts: Seq[(String, String)]
   ): Route = {
 
     logger.info("Searching for institutions with following search string = {}", search)
