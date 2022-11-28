@@ -2,10 +2,11 @@ package it.pagopa.interop
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest, ResponseEntity, headers}
+import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.{Unmarshal, Unmarshaller}
 
+import java.net.InetAddress
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
 
@@ -14,8 +15,12 @@ package object partyregistryproxy {
   val url: String =
     s"http://localhost:8088/party-registry-proxy/${buildinfo.BuildInfo.interfaceVersion}"
 
-  val bearerToken: String               = "token"
-  val authorization: Seq[Authorization] = Seq(headers.Authorization(OAuth2BearerToken(bearerToken)))
+  final val requestHeaders: Seq[HttpHeader] =
+    Seq(
+      headers.Authorization(OAuth2BearerToken("token")),
+      headers.RawHeader("X-Correlation-Id", "test-id"),
+      headers.`X-Forwarded-For`(RemoteAddress(InetAddress.getByName("127.0.0.1")))
+    )
 
   def makeRequest[A](path: String)(implicit
     actorSystem: ActorSystem,
@@ -24,7 +29,7 @@ package object partyregistryproxy {
   ): SpecResult[A] = {
     Await.result(
       Http()
-        .singleRequest(HttpRequest(uri = s"$url/$path", method = HttpMethods.GET, headers = authorization))
+        .singleRequest(HttpRequest(uri = s"$url/$path", method = HttpMethods.GET, headers = requestHeaders))
         .flatMap { response =>
           Unmarshal(response.entity).to[A].map(SpecResult(response.status, _))
         },

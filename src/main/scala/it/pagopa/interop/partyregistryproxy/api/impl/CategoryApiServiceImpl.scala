@@ -20,9 +20,9 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
   val logger: Logger = Logger(this.getClass)
 
   override def getCategories(origin: Option[String], page: Int, limit: Int)(implicit
-    contexts: Seq[(String, String)],
     toEntityMarshallerCategories: ToEntityMarshaller[Categories],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
+    contexts: Seq[(String, String)]
   ): Route = {
 
     logger.info("Retrieving categories")
@@ -45,9 +45,9 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
   }
 
   override def getCategory(origin: String, code: String)(implicit
-    contexts: Seq[(String, String)],
     toEntityMarshallerCategory: ToEntityMarshaller[Category],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
+    contexts: Seq[(String, String)]
   ): Route = {
 
     logger.info(s"Retrieving category $code")
