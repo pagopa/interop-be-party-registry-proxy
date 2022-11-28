@@ -24,13 +24,12 @@ final case class MockOpenDataServiceImpl(
     extends OpenDataService
     with OpenDataResponseMarshaller {
 
-  private val mockData: Option[MockData] = {
+  private val mockData: Option[MockData] =
     for {
       institutionsOpenDataUrl <- institutionsMockOpenDataUrl
       categoriesOpenDataUrl   <- categoriesMockOpenDataUrl
       origin                  <- mockOrigin
     } yield MockData(institutionsOpenDataUrl, categoriesOpenDataUrl, origin)
-  }
 
   override def getAllInstitutions: Future[List[Institution]] =
     mockData.fold(Future.successful(List.empty[Institution]))(data =>
@@ -42,12 +41,11 @@ final case class MockOpenDataServiceImpl(
       retrieveOpenData(data.categoriesOpenDataUrl).map(MockOpenDataServiceImpl.extractCategories(data.origin))
     )
 
-  private def retrieveOpenData(uri: String): Future[OpenDataResponse] = {
+  private def retrieveOpenData(uri: String): Future[OpenDataResponse] =
     for {
       response         <- http.singleRequest(HttpRequest(uri = uri))
       openDataResponse <- Unmarshal(response).to[OpenDataResponse]
     } yield openDataResponse
-  }
 }
 
 object MockOpenDataServiceImpl {
@@ -78,7 +76,8 @@ object MockOpenDataServiceImpl {
     val filtered: List[(OpenDataResponseField, Int)] = indexed.filter { case (field, _) =>
       InstitutionsFields.fields.contains(field.id)
     }
-    val mapped: Map[String, Int]                     = filtered.map { case (k, v) => k.id -> v }.toMap
+
+    val mapped: Map[String, Int] = filtered.map { case (k, v) => k.id -> v }.toMap
 
     response.records.flatMap { record =>
       for {
@@ -113,7 +112,8 @@ object MockOpenDataServiceImpl {
     val filtered: List[(OpenDataResponseField, Int)] = indexed.filter { case (field, _) =>
       CategoriesFields.fields.contains(field.id)
     }
-    val mapped: Map[String, Int]                     = filtered.map { case (k, v) => k.id -> v }.toMap
+
+    val mapped: Map[String, Int] = filtered.map { case (k, v) => k.id -> v }.toMap
 
     response.records.flatMap { record =>
       for {

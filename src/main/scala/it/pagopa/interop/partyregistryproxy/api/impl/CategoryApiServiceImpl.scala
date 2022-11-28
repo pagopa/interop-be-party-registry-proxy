@@ -19,10 +19,6 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
 
   val logger: Logger = Logger(this.getClass)
 
-  /**
-   * Code: 200, Message: successful operation, DataType: Categories
-   * Code: 400, Message: Invalid input, DataType: Problem
-   */
   override def getCategories(origin: Option[String], page: Int, limit: Int)(implicit
     contexts: Seq[(String, String)],
     toEntityMarshallerCategories: ToEntityMarshaller[Categories],
@@ -48,10 +44,6 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
     origin.fold(Map.empty[SearchField, String])(o => Map(ORIGIN -> o))
   }
 
-  /** Code: 200, Message: successful operation, DataType: Category
-    * Code: 400, Message: Invalid code supplied, DataType: Problem
-    * Code: 404, Message: Category not found, DataType: Problem
-    */
   override def getCategory(origin: String, code: String)(implicit
     contexts: Seq[(String, String)],
     toEntityMarshallerCategory: ToEntityMarshaller[Category],

@@ -11,7 +11,6 @@ import org.apache.lucene.search._
 import org.apache.lucene.store.LockObtainFailedException
 import org.apache.lucene.util.BytesRef
 
-import javax.naming.directory.SearchResult
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
@@ -68,13 +67,6 @@ package object impl {
 
   def getDirectoryReader(reader: DirectoryReader): DirectoryReader =
     Option(DirectoryReader.openIfChanged(reader)).getOrElse(reader)
-
-  implicit class SearchResultOps(val result: SearchResult) extends AnyVal {
-    def extract(attributeName: String): Option[String] = {
-      Option(result.getAttributes.get(attributeName)).map(_.get().asInstanceOf[String])
-
-    }
-  }
 
   def searchFunc(
     reader: DirectoryReader,

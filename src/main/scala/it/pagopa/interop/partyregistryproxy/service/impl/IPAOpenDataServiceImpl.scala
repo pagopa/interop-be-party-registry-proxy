@@ -19,22 +19,19 @@ final case class IPAOpenDataServiceImpl(http: HttpExt)(implicit system: ActorSys
     extends OpenDataService
     with OpenDataResponseMarshaller {
 
-  def getAllInstitutions: Future[List[Institution]] = {
-    retrieveOpenData(ApplicationConfiguration.institutionsIpaOpenDataUrl).map(
-      IPAOpenDataServiceImpl.extractInstitutions
-    )
-  }
+  def getAllInstitutions: Future[List[Institution]] = retrieveOpenData(
+    ApplicationConfiguration.institutionsIpaOpenDataUrl
+  ).map(IPAOpenDataServiceImpl.extractInstitutions)
 
   override def getAllCategories: Future[List[Category]] = {
     retrieveOpenData(ApplicationConfiguration.categoriesIpaOpenDataUrl).map(IPAOpenDataServiceImpl.extractCategories)
   }
 
-  private def retrieveOpenData(uri: String): Future[OpenDataResponse] = {
-    for {
-      response         <- http.singleRequest(HttpRequest(uri = uri))
-      openDataResponse <- Unmarshal(response).to[OpenDataResponse]
-    } yield openDataResponse
-  }
+  private def retrieveOpenData(uri: String): Future[OpenDataResponse] = for {
+    response         <- http.singleRequest(HttpRequest(uri = uri))
+    openDataResponse <- Unmarshal(response).to[OpenDataResponse]
+  } yield openDataResponse
+
 }
 
 object IPAOpenDataServiceImpl {
@@ -101,7 +98,8 @@ object IPAOpenDataServiceImpl {
     val filtered: List[(OpenDataResponseField, Int)] = indexed.filter { case (field, _) =>
       CategoriesFields.fields.contains(field.id)
     }
-    val mapped: Map[String, Int]                     = filtered.map { case (k, v) => k.id -> v }.toMap
+
+    val mapped: Map[String, Int] = filtered.map { case (k, v) => k.id -> v }.toMap
 
     response.records.flatMap { record =>
       for {

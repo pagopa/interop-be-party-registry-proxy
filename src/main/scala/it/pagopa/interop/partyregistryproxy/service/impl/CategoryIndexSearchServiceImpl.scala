@@ -27,10 +27,8 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
     val query: TermQuery = new TermQuery(new Term(ID.value, id))
     val hits: TopDocs    = searcher.search(query, 1)
 
-    val results: Option[Category] =
-      hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).headOption
+    hits.scoreDocs.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))).headOption
 
-    results
   }
 
   override def searchByExternalId(origin: String, originId: String): Try[Option[Category]] = Try {
@@ -44,12 +42,10 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
 
     val hits: TopDocs = searcher.search(queryBuilder.build(), 1)
 
-    val results: Option[Category] =
-      hits.scoreDocs
-        .map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc)))
-        .find(ist => ist.origin == origin && ist.code == originId)
+    hits.scoreDocs
+      .map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc)))
+      .find(ist => ist.origin == origin && ist.code == originId)
 
-    results
   }
 
   override def searchByText(
@@ -66,11 +62,10 @@ case object CategoryIndexSearchServiceImpl extends IndexSearchService[Category] 
       search(searchingField, searchText, page, limit)
     }
 
-    val results: Try[(List[Category], Long)] = documents.map { case (scores, count) =>
+    documents.map { case (scores, count) =>
       scores.map(sc => DocumentConverter.to[Category](searcher.doc(sc.doc))) -> count
     }
 
-    results
   }
 
   override def getAllItems(filters: Map[SearchField, String], page: Int, limit: Int): Try[(List[Category], Long)] =

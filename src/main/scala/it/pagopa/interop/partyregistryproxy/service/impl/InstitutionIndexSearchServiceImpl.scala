@@ -28,10 +28,8 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     val query: TermQuery = new TermQuery(new Term(ID.value, id))
     val hits: TopDocs    = searcher.search(query, 1)
 
-    val results: Option[Institution] =
-      hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).find(_.id == id)
+    hits.scoreDocs.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))).find(_.id == id)
 
-    results
   }
 
   override def searchByExternalId(origin: String, originId: String): Try[Option[Institution]] = Try {
@@ -44,12 +42,10 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
 
     val hits: TopDocs = searcher.search(queryBuilder.build(), 1)
 
-    val results: Option[Institution] =
-      hits.scoreDocs
-        .map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc)))
-        .find(ist => ist.origin == origin && ist.originId == originId)
+    hits.scoreDocs
+      .map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc)))
+      .find(ist => ist.origin == origin && ist.originId == originId)
 
-    results
   }
 
   override def searchByText(
@@ -66,11 +62,10 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
       search(searchingField, searchText, page, limit)
     }
 
-    val results: Try[(List[Institution], Long)] = documents.map { case (scores, count) =>
+    documents.map { case (scores, count) =>
       scores.map(sc => DocumentConverter.to[Institution](searcher.doc(sc.doc))) -> count
     }
 
-    results
   }
 
   override def getAllItems(filters: Map[SearchField, String], page: Int, limit: Int): Try[(List[Institution], Long)] =

@@ -17,10 +17,6 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
 
   val logger: Logger = Logger(this.getClass)
 
-  /** Code: 200, Message: successful operation, DataType: InstitutionIPA
-    * Code: 400, Message: Invalid ID supplied, DataType: ErrorResponse
-    * Code: 404, Message: Institution not found, DataType: ErrorResponse
-    */
   override def getInstitutionById(institutionId: String)(implicit
     contexts: Seq[(String, String)],
     toEntityMarshallerInstitutionIPA: ToEntityMarshaller[Institution],
@@ -44,10 +40,6 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     }
   }
 
-  /**
-   * Code: 200, Message: successful operation, DataType: Institution
-   * Code: 404, Message: Institution not found, DataType: Problem
-   */
   override def getInstitutionByExternalId(origin: String, originId: String)(implicit
     contexts: Seq[(String, String)],
     toEntityMarshallerInstitution: ToEntityMarshaller[Institution],
@@ -73,10 +65,6 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     }
   }
 
-  /**
-   * Code: 200, Message: successful operation, DataType: Institutions
-   * Code: 400, Message: Invalid input, DataType: Problem
-   */
   override def searchInstitutions(search: Option[String], page: Int, limit: Int)(implicit
     contexts: Seq[(String, String)],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem],
