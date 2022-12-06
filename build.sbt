@@ -5,11 +5,11 @@ ThisBuild / scalaVersion        := "2.13.8"
 ThisBuild / organization        := "it.pagopa"
 ThisBuild / organizationName    := "Pagopa S.p.A."
 ThisBuild / libraryDependencies := Dependencies.Jars.`server`
+ThisBuild / version             := ComputeVersion.version
 
-ThisBuild / version := ComputeVersion.version
-
-ThisBuild / resolvers += "Pagopa Nexus Snapshots" at s"https://${System.getenv("MAVEN_REPO")}/nexus/repository/maven-snapshots/"
-ThisBuild / resolvers += "Pagopa Nexus Releases" at s"https://${System.getenv("MAVEN_REPO")}/nexus/repository/maven-releases/"
+ThisBuild / githubOwner      := "pagopa"
+ThisBuild / githubRepository := "interop-be-party-registry-proxy"
+ThisBuild / resolvers += Resolver.githubPackages("pagopa")
 
 lazy val generateCode = taskKey[Unit]("A task for generating the code starting from the swagger definition")
 
@@ -82,7 +82,14 @@ ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 
 lazy val generated = project
   .in(file("generated"))
-  .settings(scalacOptions := Seq(), scalafmtOnCompile := true)
+  .settings(
+    scalacOptions     := Seq(),
+    scalafmtOnCompile := true,
+    publish / skip    := true,
+    publish           := (()),
+    publishLocal      := (()),
+    publishTo         := None
+  )
   .setupBuildInfo
 
 lazy val client = project
@@ -94,15 +101,7 @@ lazy val client = project
     version             := (ThisBuild / version).value,
     libraryDependencies := Dependencies.Jars.client,
     updateOptions       := updateOptions.value.withGigahorse(false),
-    Docker / publish    := {},
-    publishTo           := {
-      val nexus = s"https://${System.getenv("MAVEN_REPO")}/nexus/repository/"
-
-      if (isSnapshot.value)
-        Some("snapshots" at nexus + "maven-snapshots/")
-      else
-        Some("releases" at nexus + "maven-releases/")
-    }
+    Docker / publish    := {}
   )
 
 lazy val root = (project in file("."))
@@ -123,6 +122,7 @@ lazy val root = (project in file("."))
   .aggregate(client)
   .dependsOn(generated)
   .enablePlugins(JavaAppPackaging, JavaAgent)
+  .enablePlugins(NoPublishPlugin)
   .setupBuildInfo
 
 javaAgents += "io.kamon" % "kanela-agent" % "1.0.14"
