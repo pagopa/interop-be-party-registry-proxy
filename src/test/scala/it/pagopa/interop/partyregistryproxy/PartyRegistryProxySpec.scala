@@ -24,6 +24,8 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.Success
+import it.pagopa.interop.commons.utils.errors.{Problem => CommonProblem}
+import it.pagopa.interop.partyregistryproxy.api.impl.serviceCode
 
 class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecLike with MockFactory {
 
@@ -72,8 +74,8 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
         category = categoryApi,
         validationExceptionToRoute = Some(report => {
           val error =
-            problemOf(StatusCodes.BadRequest, OpenapiUtils.errorFromRequestValidationReport(report))
-          complete(error.status, error)(entityMarshallerProblem)
+            CommonProblem(StatusCodes.BadRequest, OpenapiUtils.errorFromRequestValidationReport(report), serviceCode)
+          complete(error.status, error)
         })
       )
     )
@@ -514,7 +516,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
         .returning(Success(categories.find(_.code == categoryCodeFour)))
         .once()
 
-      val response = makeRequest[Problem](s"origins/$originOne/categories/$categoryCodeFour")
+      val response = makeRequest[CommonProblem](s"origins/$originOne/categories/$categoryCodeFour")
 
       response should be(SpecResult(StatusCodes.NotFound, responseCategoryNotFound(categoryCodeFour)))
 
@@ -527,7 +529,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
         .returning(Success(categories.find(_.origin == originThree)))
         .once()
 
-      val response = makeRequest[Problem](s"origins/$originThree/categories/$categoryCodeOne")
+      val response = makeRequest[CommonProblem](s"origins/$originThree/categories/$categoryCodeOne")
 
       response should be(SpecResult(StatusCodes.NotFound, responseCategoryNotFound(categoryCodeOne)))
 
@@ -616,5 +618,6 @@ object ServiceSpecSupport {
 
   final lazy val categories = List(categoryOne, categoryTwo, categoryOThree)
 
-  def responseCategoryNotFound(code: String): Problem = problemOf(StatusCodes.NotFound, List(CategoryNotFound(code)))
+  def responseCategoryNotFound(code: String): CommonProblem =
+    CommonProblem(StatusCodes.NotFound, CategoryNotFound(code), serviceCode)
 }

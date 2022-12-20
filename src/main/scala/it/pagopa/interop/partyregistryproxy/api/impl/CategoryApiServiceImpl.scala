@@ -1,76 +1,60 @@
 package it.pagopa.interop.partyregistryproxy.api.impl
 
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
-import com.typesafe.scalalogging.Logger
+import com.typesafe.scalalogging.{Logger, LoggerTakingImplicit}
+import it.pagopa.interop.commons.logging.{CanLogContextFields, ContextFieldsToLog}
+import it.pagopa.interop.commons.utils.TypeConversions.OptionOps
 import it.pagopa.interop.partyregistryproxy.api.CategoryApiService
+import it.pagopa.interop.partyregistryproxy.api.impl.CategoryApiResponseHandlers._
 import it.pagopa.interop.partyregistryproxy.common.util.CategoryField.ORIGIN
 import it.pagopa.interop.partyregistryproxy.common.util.{SearchField, createCategoryId}
 import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors._
 import it.pagopa.interop.partyregistryproxy.model._
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchService[Category])
     extends CategoryApiService {
 
-  val logger: Logger = Logger(this.getClass)
+  implicit val logger: LoggerTakingImplicit[ContextFieldsToLog] =
+    Logger.takingImplicit[ContextFieldsToLog](this.getClass)
 
   override def getCategories(origin: Option[String], page: Int, limit: Int)(implicit
     toEntityMarshallerCategories: ToEntityMarshaller[Categories],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem],
     contexts: Seq[(String, String)]
   ): Route = {
+    val operationLabel = s"Retrieving categories for Origin ${origin.getOrElse("-")} Page $page Limit $limit"
+    logger.info(operationLabel)
 
-    logger.info("Retrieving categories")
+    val filters: Map[SearchField, String] = getCategoryFilters(origin)
+    val categories: Try[Categories]       =
+      categoriesSearchService
+        .getAllItems(filters, page, limit)
+        .map { case (items, totalCount) => Categories(items, totalCount) }
 
-    val filters: Map[SearchField, String]       = getCategoryFilters(origin)
-    val categories: Try[(List[Category], Long)] =
-      categoriesSearchService.getAllItems(filters, page, limit)
-    categories match {
-      case Success(values) => getCategories200(Categories(values._1, values._2))
-      case Failure(ex)     =>
-        logger.error(s"Error while retrieving categories", ex)
-        val error = problemOf(StatusCodes.InternalServerError, List(CategoriesError(ex.getMessage)))
-        complete(error.status, error)
-    }
+    getCategoriesResponse[Categories](operationLabel)(getCategories200)(categories)
 
   }
 
-  private def getCategoryFilters(origin: Option[String]): Map[SearchField, String] = {
+  private def getCategoryFilters(origin: Option[String]): Map[SearchField, String] =
     origin.fold(Map.empty[SearchField, String])(o => Map(ORIGIN -> o))
-  }
 
   override def getCategory(origin: String, code: String)(implicit
     toEntityMarshallerCategory: ToEntityMarshaller[Category],
     toEntityMarshallerProblem: ToEntityMarshaller[Problem],
     contexts: Seq[(String, String)]
   ): Route = {
-
-    logger.info(s"Retrieving category $code")
+    val operationLabel = s"Retrieving category for Origin $origin Code $code"
+    logger.info(operationLabel)
 
     val id: String = createCategoryId(origin = origin, code = code)
 
-    val category: Try[Option[Category]] = categoriesSearchService.searchById(id)
+    val category: Try[Category] = categoriesSearchService.searchById(id).flatMap(_.toTry(CategoryNotFound(code)))
 
-    category match {
-      case Success(value) =>
-        val error = problemOf(StatusCodes.NotFound, List(CategoryNotFound(code)))
-        value.fold {
-          logger.error(s"Error while retrieving category $code - Category not found")
-          getCategory404(error)
-        } {
-          logger.info(s"Category $code retrieved")
-          getCategory200
-        }
-      case Failure(ex)    =>
-        logger.error(s"Error while retrieving category $code", ex)
-        val error = problemOf(StatusCodes.InternalServerError, List(CategoriesError(ex.getMessage)))
-        complete(error.status, error)
-    }
+    getCategoryResponse[Category](operationLabel)(getCategory200)(category)
   }
 
 }
