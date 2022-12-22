@@ -13,4 +13,8 @@ object PartyRegistryProxyErrors {
       extends ComponentError("0003", s"Category $categoryCode not found")
   final case class CategoriesError(error: String)
       extends ComponentError("0004", s"Error while retrieving categories - $error")
+
+  final case class InstitutionByExternalNotFound(origin: String, originId: String)
+      extends ComponentError("0005", s"Institution with Origin $origin and OriginId$originId not found")
+
 }

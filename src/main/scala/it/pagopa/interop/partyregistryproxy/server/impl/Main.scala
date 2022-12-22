@@ -1,7 +1,7 @@
 package it.pagopa.interop.partyregistryproxy.server.impl
 
-import akka.actor.typed.{ActorSystem, DispatcherSelector}
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorSystem, DispatcherSelector}
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.complete
@@ -12,7 +12,8 @@ import it.pagopa.interop.commons.jwt.JWTConfiguration
 import it.pagopa.interop.commons.logging.renderBuildInfo
 import it.pagopa.interop.commons.utils.OpenapiUtils
 import it.pagopa.interop.commons.utils.TypeConversions._
-import it.pagopa.interop.partyregistryproxy.api.impl._
+import it.pagopa.interop.commons.utils.errors.{Problem => CommonProblem}
+import it.pagopa.interop.partyregistryproxy.api.impl.serviceCode
 import it.pagopa.interop.partyregistryproxy.common.system.{ApplicationConfiguration, CorsSupport}
 import it.pagopa.interop.partyregistryproxy.server.Controller
 import kamon.Kamon
@@ -53,8 +54,8 @@ object Main extends App with CorsSupport with Dependencies {
           institution = institutionApi()(jwtReader),
           validationExceptionToRoute = Some(report => {
             val error =
-              problemOf(StatusCodes.BadRequest, OpenapiUtils.errorFromRequestValidationReport(report))
-            complete(error.status, error)(entityMarshallerProblem)
+              CommonProblem(StatusCodes.BadRequest, OpenapiUtils.errorFromRequestValidationReport(report), serviceCode)
+            complete(error.status, error)
           })
         )(actorSystem.classicSystem)
         binding <- http()
