@@ -9,8 +9,8 @@ import it.pagopa.interop.partyregistryproxy.model.Problem
 class HealthApiServiceImpl extends HealthApiService {
 
   override def getStatus()(implicit
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
-    contexts: Seq[(String, String)]
+    contexts: Seq[(String, String)],
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = getStatus200(
     Problem(
       `type` = "about:blank",

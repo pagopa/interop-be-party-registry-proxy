@@ -54,7 +54,12 @@ object Main extends App with CorsSupport with Dependencies {
           institution = institutionApi()(jwtReader),
           validationExceptionToRoute = Some(report => {
             val error =
-              CommonProblem(StatusCodes.BadRequest, OpenapiUtils.errorFromRequestValidationReport(report), serviceCode)
+              CommonProblem(
+                StatusCodes.BadRequest,
+                OpenapiUtils.errorFromRequestValidationReport(report),
+                serviceCode,
+                None
+              )
             complete(error.status, error)
           })
         )(actorSystem.classicSystem)
