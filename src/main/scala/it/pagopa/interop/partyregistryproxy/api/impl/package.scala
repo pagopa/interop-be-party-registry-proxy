@@ -35,7 +35,7 @@ package object impl extends DefaultJsonProtocol {
   implicit val categoryFormat: RootJsonFormat[Category]         = jsonFormat4(Category)
   implicit val categoriesFormat: RootJsonFormat[Categories]     = jsonFormat2(Categories)
   implicit val problemErrorFormat: RootJsonFormat[ProblemError] = jsonFormat2(ProblemError)
-  implicit val problemFormat: RootJsonFormat[Problem]           = jsonFormat5(Problem)
+  implicit val problemFormat: RootJsonFormat[Problem]           = jsonFormat6(Problem)
 
   final val entityMarshallerProblem: ToEntityMarshaller[Problem] = sprayJsonMarshaller
 

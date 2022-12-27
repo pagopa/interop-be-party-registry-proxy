@@ -74,7 +74,12 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
         category = categoryApi,
         validationExceptionToRoute = Some(report => {
           val error =
-            CommonProblem(StatusCodes.BadRequest, OpenapiUtils.errorFromRequestValidationReport(report), serviceCode)
+            CommonProblem(
+              StatusCodes.BadRequest,
+              OpenapiUtils.errorFromRequestValidationReport(report),
+              serviceCode,
+              Some("test-id")
+            )
           complete(error.status, error)
         })
       )
@@ -619,5 +624,5 @@ object ServiceSpecSupport {
   final lazy val categories = List(categoryOne, categoryTwo, categoryOThree)
 
   def responseCategoryNotFound(code: String): CommonProblem =
-    CommonProblem(StatusCodes.NotFound, CategoryNotFound(code), serviceCode)
+    CommonProblem(StatusCodes.NotFound, CategoryNotFound(code), serviceCode, Some("test-id"))
 }

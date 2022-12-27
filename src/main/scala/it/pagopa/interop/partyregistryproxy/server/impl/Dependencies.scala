@@ -5,10 +5,11 @@ import akka.http.scaladsl.server.directives.SecurityDirectives
 import akka.http.scaladsl.{Http, HttpExt}
 import com.nimbusds.jose.proc.SecurityContext
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier
-import com.typesafe.scalalogging.Logger
+import com.typesafe.scalalogging.{Logger, LoggerTakingImplicit}
 import it.pagopa.interop.commons.jwt.service.JWTReader
 import it.pagopa.interop.commons.jwt.service.impl.{DefaultJWTReader, getClaimsVerifier}
 import it.pagopa.interop.commons.jwt.{KID, PublicKeysHolder, SerializedKey}
+import it.pagopa.interop.commons.logging.{CanLogContextFields, ContextFieldsToLog}
 import it.pagopa.interop.commons.utils.AkkaUtils
 import it.pagopa.interop.partyregistryproxy.api.impl.{
   CategoryApiMarshallerImpl,
@@ -36,6 +37,9 @@ import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContextExecutor
 
 trait Dependencies {
+
+  implicit val loggerTI: LoggerTakingImplicit[ContextFieldsToLog] =
+    Logger.takingImplicit[ContextFieldsToLog]("OAuth2JWTValidatorAsContexts")
 
   def loadOpenData(
     openDataService: OpenDataService,

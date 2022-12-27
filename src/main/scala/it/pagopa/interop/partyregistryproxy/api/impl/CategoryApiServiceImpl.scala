@@ -22,9 +22,9 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
     Logger.takingImplicit[ContextFieldsToLog](this.getClass)
 
   override def getCategories(origin: Option[String], page: Int, limit: Int)(implicit
+    contexts: Seq[(String, String)],
     toEntityMarshallerCategories: ToEntityMarshaller[Categories],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
-    contexts: Seq[(String, String)]
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
     val operationLabel = s"Retrieving categories for Origin ${origin.getOrElse("-")} Page $page Limit $limit"
     logger.info(operationLabel)
@@ -43,9 +43,9 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
     origin.fold(Map.empty[SearchField, String])(o => Map(ORIGIN -> o))
 
   override def getCategory(origin: String, code: String)(implicit
+    contexts: Seq[(String, String)],
     toEntityMarshallerCategory: ToEntityMarshaller[Category],
-    toEntityMarshallerProblem: ToEntityMarshaller[Problem],
-    contexts: Seq[(String, String)]
+    toEntityMarshallerProblem: ToEntityMarshaller[Problem]
   ): Route = {
     val operationLabel = s"Retrieving category for Origin $origin Code $code"
     logger.info(operationLabel)
