@@ -16,7 +16,6 @@ import it.pagopa.interop.commons.utils.errors.{Problem => CommonProblem}
 import it.pagopa.interop.partyregistryproxy.api.impl.serviceCode
 import it.pagopa.interop.partyregistryproxy.common.system.{ApplicationConfiguration, CorsSupport}
 import it.pagopa.interop.partyregistryproxy.server.Controller
-import kamon.Kamon
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success}
@@ -32,8 +31,6 @@ object Main extends App with CorsSupport with Dependencies {
 
       val selector: DispatcherSelector         = DispatcherSelector.fromConfig("futures-dispatcher")
       val blockingEc: ExecutionContextExecutor = actorSystem.dispatchers.lookup(selector)
-
-      Kamon.init()
 
       AkkaManagement.get(actorSystem.classicSystem).start()
 
@@ -80,7 +77,5 @@ object Main extends App with CorsSupport with Dependencies {
     },
     BuildInfo.name
   )
-
-  system.whenTerminated.onComplete { case _ => Kamon.stop() }(scala.concurrent.ExecutionContext.global)
 
 }
