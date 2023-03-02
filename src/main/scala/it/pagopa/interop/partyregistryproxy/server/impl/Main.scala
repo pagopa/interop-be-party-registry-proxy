@@ -7,48 +7,62 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.complete
 import akka.management.scaladsl.AkkaManagement
 import buildinfo.BuildInfo
-import com.typesafe.scalalogging.Logger
+import com.typesafe.scalalogging.{Logger, LoggerTakingImplicit}
 import it.pagopa.interop.commons.jwt.JWTConfiguration
-import it.pagopa.interop.commons.logging.renderBuildInfo
-import it.pagopa.interop.commons.utils.OpenapiUtils
+import it.pagopa.interop.commons.logging.{CanLogContextFields, ContextFieldsToLog, renderBuildInfo}
+import it.pagopa.interop.commons.utils.{CORRELATION_ID_HEADER, OpenapiUtils}
 import it.pagopa.interop.commons.utils.TypeConversions._
 import it.pagopa.interop.commons.utils.errors.{Problem => CommonProblem}
+import it.pagopa.interop.commons.utils.service.OffsetDateTimeSupplier
 import it.pagopa.interop.partyregistryproxy.api.impl.serviceCode
 import it.pagopa.interop.partyregistryproxy.common.system.{ApplicationConfiguration, CorsSupport}
+import it.pagopa.interop.partyregistryproxy.common.util.DataSourceOps.loadOpenData
 import it.pagopa.interop.partyregistryproxy.server.Controller
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success}
 
 object Main extends App with CorsSupport with Dependencies {
 
-  private implicit val logger = Logger(this.getClass)
+  private implicit val logger: LoggerTakingImplicit[ContextFieldsToLog] =
+    Logger.takingImplicit[ContextFieldsToLog](this.getClass)
+
+  private val bootContext: Seq[(String, String)] = Seq(
+    CORRELATION_ID_HEADER -> s"application-boot-${OffsetDateTimeSupplier.get()}"
+  )
 
   val system = ActorSystem[Nothing](
     Behaviors.setup[Nothing] { context =>
       implicit val actorSystem: ActorSystem[Nothing] = context.system
       implicit val ec: ExecutionContextExecutor      = actorSystem.executionContext
 
-      val selector: DispatcherSelector         = DispatcherSelector.fromConfig("futures-dispatcher")
-      val blockingEc: ExecutionContextExecutor = actorSystem.dispatchers.lookup(selector)
+      val selector: DispatcherSelector = DispatcherSelector.fromConfig("futures-dispatcher")
+      val blockingEc: ExecutionContext = actorSystem.dispatchers.lookup(selector)
+
+      val openDataService     = getOpenDataService()
+      val mockOpenDataService = getMockOpenDataService()
 
       AkkaManagement.get(actorSystem.classicSystem).start()
 
-      logger.info(renderBuildInfo(BuildInfo))
+      logger.info(renderBuildInfo(BuildInfo))(bootContext)
 
       val serverBinding: Future[ServerBinding] = for {
         _         <- loadOpenData(
-          openDataService(),
-          mockOpenDataServiceImpl(),
+          openDataService,
+          mockOpenDataService,
           institutionsWriterService,
           categoriesWriterService,
           blockingEc
-        )
+        )(logger, bootContext)
         jwtReader <- JWTConfiguration.jwtReader.loadKeyset().map(createJwtReader).toFuture
         controller = new Controller(
           category = categoryApi()(jwtReader),
           health = healthApi,
           institution = institutionApi()(jwtReader),
+          datasource =
+            datasourceApi(openDataService, mockOpenDataService, institutionsWriterService, categoriesWriterService)(
+              blockingEc
+            ),
           validationExceptionToRoute = Some(report => {
             val error =
               CommonProblem(
@@ -67,10 +81,10 @@ object Main extends App with CorsSupport with Dependencies {
 
       serverBinding.onComplete {
         case Success(b) =>
-          logger.info(s"Started server at ${b.localAddress.getHostString()}:${b.localAddress.getPort()}")
+          logger.info(s"Started server at ${b.localAddress.getHostString()}:${b.localAddress.getPort()}")(bootContext)
         case Failure(e) =>
           actorSystem.terminate()
-          logger.error("Startup error: ", e)
+          logger.error("Startup error: ", e)(bootContext)
       }
 
       Behaviors.same

@@ -26,6 +26,11 @@ tags:
     externalDocs:
       description: Find out more
       url: http://swagger.io
+  - name: datasource
+    description: Operations on data sources
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
   - name: health
     description: Verify service status
     externalDocs:
@@ -226,6 +231,25 @@ paths:
                 $ref: '#/components/schemas/Problem'
         '404':
           description: Category not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /reload:
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+    post:
+      tags:
+        - datasource
+      summary: Reload data from sources
+      description: Reload data from sources
+      operationId: reloadAllData
+      responses:
+        '204':
+          description: successful operation
+        '400':
+          description: Invalid code supplied
           content:
             application/problem+json:
               schema:

@@ -29,11 +29,8 @@ case object InstitutionIndexWriterServiceImpl extends IndexWriterService[Institu
       ()
     )
 
-  def deleteAll(): Try[Long] =
-    useWriter(writer, wr => Try(wr.deleteAll()), -1L)
+  def deleteAll(): Try[Long] = useWriter(writer, wr => Try(wr.deleteAll()), -1L)
 
-  def commit(): Try[Unit] = {
-    useWriter(writer, wr => commitAndClose(wr), ())
-  }
+  def commit(): Try[Unit] = useWriter(writer, wr => commitAndClose(wr), ())
 
 }

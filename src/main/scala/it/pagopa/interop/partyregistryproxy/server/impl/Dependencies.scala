@@ -14,12 +14,14 @@ import it.pagopa.interop.commons.utils.AkkaUtils
 import it.pagopa.interop.partyregistryproxy.api.impl.{
   CategoryApiMarshallerImpl,
   CategoryApiServiceImpl,
+  DatasourceApiMarshallerImpl,
+  DatasourceApiServiceImpl,
   HealthApiMarshallerImpl,
   HealthApiServiceImpl,
   InstitutionApiMarshallerImpl,
   InstitutionApiServiceImpl
 }
-import it.pagopa.interop.partyregistryproxy.api.{CategoryApi, HealthApi, InstitutionApi}
+import it.pagopa.interop.partyregistryproxy.api.{CategoryApi, DatasourceApi, HealthApi, InstitutionApi}
 import it.pagopa.interop.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
 import it.pagopa.interop.partyregistryproxy.service.impl.{
@@ -32,64 +34,62 @@ import it.pagopa.interop.partyregistryproxy.service.impl.{
 }
 import it.pagopa.interop.partyregistryproxy.service.{IndexWriterService, OpenDataService}
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.ExecutionContext
 
 trait Dependencies {
 
   implicit val loggerTI: LoggerTakingImplicit[ContextFieldsToLog] =
     Logger.takingImplicit[ContextFieldsToLog]("OAuth2JWTValidatorAsContexts")
-
-  def loadOpenData(
-    openDataService: OpenDataService,
-    mockOpenDataServiceImpl: OpenDataService,
-    institutionsIndexWriterService: IndexWriterService[Institution],
-    categoriesIndexWriterService: IndexWriterService[Category],
-    blockingEc: ExecutionContextExecutor
-  )(implicit logger: Logger): Future[Unit] = {
-    implicit val ec: ExecutionContext = blockingEc
-    logger.info(s"Loading open data")
-    val result: Future[Unit]          = for {
-      institutions     <- openDataService.getAllInstitutions
-      mockInstitutions <- mockOpenDataServiceImpl.getAllInstitutions
-      _                <- loadInstitutions(institutionsIndexWriterService, institutions ++ mockInstitutions)
-      categories       <- openDataService.getAllCategories
-      mockCategories   <- mockOpenDataServiceImpl.getAllCategories
-      _                <- loadCategories(categoriesIndexWriterService, categories ++ mockCategories)
-    } yield ()
-
-    result.onComplete {
-      case Success(_)  => logger.info(s"Open data committed")
-      case Failure(ex) => logger.error(s"Error trying to populate index", ex)
-    }
-
-    result
-
-  }
-
-  private def loadInstitutions(
-    institutionsIndexWriterService: IndexWriterService[Institution],
-    institutions: List[Institution]
-  )(implicit logger: Logger): Future[Unit] = Future.fromTry {
-    logger.info("Loading institutions index from iPA")
-    for {
-      _ <- institutionsIndexWriterService.adds(institutions)
-      _ = logger.info(s"Institutions inserted")
-      _ <- institutionsIndexWriterService.commit()
-    } yield ()
-  }
-
-  private def loadCategories(categoriesIndexWriterService: IndexWriterService[Category], categories: List[Category])(
-    implicit logger: Logger
-  ): Future[Unit] = Future.fromTry {
-    logger.info("Loading categories index from iPA")
-    for {
-      _ <- categoriesIndexWriterService.adds(categories)
-      _ = logger.info(s"Categories inserted")
-      _ <- categoriesIndexWriterService.commit()
-    } yield ()
-  }
+//
+//  def loadOpenData(
+//    openDataService: OpenDataService,
+//    mockOpenDataServiceImpl: OpenDataService,
+//    institutionsIndexWriterService: IndexWriterService[Institution],
+//    categoriesIndexWriterService: IndexWriterService[Category],
+//    blockingEc: ExecutionContext
+//  )(implicit logger: LoggerTakingImplicit[ContextFieldsToLog], contexts: Seq[(String, String)]): Future[Unit] = {
+//    implicit val ec: ExecutionContext = blockingEc
+//    logger.info(s"Loading open data")
+//    val result: Future[Unit]          = for {
+//      institutions     <- openDataService.getAllInstitutions
+//      mockInstitutions <- mockOpenDataServiceImpl.getAllInstitutions
+//      _                <- loadInstitutions(institutionsIndexWriterService, institutions ++ mockInstitutions)
+//      categories       <- openDataService.getAllCategories
+//      mockCategories   <- mockOpenDataServiceImpl.getAllCategories
+//      _                <- loadCategories(categoriesIndexWriterService, categories ++ mockCategories)
+//    } yield ()
+//
+//    result.onComplete {
+//      case Success(_)  => logger.info(s"Open data committed")
+//      case Failure(ex) => logger.error(s"Error trying to populate index", ex)
+//    }
+//
+//    result
+//
+//  }
+//
+//  private def loadInstitutions(
+//    institutionsIndexWriterService: IndexWriterService[Institution],
+//    institutions: List[Institution]
+//  )(implicit logger: Logger): Future[Unit] = Future.fromTry {
+//    logger.info("Loading institutions index from iPA")
+//    for {
+//      _ <- institutionsIndexWriterService.adds(institutions)
+//      _ = logger.info(s"Institutions inserted")
+//      _ <- institutionsIndexWriterService.commit()
+//    } yield ()
+//  }
+//
+//  private def loadCategories(categoriesIndexWriterService: IndexWriterService[Category], categories: List[Category])(
+//    implicit logger: Logger
+//  ): Future[Unit] = Future.fromTry {
+//    logger.info("Loading categories index from iPA")
+//    for {
+//      _ <- categoriesIndexWriterService.adds(categories)
+//      _ = logger.info(s"Categories inserted")
+//      _ <- categoriesIndexWriterService.commit()
+//    } yield ()
+//  }
 
   def http()(implicit actorSystem: ActorSystem[_]): HttpExt = Http()
 
@@ -102,9 +102,9 @@ trait Dependencies {
 
   val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
   val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
-  def openDataService()(implicit ec: ExecutionContext, actorSystem: ActorSystem[_]): OpenDataService                 =
+  def getOpenDataService()(implicit ec: ExecutionContext, actorSystem: ActorSystem[_]): OpenDataService             =
     IPAOpenDataServiceImpl(http())
-  def mockOpenDataServiceImpl()(implicit ec: ExecutionContext, actorSystem: ActorSystem[_]): MockOpenDataServiceImpl =
+  def getMockOpenDataService()(implicit ec: ExecutionContext, actorSystem: ActorSystem[_]): MockOpenDataServiceImpl =
     MockOpenDataServiceImpl(
       institutionsMockOpenDataUrl = ApplicationConfiguration.institutionsMockOpenDataUrl,
       categoriesMockOpenDataUrl = ApplicationConfiguration.categoriesMockOpenDataUrl,
@@ -122,6 +122,22 @@ trait Dependencies {
     CategoryApiServiceImpl(CategoryIndexSearchServiceImpl),
     CategoryApiMarshallerImpl,
     jwtReader.OAuth2JWTValidatorAsContexts
+  )
+
+  def datasourceApi(
+    openDataService: OpenDataService,
+    mockOpenDataService: OpenDataService,
+    institutionsWriterService: IndexWriterService[Institution],
+    categoriesWriterService: IndexWriterService[Category]
+  )(blockingEc: ExecutionContext): DatasourceApi = new DatasourceApi(
+    new DatasourceApiServiceImpl(
+      openDataService,
+      mockOpenDataService,
+      institutionsWriterService,
+      categoriesWriterService
+    )(blockingEc),
+    DatasourceApiMarshallerImpl,
+    SecurityDirectives.authenticateOAuth2("SecurityRealm", AkkaUtils.PassThroughAuthenticator)
   )
 
   def createJwtReader(keyset: Map[KID, SerializedKey]): JWTReader = new DefaultJWTReader with PublicKeysHolder {
