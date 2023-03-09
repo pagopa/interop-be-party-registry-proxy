@@ -78,7 +78,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
         categoryWriterService
       )(ec)
     val datasourceApi: DatasourceApi               =
-      new DatasourceApi(datasourceApiService, datasourceApiMarshaller, wrappingDirective)
+      new DatasourceApi(datasourceApiService, wrappingDirective)
 
     val healthApi: HealthApi = mock[HealthApi]
 
