@@ -238,7 +238,6 @@ paths:
   /reload:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     post:
       tags:
         - datasource
@@ -248,12 +247,6 @@ paths:
       responses:
         '204':
           description: successful operation
-        '400':
-          description: Invalid code supplied
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
   /status:
     get:
       tags:

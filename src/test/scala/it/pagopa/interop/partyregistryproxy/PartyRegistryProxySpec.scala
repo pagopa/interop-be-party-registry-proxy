@@ -45,7 +45,6 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
   val institutionApiMarshaller: InstitutionApiMarshaller = InstitutionApiMarshallerImpl
   val categoryApiMarshaller: CategoryApiMarshaller       = CategoryApiMarshallerImpl
-  val datasourceApiMarshaller: DatasourceApiMarshaller   = DatasourceApiMarshallerImpl
 
   var controller: Option[Controller]                            = None
   var bindServer: Option[Future[Http.ServerBinding]]            = None

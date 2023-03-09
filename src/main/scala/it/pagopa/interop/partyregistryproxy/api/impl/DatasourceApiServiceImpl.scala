@@ -1,6 +1,5 @@
 package it.pagopa.interop.partyregistryproxy.api.impl
 
-import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.server.Directives.onComplete
 import akka.http.scaladsl.server.Route
 import com.typesafe.scalalogging.{Logger, LoggerTakingImplicit}
@@ -24,8 +23,7 @@ final class DatasourceApiServiceImpl(
   implicit val logger: LoggerTakingImplicit[ContextFieldsToLog] =
     Logger.takingImplicit[ContextFieldsToLog](this.getClass)
 
-  override def reloadAllData(
-  )(implicit contexts: Seq[(String, String)], toEntityMarshallerProblem: ToEntityMarshaller[Problem]): Route = {
+  override def reloadAllData()(implicit contexts: Seq[(String, String)]): Route = {
     val operationLabel = s"Reloading data from all sources"
     logger.info(operationLabel)
 
