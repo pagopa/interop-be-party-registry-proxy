@@ -5,14 +5,13 @@ import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
 import it.pagopa.interop.partyregistryproxy.service.impl.util.DocumentConverter
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.document._
-import org.apache.lucene.index.{DirectoryReader, IndexWriter, Term}
+import org.apache.lucene.index.{DirectoryReader, Term}
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
-import org.apache.lucene.store.LockObtainFailedException
 import org.apache.lucene.util.BytesRef
 
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 package object impl {
 
@@ -52,17 +51,6 @@ package object impl {
 
       booleanQuery.build()
     }
-  }
-
-  def useWriter[A](writer: Try[IndexWriter], f: IndexWriter => Try[A], zero: A): Try[A] = writer match {
-    case Success(wr)                           => f(wr)
-    case Failure(_: LockObtainFailedException) => Success(zero)
-    case Failure(ex)                           => Failure(ex)
-  }
-
-  def commitAndClose(writer: IndexWriter): Try[Unit] = Try {
-    writer.commit()
-    writer.close()
   }
 
   def getDirectoryReader(reader: DirectoryReader): DirectoryReader =

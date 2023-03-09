@@ -34,7 +34,6 @@ object DataSourceOps {
     }
 
     result
-
   }
 
   private def loadInstitutions(
@@ -43,11 +42,9 @@ object DataSourceOps {
   )(implicit logger: LoggerTakingImplicit[ContextFieldsToLog], contexts: Seq[(String, String)]): Future[Unit] =
     Future.fromTry {
       logger.info("Loading institutions index from iPA")
-      for {
-        _ <- institutionsIndexWriterService.adds(institutions)
-        _ = logger.info(s"Institutions inserted")
-        _ <- institutionsIndexWriterService.commit()
-      } yield ()
+      institutionsIndexWriterService.resource { writer =>
+        institutionsIndexWriterService.adds(institutions)(writer).map(_ => logger.info(s"Institutions inserted"))
+      }
     }
 
   private def loadCategories(
@@ -56,11 +53,9 @@ object DataSourceOps {
   )(implicit logger: LoggerTakingImplicit[ContextFieldsToLog], contexts: Seq[(String, String)]): Future[Unit] =
     Future.fromTry {
       logger.info("Loading categories index from iPA")
-      for {
-        _ <- categoriesIndexWriterService.adds(categories)
-        _ = logger.info(s"Categories inserted")
-        _ <- categoriesIndexWriterService.commit()
-      } yield ()
+      categoriesIndexWriterService.resource { writer =>
+        categoriesIndexWriterService.adds(categories)(writer).map(_ => logger.info(s"Categories inserted"))
+      }
     }
 
 }
