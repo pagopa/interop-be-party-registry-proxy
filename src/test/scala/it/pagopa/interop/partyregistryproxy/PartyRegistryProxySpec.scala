@@ -16,7 +16,7 @@ import it.pagopa.interop.partyregistryproxy.common.util.createCategoryId
 import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors.CategoryNotFound
 import it.pagopa.interop.partyregistryproxy.model._
 import it.pagopa.interop.partyregistryproxy.server.Controller
-import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
+import it.pagopa.interop.partyregistryproxy.service.{IndexSearchService, IndexWriterService, OpenDataService}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpecLike
 
@@ -50,6 +50,11 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
   var bindServer: Option[Future[Http.ServerBinding]]            = None
   val institutionSearchService: IndexSearchService[Institution] = mock[IndexSearchService[Institution]]
   val categorySearchService: IndexSearchService[Category]       = mock[IndexSearchService[Category]]
+  val institutionWriterService: IndexWriterService[Institution] = mock[IndexWriterService[Institution]]
+  val categoryWriterService: IndexWriterService[Category]       = mock[IndexWriterService[Category]]
+
+  val openDataService: OpenDataService     = mock[OpenDataService]
+  val mockOpenDataService: OpenDataService = mock[OpenDataService]
 
   override def beforeAll(): Unit = {
 
@@ -65,6 +70,16 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
     val categoryApi: CategoryApi =
       new CategoryApi(categoryApiService, categoryApiMarshaller, wrappingDirective)
 
+    val datasourceApiService: DatasourceApiService =
+      new DatasourceApiServiceImpl(
+        openDataService,
+        mockOpenDataService,
+        institutionWriterService,
+        categoryWriterService
+      )(ec)
+    val datasourceApi: DatasourceApi               =
+      new DatasourceApi(datasourceApiService, wrappingDirective)
+
     val healthApi: HealthApi = mock[HealthApi]
 
     controller = Some(
@@ -72,6 +87,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
         health = healthApi,
         institution = institutionApi,
         category = categoryApi,
+        datasource = datasourceApi,
         validationExceptionToRoute = Some(report => {
           val error =
             CommonProblem(
