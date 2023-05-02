@@ -28,8 +28,7 @@ import it.pagopa.interop.partyregistryproxy.service.impl.{
   CategoryIndexWriterServiceImpl,
   IPAOpenDataServiceImpl,
   InstitutionIndexSearchServiceImpl,
-  InstitutionIndexWriterServiceImpl,
-  MockOpenDataServiceImpl
+  InstitutionIndexWriterServiceImpl
 }
 import it.pagopa.interop.partyregistryproxy.service.{IndexWriterService, OpenDataService}
 
@@ -51,15 +50,8 @@ trait Dependencies {
 
   val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
   val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
-  def getOpenDataService()(implicit ec: ExecutionContext, actorSystem: ActorSystem[_]): OpenDataService             =
+  def getOpenDataService()(implicit ec: ExecutionContext, actorSystem: ActorSystem[_]): OpenDataService =
     IPAOpenDataServiceImpl(http())
-  def getMockOpenDataService()(implicit ec: ExecutionContext, actorSystem: ActorSystem[_]): MockOpenDataServiceImpl =
-    MockOpenDataServiceImpl(
-      institutionsMockOpenDataUrl = ApplicationConfiguration.institutionsMockOpenDataUrl,
-      categoriesMockOpenDataUrl = ApplicationConfiguration.categoriesMockOpenDataUrl,
-      mockOrigin = ApplicationConfiguration.mockOrigin,
-      http = http()
-    )
 
   def institutionApi()(implicit jwtReader: JWTReader): InstitutionApi = new InstitutionApi(
     InstitutionApiServiceImpl(InstitutionIndexSearchServiceImpl),
@@ -75,16 +67,10 @@ trait Dependencies {
 
   def datasourceApi(
     openDataService: OpenDataService,
-    mockOpenDataService: OpenDataService,
     institutionsWriterService: IndexWriterService[Institution],
     categoriesWriterService: IndexWriterService[Category]
   )(blockingEc: ExecutionContext): DatasourceApi = new DatasourceApi(
-    new DatasourceApiServiceImpl(
-      openDataService,
-      mockOpenDataService,
-      institutionsWriterService,
-      categoriesWriterService
-    )(blockingEc),
+    new DatasourceApiServiceImpl(openDataService, institutionsWriterService, categoriesWriterService)(blockingEc),
     SecurityDirectives.authenticateOAuth2("SecurityRealm", AkkaUtils.PassThroughAuthenticator)
   )
 

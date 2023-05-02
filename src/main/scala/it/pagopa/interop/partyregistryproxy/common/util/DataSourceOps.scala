@@ -12,7 +12,6 @@ object DataSourceOps {
 
   def loadOpenData(
     openDataService: OpenDataService,
-    mockOpenDataServiceImpl: OpenDataService,
     institutionsIndexWriterService: IndexWriterService[Institution],
     categoriesIndexWriterService: IndexWriterService[Category],
     blockingEc: ExecutionContext
@@ -20,12 +19,10 @@ object DataSourceOps {
     implicit val ec: ExecutionContext = blockingEc
     logger.info(s"Loading open data")
     val result: Future[Unit]          = for {
-      institutions     <- openDataService.getAllInstitutions
-      mockInstitutions <- mockOpenDataServiceImpl.getAllInstitutions
-      _                <- loadInstitutions(institutionsIndexWriterService, institutions ++ mockInstitutions)
-      categories       <- openDataService.getAllCategories
-      mockCategories   <- mockOpenDataServiceImpl.getAllCategories
-      _                <- loadCategories(categoriesIndexWriterService, categories ++ mockCategories)
+      institutions <- openDataService.getAllInstitutions
+      _            <- loadInstitutions(institutionsIndexWriterService, institutions)
+      categories   <- openDataService.getAllCategories
+      _            <- loadCategories(categoriesIndexWriterService, categories)
     } yield ()
 
     result.onComplete {

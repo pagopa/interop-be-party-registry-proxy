@@ -39,30 +39,23 @@ object Main extends App with CorsSupport with Dependencies {
       val selector: DispatcherSelector = DispatcherSelector.fromConfig("futures-dispatcher")
       val blockingEc: ExecutionContext = actorSystem.dispatchers.lookup(selector)
 
-      val openDataService     = getOpenDataService()
-      val mockOpenDataService = getMockOpenDataService()
+      val openDataService = getOpenDataService()
 
       AkkaManagement.get(actorSystem.classicSystem).start()
 
       logger.info(renderBuildInfo(BuildInfo))(bootContext)
 
       val serverBinding: Future[ServerBinding] = for {
-        _         <- loadOpenData(
-          openDataService,
-          mockOpenDataService,
-          institutionsWriterService,
-          categoriesWriterService,
-          blockingEc
-        )(logger, bootContext)
+        _         <- loadOpenData(openDataService, institutionsWriterService, categoriesWriterService, blockingEc)(
+          logger,
+          bootContext
+        )
         jwtReader <- JWTConfiguration.jwtReader.loadKeyset().map(createJwtReader).toFuture
         controller = new Controller(
           category = categoryApi()(jwtReader),
           health = healthApi,
           institution = institutionApi()(jwtReader),
-          datasource =
-            datasourceApi(openDataService, mockOpenDataService, institutionsWriterService, categoriesWriterService)(
-              blockingEc
-            ),
+          datasource = datasourceApi(openDataService, institutionsWriterService, categoriesWriterService)(blockingEc),
           validationExceptionToRoute = Some(report => {
             val error =
               CommonProblem(
