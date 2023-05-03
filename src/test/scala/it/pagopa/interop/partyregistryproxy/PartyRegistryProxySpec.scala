@@ -53,8 +53,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
   val institutionWriterService: IndexWriterService[Institution] = mock[IndexWriterService[Institution]]
   val categoryWriterService: IndexWriterService[Category]       = mock[IndexWriterService[Category]]
 
-  val openDataService: OpenDataService     = mock[OpenDataService]
-  val mockOpenDataService: OpenDataService = mock[OpenDataService]
+  val openDataService: OpenDataService = mock[OpenDataService]
 
   override def beforeAll(): Unit = {
 
@@ -71,12 +70,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
       new CategoryApi(categoryApiService, categoryApiMarshaller, wrappingDirective)
 
     val datasourceApiService: DatasourceApiService =
-      new DatasourceApiServiceImpl(
-        openDataService,
-        mockOpenDataService,
-        institutionWriterService,
-        categoryWriterService
-      )(ec)
+      new DatasourceApiServiceImpl(openDataService, institutionWriterService, categoryWriterService)(ec)
     val datasourceApi: DatasourceApi               =
       new DatasourceApi(datasourceApiService, wrappingDirective)
 
