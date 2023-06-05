@@ -339,6 +339,9 @@ components:
         origin:
           type: string
           description: describes which is the source of Institution data
+        kind:
+          type: string
+          description: describes which is the kind of Institution data  
       required:
         - id
         - originId
@@ -349,6 +352,7 @@ components:
         - address
         - zipCode
         - origin
+        - kind
     Institutions:
       properties:
         items:

@@ -568,7 +568,8 @@ object ServiceSpecSupport {
     digitalAddress = "digitalAddress1",
     address = "address1",
     zipCode = "zipCode1",
-    origin = "origin"
+    origin = "origin",
+    kind = "Pubbliche Amministrazioni"
   )
 
   final lazy val institutionTwo = Institution(
@@ -583,7 +584,8 @@ object ServiceSpecSupport {
     digitalAddress = "digitalAddress2",
     address = "address2",
     zipCode = "zipCode2",
-    origin = "origin"
+    origin = "origin",
+    kind = "Pubbliche Amministrazioni"
   )
 
   final lazy val institutionThree = Institution(
@@ -598,7 +600,8 @@ object ServiceSpecSupport {
     digitalAddress = "digitalAddress3",
     address = "address3",
     zipCode = "zipCode3",
-    origin = "origin"
+    origin = "origin",
+    kind = "Pubbliche Amministrazioni"
   )
 
   final lazy val institutionFour = Institution(
@@ -613,7 +616,8 @@ object ServiceSpecSupport {
     digitalAddress = "digitalAddress4",
     address = "address4",
     zipCode = "zipCode4",
-    origin = "origin"
+    origin = "origin",
+    kind = "Pubbliche Amministrazioni"
   )
 
   final lazy val institutions = List(institutionOne, institutionTwo, institutionThree, institutionFour)
