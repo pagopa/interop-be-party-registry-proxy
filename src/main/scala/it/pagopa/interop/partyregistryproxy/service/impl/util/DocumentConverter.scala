@@ -27,7 +27,7 @@ object DocumentConverter {
       address = document.get(ADDRESS.value),
       zipCode = document.get(ZIP_CODE.value),
       origin = document.get(ORIGIN.value),
-      kind = "Pubbliche Amministrazioni"
+      kind = document.get(KIND.value)
     )
   }
 
