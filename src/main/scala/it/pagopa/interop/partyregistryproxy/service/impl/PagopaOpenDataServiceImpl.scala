@@ -25,7 +25,7 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
           address = "Piazza Colonna 370, Roma",
           zipCode = "00187",
           origin = INTEROP_ORIGIN,
-          kind = "Pubbliche Amministrazioni"
+          kind = "Privato"
         ),
         Institution(
           id = "TestANPR",
