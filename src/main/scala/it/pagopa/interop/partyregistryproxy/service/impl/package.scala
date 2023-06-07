@@ -93,6 +93,7 @@ package object impl {
       doc.add(new TextField(InstitutionField.DIGITAL_ADDRESS.value, institution.digitalAddress, Field.Store.YES))
       doc.add(new TextField(InstitutionField.ADDRESS.value, institution.address, Field.Store.YES))
       doc.add(new TextField(InstitutionField.ZIP_CODE.value, institution.zipCode, Field.Store.YES))
+      doc.add(new TextField(InstitutionField.KIND.value, institution.kind, Field.Store.YES))
 
       doc.addOptional(InstitutionField.O.value, institution.o)
       doc.addOptional(InstitutionField.OU.value, institution.ou)

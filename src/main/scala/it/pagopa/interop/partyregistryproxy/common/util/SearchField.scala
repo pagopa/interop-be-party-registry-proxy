@@ -29,5 +29,6 @@ object InstitutionField {
   case object ADDRESS         extends CategoryField("address")
   case object ZIP_CODE        extends CategoryField("zipCode")
   case object ORIGIN          extends CategoryField("origin")
+  case object KIND            extends CategoryField("kind")
 
 }
