@@ -47,7 +47,7 @@ object IPAOpenDataServiceImpl {
     final val kind           = "Tipologia"
 
     final val fields: Set[String] =
-      Set(originId, description, taxCode, category, digitalAddress, address, zipCode)
+      Set(originId, description, taxCode, category, digitalAddress, address, zipCode, kind)
   }
 
   private object CategoriesFields {
