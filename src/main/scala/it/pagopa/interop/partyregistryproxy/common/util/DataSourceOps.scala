@@ -20,10 +20,9 @@ object DataSourceOps {
     logger.info(s"Loading open data")
     val result: Future[Unit]          = for {
       institutions <- openDataService.getAllInstitutions
-      _ = println(institutions.size)
-      _          <- loadInstitutions(institutionsIndexWriterService, institutions)
-      categories <- openDataService.getAllCategories
-      _          <- loadCategories(categoriesIndexWriterService, categories)
+      _            <- loadInstitutions(institutionsIndexWriterService, institutions)
+      categories   <- openDataService.getAllCategories
+      _            <- loadCategories(categoriesIndexWriterService, categories)
     } yield ()
 
     result.onComplete {
