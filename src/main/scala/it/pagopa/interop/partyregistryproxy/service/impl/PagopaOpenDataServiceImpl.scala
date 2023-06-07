@@ -24,7 +24,8 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
           digitalAddress = "apogap@pagopa.it",
           address = "Piazza Colonna 370, Roma",
           zipCode = "00187",
-          origin = INTEROP_ORIGIN
+          origin = INTEROP_ORIGIN,
+          kind = "Privato"
         ),
         Institution(
           id = "TestANPR",
@@ -38,7 +39,8 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
           digitalAddress = "testanprtest@test.it",
           address = "Piazza del Viminale 1, Roma",
           zipCode = "00184",
-          origin = INTEROP_ORIGIN
+          origin = INTEROP_ORIGIN,
+          kind = "Pubbliche Amministrazioni"
         )
       )
     )

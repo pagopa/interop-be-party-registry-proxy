@@ -26,7 +26,8 @@ object DocumentConverter {
       digitalAddress = document.get(DIGITAL_ADDRESS.value),
       address = document.get(ADDRESS.value),
       zipCode = document.get(ZIP_CODE.value),
-      origin = document.get(ORIGIN.value)
+      origin = document.get(ORIGIN.value),
+      kind = document.get(KIND.value)
     )
   }
 

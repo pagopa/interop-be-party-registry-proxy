@@ -44,6 +44,7 @@ object IPAOpenDataServiceImpl {
     final val digitalAddress = "Mail1"
     final val address        = "Indirizzo"
     final val zipCode        = "CAP"
+    final val kind           = "Tipologia"
 
     final val fields: Set[String] =
       Set(originId, description, taxCode, category, digitalAddress, address, zipCode)
@@ -75,6 +76,7 @@ object IPAOpenDataServiceImpl {
         digitalAddress <- mapped.get(InstitutionsFields.digitalAddress).flatMap(idx => record(idx).select[String])
         address        <- mapped.get(InstitutionsFields.address).flatMap(idx => record(idx).select[String])
         zipCode        <- mapped.get(InstitutionsFields.zipCode).flatMap(idx => record(idx).select[String])
+        kind           <- mapped.get(InstitutionsFields.kind).flatMap(idx => record(idx).select[String])
       } yield Institution(
         id = id,
         originId = originId,
@@ -87,7 +89,8 @@ object IPAOpenDataServiceImpl {
         digitalAddress = digitalAddress,
         address = address,
         zipCode = zipCode,
-        origin = ApplicationConfiguration.ipaOrigin
+        origin = ApplicationConfiguration.ipaOrigin,
+        kind = kind
       )
     }
   }
