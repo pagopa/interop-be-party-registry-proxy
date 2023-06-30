@@ -6,12 +6,12 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import it.pagopa.interop.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
-import it.pagopa.interop.partyregistryproxy.service.OpenDataService
 import it.pagopa.interop.partyregistryproxy.service.impl.util.{
   OpenDataResponse,
   OpenDataResponseField,
   OpenDataResponseMarshaller
 }
+import it.pagopa.interop.partyregistryproxy.service.{InstitutionKind, OpenDataService}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,9 +19,18 @@ final case class IPAOpenDataServiceImpl(http: HttpExt)(implicit system: ActorSys
     extends OpenDataService
     with OpenDataResponseMarshaller {
 
-  def getAllInstitutions: Future[List[Institution]] = retrieveOpenData(
-    ApplicationConfiguration.institutionsIpaOpenDataUrl
-  ).map(IPAOpenDataServiceImpl.extractInstitutions)
+  def getAllInstitutions(
+    categorySource: Map[String, String],
+    institutionKind: InstitutionKind
+  ): Future[List[Institution]] = {
+    val url = institutionKind match {
+      case InstitutionKind.Agency => ApplicationConfiguration.institutionsIpaOpenDataUrl
+      case InstitutionKind.AOO    => ApplicationConfiguration.AOOIpaOpenDataUrl
+      case InstitutionKind.UO     => ApplicationConfiguration.UOIpaOpenDataUrl
+    }
+
+    retrieveOpenData(url).map(IPAOpenDataServiceImpl.extractInstitutions(categorySource, institutionKind))
+  }
 
   override def getAllCategories: Future[List[Category]] = {
     retrieveOpenData(ApplicationConfiguration.categoriesIpaOpenDataUrl).map(IPAOpenDataServiceImpl.extractCategories)
@@ -45,9 +54,11 @@ object IPAOpenDataServiceImpl {
     final val address        = "Indirizzo"
     final val zipCode        = "CAP"
     final val kind           = "Tipologia"
+    final val aooId          = "Codice_uni_aoo"
+    final val uoId           = "Codice_uni_uo"
 
     final val fields: Set[String] =
-      Set(originId, description, taxCode, category, digitalAddress, address, zipCode, kind)
+      Set(originId, description, taxCode, category, digitalAddress, address, zipCode, kind, aooId, uoId)
   }
 
   private object CategoriesFields {
@@ -58,7 +69,9 @@ object IPAOpenDataServiceImpl {
     final val fields: Set[String] = Set(code, name, kind)
   }
 
-  def extractInstitutions(response: OpenDataResponse): List[Institution] = {
+  def extractInstitutions(categorySource: Map[String, String], institutionKind: InstitutionKind)(
+    response: OpenDataResponse
+  ): List[Institution] = {
 
     val indexed: List[(OpenDataResponseField, Int)]  = response.fields.zipWithIndex
     val filtered: List[(OpenDataResponseField, Int)] = indexed.filter { case (field, _) =>
@@ -69,9 +82,19 @@ object IPAOpenDataServiceImpl {
     response.records.flatMap { record =>
       for {
         id             <- record(mapped(InstitutionsFields.taxCode)).select[String]
-        originId       <- record(mapped(InstitutionsFields.originId)).select[String]
+        originId       <- institutionKind match {
+          case InstitutionKind.Agency => record(mapped(InstitutionsFields.originId)).select[String]
+          case InstitutionKind.AOO    => record(mapped(InstitutionsFields.aooId)).select[String]
+          case InstitutionKind.UO     => record(mapped(InstitutionsFields.uoId)).select[String]
+        }
         taxCode        <- mapped.get(InstitutionsFields.taxCode).flatMap(idx => record(idx).select[String])
-        category       <- mapped.get(InstitutionsFields.category).flatMap(idx => record(idx).select[String])
+        category       <- institutionKind match {
+          case InstitutionKind.Agency =>
+            mapped.get(InstitutionsFields.category).flatMap(idx => record(idx).select[String])
+          case _                      =>
+            val institutionOriginId = record(mapped(InstitutionsFields.originId)).select[String]
+            institutionOriginId.flatMap(categorySource.get)
+        }
         description    <- record(mapped(InstitutionsFields.description)).select[String]
         digitalAddress <- mapped.get(InstitutionsFields.digitalAddress).flatMap(idx => record(idx).select[String])
         address        <- mapped.get(InstitutionsFields.address).flatMap(idx => record(idx).select[String])
