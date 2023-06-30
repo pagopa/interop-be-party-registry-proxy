@@ -3,7 +3,16 @@ package it.pagopa.interop.partyregistryproxy.service.impl.util
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import shapeless.{Inl, Inr}
-import spray.json.{DefaultJsonProtocol, JsNumber, JsString, JsValue, JsonFormat, RootJsonFormat, deserializationError}
+import spray.json.{
+  DefaultJsonProtocol,
+  JsNull,
+  JsNumber,
+  JsString,
+  JsValue,
+  JsonFormat,
+  RootJsonFormat,
+  deserializationError
+}
 
 trait OpenDataResponseMarshaller extends DefaultJsonProtocol with SprayJsonSupport {
 
@@ -17,6 +26,7 @@ trait OpenDataResponseMarshaller extends DefaultJsonProtocol with SprayJsonSuppo
     def read(value: JsValue): RecordValue = value match {
       case JsNumber(n) => Inl(n.toInt)
       case JsString(s) => Inr(Inl(s))
+      case JsNull      => Inr(Inl(""))
       case _           => deserializationError("Read: value not admitted for RecordValue")
     }
   }
