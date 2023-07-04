@@ -29,7 +29,7 @@ final case class IPAOpenDataServiceImpl(http: HttpExt)(implicit system: ActorSys
       case InstitutionKind.UO     => ApplicationConfiguration.UOIpaOpenDataUrl
     }
 
-    retrieveOpenData(url).map(IPAOpenDataServiceImpl.extractInstitutions(categorySource, institutionKind))
+    retrieveOpenData(url).map(extractInstitutions(categorySource, institutionKind))
   }
 
   override def getAllCategories: Future[List[Category]] = {
@@ -92,7 +92,7 @@ object IPAOpenDataServiceImpl {
           case InstitutionKind.Agency =>
             mapped.get(InstitutionsFields.category).flatMap(idx => record(idx).select[String])
           case _                      =>
-            val institutionOriginId = record(mapped(InstitutionsFields.originId)).select[String]
+            val institutionOriginId = mapped.get(InstitutionsFields.originId).flatMap(idx => record(idx).select[String])
             institutionOriginId.flatMap(categorySource.get)
         }
         description    <- record(mapped(InstitutionsFields.description)).select[String]
