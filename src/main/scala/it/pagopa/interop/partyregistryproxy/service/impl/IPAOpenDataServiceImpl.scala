@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import it.pagopa.interop.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
+import it.pagopa.interop.partyregistryproxy.service.impl.IPAOpenDataServiceImpl.extractInstitutions
 import it.pagopa.interop.partyregistryproxy.service.impl.util.{
   OpenDataResponse,
   OpenDataResponseField,
@@ -25,8 +26,8 @@ final case class IPAOpenDataServiceImpl(http: HttpExt)(implicit system: ActorSys
   ): Future[List[Institution]] = {
     val url = institutionKind match {
       case InstitutionKind.Agency => ApplicationConfiguration.institutionsIpaOpenDataUrl
-      case InstitutionKind.AOO    => ApplicationConfiguration.AOOIpaOpenDataUrl
-      case InstitutionKind.UO     => ApplicationConfiguration.UOIpaOpenDataUrl
+      case InstitutionKind.AOO    => ApplicationConfiguration.aooIpaOpenDataUrl
+      case InstitutionKind.UO     => ApplicationConfiguration.uoIpaOpenDataUrl
     }
 
     retrieveOpenData(url).map(extractInstitutions(categorySource, institutionKind))
