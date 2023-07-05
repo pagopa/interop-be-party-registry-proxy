@@ -104,9 +104,6 @@ object IPAOpenDataServiceImpl {
       } yield Institution(
         id = id,
         originId = originId,
-        o = Some(id),
-        ou = None,  // TODO remember to fix id build when considering OU (see SELC-853 for the expression to use)
-        aoo = None, // TODO remember to fix id build when considering AOO (see SELC-853 for the expression to use)
         taxCode = taxCode,
         category = category,
         description = description,

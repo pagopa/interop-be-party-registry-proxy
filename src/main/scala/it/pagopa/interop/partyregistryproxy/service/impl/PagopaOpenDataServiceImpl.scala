@@ -18,9 +18,6 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
         Institution(
           id = "PagoPA",
           originId = "PagoPA",
-          o = Some("PAGOPA"),
-          ou = None,
-          aoo = None,
           taxCode = "99999999",
           category = "PGPA",
           description = "PagoPA",
@@ -33,9 +30,6 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
         Institution(
           id = "TestANPR",
           originId = "TestANPR",
-          o = Some("TestANPR"),
-          ou = None,
-          aoo = None,
           taxCode = "99999988",
           category = "ANPR",
           description = "ANPR - Test",

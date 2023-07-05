@@ -95,10 +95,6 @@ package object impl {
       doc.add(new TextField(InstitutionField.ZIP_CODE.value, institution.zipCode, Field.Store.YES))
       doc.add(new TextField(InstitutionField.KIND.value, institution.kind, Field.Store.YES))
 
-      doc.addOptional(InstitutionField.O.value, institution.o)
-      doc.addOptional(InstitutionField.OU.value, institution.ou)
-      doc.addOptional(InstitutionField.AOO.value, institution.aoo)
-
       doc
     }
   }

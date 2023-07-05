@@ -288,24 +288,6 @@ components:
           example: age
           pattern: '^[a-z]{1,12}$'
           maxLength: 12
-        o:
-          type: string
-          description: o
-          example: age
-          pattern: '^[a-z]{1,12}$'
-          maxLength: 12
-        ou:
-          type: string
-          description: ou
-          example: age
-          pattern: '^[a-z]{1,12}$'
-          maxLength: 12
-        aoo:
-          type: string
-          description: aoo
-          example: age
-          pattern: '^[a-z]{1,12}$'
-          maxLength: 12
         taxCode:
           type: string
           description: institution fiscal code
