@@ -1,7 +1,7 @@
 package it.pagopa.interop.partyregistryproxy.service.impl
 
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
-import it.pagopa.interop.partyregistryproxy.service.OpenDataService
+import it.pagopa.interop.partyregistryproxy.service.{InstitutionKind, OpenDataService}
 
 import scala.concurrent.Future
 
@@ -9,15 +9,15 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
 
   final lazy val INTEROP_ORIGIN = "Interop"
 
-  override def getAllInstitutions: Future[List[Institution]] =
+  override def getAllInstitutions(
+    categorySource: Map[String, String],
+    institutionKind: InstitutionKind
+  ): Future[List[Institution]] =
     Future.successful(
       List(
         Institution(
           id = "PagoPA",
           originId = "PagoPA",
-          o = Some("PAGOPA"),
-          ou = None,
-          aoo = None,
           taxCode = "99999999",
           category = "PGPA",
           description = "PagoPA",
@@ -30,9 +30,6 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
         Institution(
           id = "TestANPR",
           originId = "TestANPR",
-          o = Some("TestANPR"),
-          ou = None,
-          aoo = None,
           taxCode = "99999988",
           category = "ANPR",
           description = "ANPR - Test",

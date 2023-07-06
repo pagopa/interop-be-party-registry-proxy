@@ -559,9 +559,6 @@ object ServiceSpecSupport {
   final lazy val institutionOne = Institution(
     id = "27f8dce0-0a5b-476b-9fdd-a7a658eb9211",
     originId = "originId1",
-    o = None,
-    ou = None,
-    aoo = None,
     taxCode = "taxCode1",
     category = "cat1",
     description = "Institution One",
@@ -575,9 +572,6 @@ object ServiceSpecSupport {
   final lazy val institutionTwo = Institution(
     id = "27f8dce0-0a5b-476b-9fdd-a7a658eb9212",
     originId = "originId2",
-    o = None,
-    ou = None,
-    aoo = None,
     taxCode = "taxCode2",
     category = "cat2",
     description = "Institution Two",
@@ -591,9 +585,6 @@ object ServiceSpecSupport {
   final lazy val institutionThree = Institution(
     id = "27f8dce0-0a5b-476b-9fdd-a7a658eb9213",
     originId = "originId3",
-    o = None,
-    ou = None,
-    aoo = None,
     taxCode = "taxCode3",
     category = "cat3",
     description = "Institution Three",
@@ -607,9 +598,6 @@ object ServiceSpecSupport {
   final lazy val institutionFour = Institution(
     id = "27f8dce0-0a5b-476b-9fdd-a7a658eb9214",
     originId = "originId4",
-    o = None,
-    ou = None,
-    aoo = None,
     taxCode = "taxCode4",
     category = "cat4",
     description = "Institution Four",

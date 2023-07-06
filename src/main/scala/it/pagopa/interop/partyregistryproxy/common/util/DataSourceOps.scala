@@ -3,6 +3,7 @@ package it.pagopa.interop.partyregistryproxy.common.util
 import com.typesafe.scalalogging.LoggerTakingImplicit
 import it.pagopa.interop.commons.logging.ContextFieldsToLog
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
+import it.pagopa.interop.partyregistryproxy.service.InstitutionKind._
 import it.pagopa.interop.partyregistryproxy.service.{IndexWriterService, OpenDataService}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,10 +20,13 @@ object DataSourceOps {
     implicit val ec: ExecutionContext = blockingEc
     logger.info(s"Loading open data")
     val result: Future[Unit]          = for {
-      institutions <- openDataService.getAllInstitutions
-      _            <- loadInstitutions(institutionsIndexWriterService, institutions)
-      categories   <- openDataService.getAllCategories
-      _            <- loadCategories(categoriesIndexWriterService, categories)
+      institutions <- openDataService.getAllInstitutions(Map.empty, Agency)
+      mapInstitutions = institutions.map(i => i.originId -> i.category).toMap
+      aoo        <- openDataService.getAllInstitutions(mapInstitutions, AOO)
+      uo         <- openDataService.getAllInstitutions(mapInstitutions, UO)
+      _          <- loadInstitutions(institutionsIndexWriterService, institutions ++ aoo ++ uo)
+      categories <- openDataService.getAllCategories
+      _          <- loadCategories(categoriesIndexWriterService, categories)
     } yield ()
 
     result.onComplete {

@@ -17,9 +17,6 @@ object DocumentConverter {
     Institution(
       id = document.get(ID.value),
       originId = document.get(ORIGIN_ID.value),
-      o = Option(document.get(O.value)),
-      ou = Option(document.get(OU.value)),
-      aoo = Option(document.get(AOO.value)),
       taxCode = document.get(TAX_CODE.value),
       category = document.get(CATEGORY.value),
       description = document.get(DESCRIPTION.value),
