@@ -20,10 +20,10 @@ object ApplicationConfiguration {
     config.getString("party-registry-proxy.sources.ipa.institutions.open-data-url")
 
   val aooIpaOpenDataUrl: String =
-    config.getString("party-registry-proxy.sources.ipa.AOO.open-data-url")
+    config.getString("party-registry-proxy.sources.ipa.aoo.open-data-url")
 
   val uoIpaOpenDataUrl: String =
-    config.getString("party-registry-proxy.sources.ipa.UO.open-data-url")
+    config.getString("party-registry-proxy.sources.ipa.uo.open-data-url")
 
   val categoriesIpaOpenDataUrl: String =
     config.getString("party-registry-proxy.sources.ipa.categories.open-data-url")
