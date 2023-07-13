@@ -1,12 +1,13 @@
 package it.pagopa.interop.partyregistryproxy.service
 
+import it.pagopa.interop.partyregistryproxy.common.util.InstitutionDetails
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
 
 import scala.concurrent.Future
 
 trait OpenDataService {
   def getAllInstitutions(
-    categorySource: Map[String, String],
+    institutionsDetails: Map[String, InstitutionDetails],
     institutionKind: InstitutionKind
   ): Future[List[Institution]]
   def getAllCategories: Future[List[Category]]

@@ -1,5 +1,6 @@
 package it.pagopa.interop.partyregistryproxy.service.impl
 
+import it.pagopa.interop.partyregistryproxy.common.util.InstitutionDetails
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
 import it.pagopa.interop.partyregistryproxy.service.{InstitutionKind, OpenDataService}
 
@@ -10,7 +11,7 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
   final lazy val INTEROP_ORIGIN = "Interop"
 
   override def getAllInstitutions(
-    categorySource: Map[String, String],
+    institutionsDetails: Map[String, InstitutionDetails],
     institutionKind: InstitutionKind
   ): Future[List[Institution]] =
     Future.successful(

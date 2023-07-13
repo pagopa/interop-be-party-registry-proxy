@@ -21,9 +21,9 @@ object DataSourceOps {
     logger.info(s"Loading open data")
     val result: Future[Unit]          = for {
       institutions <- openDataService.getAllInstitutions(Map.empty, Agency)
-      mapInstitutions = institutions.map(i => i.originId -> i.category).toMap
-      aoo        <- openDataService.getAllInstitutions(mapInstitutions, AOO)
-      uo         <- openDataService.getAllInstitutions(mapInstitutions, UO)
+      institutionsDetails = institutions.map(i => i.originId -> InstitutionDetails(i.category, i.kind)).toMap
+      aoo        <- openDataService.getAllInstitutions(institutionsDetails, AOO)
+      uo         <- openDataService.getAllInstitutions(institutionsDetails, UO)
       _          <- loadInstitutions(institutionsIndexWriterService, institutions ++ aoo ++ uo)
       categories <- openDataService.getAllCategories
       _          <- loadCategories(categoriesIndexWriterService, categories)

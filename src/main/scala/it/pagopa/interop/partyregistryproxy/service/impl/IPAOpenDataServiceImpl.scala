@@ -5,6 +5,7 @@ import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import it.pagopa.interop.partyregistryproxy.common.system.ApplicationConfiguration
+import it.pagopa.interop.partyregistryproxy.common.util.InstitutionDetails
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
 import it.pagopa.interop.partyregistryproxy.service.impl.IPAOpenDataServiceImpl.extractInstitutions
 import it.pagopa.interop.partyregistryproxy.service.impl.util.{
@@ -21,7 +22,7 @@ final case class IPAOpenDataServiceImpl(http: HttpExt)(implicit system: ActorSys
     with OpenDataResponseMarshaller {
 
   def getAllInstitutions(
-    categorySource: Map[String, String],
+    institutionsDetails: Map[String, InstitutionDetails],
     institutionKind: InstitutionKind
   ): Future[List[Institution]] = {
     val url = institutionKind match {
@@ -30,7 +31,7 @@ final case class IPAOpenDataServiceImpl(http: HttpExt)(implicit system: ActorSys
       case InstitutionKind.UO     => ApplicationConfiguration.uoIpaOpenDataUrl
     }
 
-    retrieveOpenData(url).map(extractInstitutions(categorySource, institutionKind))
+    retrieveOpenData(url).map(extractInstitutions(institutionsDetails, institutionKind))
   }
 
   override def getAllCategories: Future[List[Category]] = {
@@ -70,7 +71,7 @@ object IPAOpenDataServiceImpl {
     final val fields: Set[String] = Set(code, name, kind)
   }
 
-  def extractInstitutions(categorySource: Map[String, String], institutionKind: InstitutionKind)(
+  def extractInstitutions(institutionsDetails: Map[String, InstitutionDetails], institutionKind: InstitutionKind)(
     response: OpenDataResponse
   ): List[Institution] = {
 
@@ -94,13 +95,19 @@ object IPAOpenDataServiceImpl {
             mapped.get(InstitutionsFields.category).flatMap(idx => record(idx).select[String])
           case _                      =>
             val institutionOriginId = mapped.get(InstitutionsFields.originId).flatMap(idx => record(idx).select[String])
-            institutionOriginId.flatMap(categorySource.get)
+            institutionOriginId.flatMap(oid => institutionsDetails.get(oid).map(_.category))
         }
         description    <- record(mapped(InstitutionsFields.description)).select[String]
         digitalAddress <- mapped.get(InstitutionsFields.digitalAddress).flatMap(idx => record(idx).select[String])
         address        <- mapped.get(InstitutionsFields.address).flatMap(idx => record(idx).select[String])
         zipCode        <- mapped.get(InstitutionsFields.zipCode).flatMap(idx => record(idx).select[String])
-        kind           <- mapped.get(InstitutionsFields.kind).flatMap(idx => record(idx).select[String])
+        kind           <- institutionKind match {
+          case InstitutionKind.Agency =>
+            mapped.get(InstitutionsFields.kind).flatMap(idx => record(idx).select[String])
+          case _                      =>
+            val institutionOriginId = mapped.get(InstitutionsFields.originId).flatMap(idx => record(idx).select[String])
+            institutionOriginId.flatMap(oid => institutionsDetails.get(oid).map(_.kind))
+        }
       } yield Institution(
         id = id,
         originId = originId,
