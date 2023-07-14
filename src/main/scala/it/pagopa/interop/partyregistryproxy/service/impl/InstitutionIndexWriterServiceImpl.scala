@@ -1,7 +1,7 @@
 package it.pagopa.interop.partyregistryproxy.service.impl
 
 import it.pagopa.interop.partyregistryproxy.common.system.ApplicationConfiguration
-import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.ID
+import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.ORIGIN_ID
 import it.pagopa.interop.partyregistryproxy.model.Institution
 import it.pagopa.interop.partyregistryproxy.service.IndexWriterService
 import it.pagopa.interop.partyregistryproxy.service.impl.analizer.InstitutionTokenAnalyzer
@@ -19,7 +19,7 @@ case object InstitutionIndexWriterServiceImpl extends IndexWriterService[Institu
 
   override def adds(items: List[Institution])(indexWriter: IndexWriter): Try[Unit] =
     Try(items.foreach { item =>
-      indexWriter.updateDocument(new Term(ID.value, item.id), item.toDocument)
+      indexWriter.updateDocument(new Term(ORIGIN_ID.value, item.originId), item.toDocument)
     })
 
 }
