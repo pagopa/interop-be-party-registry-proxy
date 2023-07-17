@@ -21,6 +21,16 @@ tags:
     externalDocs:
       description: Find out more
       url: http://swagger.io
+  - name: aoo
+    description: Retrieve information about aoo
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+  - name: uo
+    description: Retrieve information about aoo
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
   - name: category
     description: Retrieve information about category
     externalDocs:
@@ -127,7 +137,7 @@ paths:
           format: int32
           default: 10
           minimum: 1
-          maximum: 100
+          maximum: 1000
     get:
       tags:
         - institution
@@ -135,6 +145,228 @@ paths:
       description: | 
         Returns a list of Institutions.
       operationId: searchInstitutions
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institutions'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /uo/{uoId}:
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+      - name: uoId
+        in: path
+        description: ID of institution to return
+        required: true
+        schema:
+          type: string
+          maxLength: 32
+    get:
+      tags:
+        - uo
+      summary: Find UO by ID
+      description: Returns a single UO
+      operationId: getUOById
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institution'
+        '404':
+          description: UO not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /uo/externalId/origin/{origin}/originId/{originId}:
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+      - name: origin
+        in: path
+        description: UO origin
+        required: true
+        schema:
+          type: string
+          maxLength: 32
+      - name: originId
+        in: path
+        description: UO origin id
+        required: true
+        schema:
+          type: string
+          maxLength: 32
+    get:
+      tags:
+        - uo
+      summary: Find UO by ExternalId
+      description: Returns a single UO using ExternalId
+      operationId: getUOByExternalId
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institution'
+        '404':
+          description: UO not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /uo:
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+      - in: query
+        name: search
+        description: if passed, the result is filtered based on the contained value.
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+          format: int32
+          default: 1
+          minimum: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          format: int32
+          default: 10
+          minimum: 1
+          maximum: 1000
+    get:
+      tags:
+        - uo
+      summary: Find UO
+      description: |
+        Returns a list of UO.
+      operationId: searchUO
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institutions'
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /aoo/{aooId}:
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+      - name: aooId
+        in: path
+        description: ID of institution to return
+        required: true
+        schema:
+          type: string
+          maxLength: 32
+    get:
+      tags:
+        - aoo
+      summary: Find AOO by ID
+      description: Returns a single institution
+      operationId: getAOOById
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institution'
+        '404':
+          description: AOO not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /aoo/externalId/origin/{origin}/originId/{originId}:
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+      - name: origin
+        in: path
+        description: AOO origin
+        required: true
+        schema:
+          type: string
+          maxLength: 32
+      - name: originId
+        in: path
+        description: AOO origin id
+        required: true
+        schema:
+          type: string
+          maxLength: 32
+    get:
+      tags:
+        - aoo
+      summary: Find AOO by ExternalId
+      description: Returns a single AOO using ExternalId
+      operationId: getAOOByExternalId
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institution'
+        '404':
+          description: AOO not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /aoo:
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+      - in: query
+        name: search
+        description: if passed, the result is filtered based on the contained value.
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+          format: int32
+          default: 1
+          minimum: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          format: int32
+          default: 10
+          minimum: 1
+          maximum: 1000
+    get:
+      tags:
+        - aoo
+      summary: Find AOO
+      description: |
+        Returns a list of AOO.
+      operationId: searchAOO
       responses:
         '200':
           description: successful operation
@@ -288,6 +520,8 @@ components:
           example: age
           pattern: '^[a-z]{1,12}$'
           maxLength: 12
+        classification:
+          $ref: '#/components/schemas/Classification'
         taxCode:
           type: string
           description: institution fiscal code
@@ -327,6 +561,7 @@ components:
       required:
         - id
         - originId
+        - classification
         - category
         - taxCode
         - digitalAddress
@@ -347,6 +582,12 @@ components:
       required:
         - items
         - totalCount
+    Classification:
+      type: string
+      enum:
+        - AGENCY
+        - AOO
+        - UO
     Category:
       type: object
       additionalProperties: false

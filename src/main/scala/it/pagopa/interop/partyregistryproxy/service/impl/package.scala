@@ -1,5 +1,6 @@
 package it.pagopa.interop.partyregistryproxy.service
 
+import cats.syntax.all._
 import it.pagopa.interop.partyregistryproxy.common.util.{CategoryField, InstitutionField, SearchField, createCategoryId}
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
 import it.pagopa.interop.partyregistryproxy.service.impl.util.DocumentConverter
@@ -10,31 +11,35 @@ import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
 import org.apache.lucene.util.BytesRef
 
-import scala.reflect.ClassTag
 import scala.util.Try
 
 package object impl {
 
-  def getItems[A: ClassTag](filters: Map[SearchField, String], page: Int, limit: Int)(
+  def getItems[A](filters: Map[SearchField, String], page: Int, limit: Int)(
     reader: DirectoryReader
-  )(implicit documentConverter: DocumentConverter[A]): Try[(List[A], Long)] = Try {
-    val searcher: IndexSearcher = new IndexSearcher(reader)
-    val query: Query            = getQuery(filters)
+  )(implicit documentConverter: DocumentConverter[A]): Either[Throwable, (List[A], Long)] = {
+    val unsafeDeps: Either[Throwable, (TopDocs, IndexSearcher)] = Try {
+      val searcher: IndexSearcher = new IndexSearcher(reader)
+      val query: Query            = getQuery(filters)
 
-    val collector: TopScoreDocCollector = TopScoreDocCollector.create(reader.numDocs(), reader.numDocs())
+      val collector: TopScoreDocCollector = TopScoreDocCollector.create(reader.numDocs(), reader.numDocs())
 
-    val startIndex = (page - 1) * limit
+      val startIndex = (page - 1) * limit
 
-    searcher.search(query, collector)
+      searcher.search(query, collector)
 
-    val hits: TopDocs = collector.topDocs(startIndex, limit)
+      (collector.topDocs(startIndex, limit), searcher)
+    }.toEither
 
-    val results: (List[A], Long) =
-      hits.scoreDocs.map(sc => DocumentConverter.to[A](searcher.doc(sc.doc))).toList -> reader
-        .numDocs()
-        .toLong
-
-    results
+    unsafeDeps.flatMap { case (hits, searcher) =>
+      hits.scoreDocs.toList
+        .traverse(sc => DocumentConverter.to[A](searcher.doc(sc.doc)))
+        .map(items =>
+          items -> reader
+            .numDocs()
+            .toLong
+        )
+    }
 
   }
 
@@ -94,6 +99,9 @@ package object impl {
       doc.add(new TextField(InstitutionField.ADDRESS.value, institution.address, Field.Store.YES))
       doc.add(new TextField(InstitutionField.ZIP_CODE.value, institution.zipCode, Field.Store.YES))
       doc.add(new TextField(InstitutionField.KIND.value, institution.kind, Field.Store.YES))
+      doc.add(
+        new TextField(InstitutionField.CLASSIFICATION.value, institution.classification.toString, Field.Store.YES)
+      )
 
       doc
     }

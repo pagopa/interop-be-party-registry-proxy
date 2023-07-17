@@ -1,7 +1,7 @@
 package it.pagopa.interop.partyregistryproxy.service.impl
 
 import it.pagopa.interop.partyregistryproxy.common.util.InstitutionDetails
-import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
+import it.pagopa.interop.partyregistryproxy.model.{Category, Classification, Institution}
 import it.pagopa.interop.partyregistryproxy.service.{InstitutionKind, OpenDataService}
 
 import scala.concurrent.Future
@@ -26,7 +26,8 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
           address = "Piazza Colonna 370, Roma",
           zipCode = "00187",
           origin = INTEROP_ORIGIN,
-          kind = "Privato"
+          kind = "Privato",
+          classification = Classification.AGENCY
         ),
         Institution(
           id = "TestANPR",
@@ -38,7 +39,8 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
           address = "Piazza del Viminale 1, Roma",
           zipCode = "00184",
           origin = INTEROP_ORIGIN,
-          kind = "Pubbliche Amministrazioni"
+          kind = "Pubbliche Amministrazioni",
+          classification = Classification.AGENCY
         )
       )
     )

@@ -46,16 +46,28 @@ object Main extends App with CorsSupport with Dependencies {
       logger.info(renderBuildInfo(BuildInfo))(bootContext)
 
       val serverBinding: Future[ServerBinding] = for {
-        _         <- loadOpenData(openDataService, institutionsWriterService, categoriesWriterService, blockingEc)(
-          logger,
-          bootContext
-        )
+        _         <- loadOpenData(
+          openDataService,
+          institutionsWriterService,
+          aooWriterService,
+          uoWriterService,
+          categoriesWriterService,
+          blockingEc
+        )(logger, bootContext)
         jwtReader <- JWTConfiguration.jwtReader.loadKeyset().map(createJwtReader).toFuture
         controller = new Controller(
           category = categoryApi()(jwtReader),
           health = healthApi,
           institution = institutionApi()(jwtReader),
-          datasource = datasourceApi(openDataService, institutionsWriterService, categoriesWriterService)(blockingEc),
+          aoo = aooApi()(jwtReader),
+          uo = uoApi()(jwtReader),
+          datasource = datasourceApi(
+            openDataService,
+            institutionsWriterService,
+            aooWriterService,
+            uoWriterService,
+            categoriesWriterService
+          )(blockingEc),
           validationExceptionToRoute = Some(report => {
             val error =
               CommonProblem(

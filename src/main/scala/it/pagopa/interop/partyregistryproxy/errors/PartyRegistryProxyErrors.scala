@@ -17,4 +17,17 @@ object PartyRegistryProxyErrors {
   final case class InstitutionByExternalNotFound(origin: String, originId: String)
       extends ComponentError("0005", s"Institution with Origin $origin and OriginId$originId not found")
 
+  final case class AOONotFound(aooId: String) extends ComponentError("0006", s"AOO $aooId not found")
+
+  final case class AOOByExternalNotFound(origin: String, originId: String)
+      extends ComponentError("0007", s"AOO with Origin $origin and OriginId$originId not found")
+
+  final case class AOOError(error: String) extends ComponentError("0008", s"Error while retrieving AOO - $error")
+
+  final case class UONotFound(uoId: String) extends ComponentError("0006", s"UO $uoId not found")
+
+  final case class UOByExternalNotFound(origin: String, originId: String)
+      extends ComponentError("0007", s"UO with Origin $origin and OriginId$originId not found")
+
+  final case class UOError(error: String) extends ComponentError("0008", s"Error while retrieving UO - $error")
 }

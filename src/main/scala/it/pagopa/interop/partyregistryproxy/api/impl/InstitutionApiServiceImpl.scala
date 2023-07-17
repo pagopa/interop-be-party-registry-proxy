@@ -4,15 +4,12 @@ import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.server.Route
 import com.typesafe.scalalogging.{Logger, LoggerTakingImplicit}
 import it.pagopa.interop.commons.logging.{CanLogContextFields, ContextFieldsToLog}
-import it.pagopa.interop.commons.utils.TypeConversions.OptionOps
 import it.pagopa.interop.partyregistryproxy.api.InstitutionApiService
 import it.pagopa.interop.partyregistryproxy.api.impl.InstitutionApiResponseHandlers._
 import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.DESCRIPTION
 import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors._
 import it.pagopa.interop.partyregistryproxy.model._
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
-
-import scala.util.Try
 
 final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearchService[Institution])
     extends InstitutionApiService {
@@ -28,8 +25,8 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     val operationLabel = s"Retrieving institution $institutionId"
     logger.info(operationLabel)
 
-    val result: Try[Institution] =
-      institutionSearchService.searchById(institutionId).flatMap(_.toTry(InstitutionNotFound(institutionId)))
+    val result: Either[Throwable, Institution] =
+      institutionSearchService.searchById(institutionId).flatMap(_.toRight(InstitutionNotFound(institutionId)))
 
     getInstitutionByIdResponse[Institution](operationLabel)(getInstitutionById200)(result)
   }
@@ -42,10 +39,10 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     val operationLabel = s"Retrieving institution Origin $origin OriginId $originId"
     logger.info(operationLabel)
 
-    val result: Try[Institution] =
+    val result: Either[Throwable, Institution] =
       institutionSearchService
         .searchByExternalId(origin, originId)
-        .flatMap(_.toTry(InstitutionByExternalNotFound(origin, originId)))
+        .flatMap(_.toRight(InstitutionByExternalNotFound(origin, originId)))
 
     getInstitutionByExternalIdResponse[Institution](operationLabel)(getInstitutionByExternalId200)(result)
   }
@@ -58,7 +55,7 @@ final case class InstitutionApiServiceImpl(institutionSearchService: IndexSearch
     val operationLabel = s"Searching for institutions by string: $search"
     logger.info(operationLabel)
 
-    val result: Try[Institutions] =
+    val result: Either[Throwable, Institutions] =
       search
         .fold(institutionSearchService.getAllItems(Map.empty, page, limit))(searchTxt =>
           institutionSearchService.searchByText(DESCRIPTION.value, searchTxt, page, limit)

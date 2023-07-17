@@ -15,6 +15,8 @@ import scala.concurrent.ExecutionContext
 final class DatasourceApiServiceImpl(
   openDataService: OpenDataService,
   institutionsWriterService: IndexWriterService[Institution],
+  aooWriterService: IndexWriterService[Institution],
+  uoWriterService: IndexWriterService[Institution],
   categoriesWriterService: IndexWriterService[Category]
 )(blockingEc: ExecutionContext)
     extends DatasourceApiService {
@@ -27,7 +29,14 @@ final class DatasourceApiServiceImpl(
     logger.info(operationLabel)
 
     val result =
-      loadOpenData(openDataService, institutionsWriterService, categoriesWriterService, blockingEc)
+      loadOpenData(
+        openDataService,
+        institutionsWriterService,
+        aooWriterService,
+        uoWriterService,
+        categoriesWriterService,
+        blockingEc
+      )
 
     onComplete(result) { reloadAllDataResponse[Unit](operationLabel)(_ => reloadAllData204) }
 

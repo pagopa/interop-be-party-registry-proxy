@@ -9,6 +9,7 @@ import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.directives.{AuthenticationDirective, SecurityDirectives}
 import it.pagopa.interop.commons.utils.AkkaUtils.Authenticator
 import it.pagopa.interop.commons.utils.OpenapiUtils
+import it.pagopa.interop.commons.utils.errors.{Problem => CommonProblem}
 import it.pagopa.interop.partyregistryproxy.api._
 import it.pagopa.interop.partyregistryproxy.api.impl._
 import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField.DESCRIPTION
@@ -23,9 +24,6 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
-import scala.util.Success
-import it.pagopa.interop.commons.utils.errors.{Problem => CommonProblem}
-import it.pagopa.interop.partyregistryproxy.api.impl.serviceCode
 
 class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecLike with MockFactory {
 
@@ -44,13 +42,19 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
   implicit val as: akka.actor.ActorSystem = implicitly[ActorSystem[_]].classicSystem
 
   val institutionApiMarshaller: InstitutionApiMarshaller = InstitutionApiMarshallerImpl
+  val aooApiMarshaller: AooApiMarshaller                 = AooApiMarshallerImpl
+  val uoApiMarshaller: UoApiMarshaller                   = UoApiMarshallerImpl
   val categoryApiMarshaller: CategoryApiMarshaller       = CategoryApiMarshallerImpl
 
   var controller: Option[Controller]                            = None
   var bindServer: Option[Future[Http.ServerBinding]]            = None
   val institutionSearchService: IndexSearchService[Institution] = mock[IndexSearchService[Institution]]
+  val aooSearchService: IndexSearchService[Institution]         = mock[IndexSearchService[Institution]]
+  val uoSearchService: IndexSearchService[Institution]          = mock[IndexSearchService[Institution]]
   val categorySearchService: IndexSearchService[Category]       = mock[IndexSearchService[Category]]
   val institutionWriterService: IndexWriterService[Institution] = mock[IndexWriterService[Institution]]
+  val aooWriterService: IndexWriterService[Institution]         = mock[IndexWriterService[Institution]]
+  val uoWriterService: IndexWriterService[Institution]          = mock[IndexWriterService[Institution]]
   val categoryWriterService: IndexWriterService[Category]       = mock[IndexWriterService[Category]]
 
   val openDataService: OpenDataService = mock[OpenDataService]
@@ -64,13 +68,25 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
     val institutionApi: InstitutionApi               =
       new InstitutionApi(institutionApiService, institutionApiMarshaller, wrappingDirective)
 
+    val aooApiService: AooApiService = AooApiServiceImpl(aooSearchService)
+    val aooApi: AooApi               = new AooApi(aooApiService, aooApiMarshaller, wrappingDirective)
+
+    val uoApiService: UoApiService = UoApiServiceImpl(uoSearchService)
+    val uoApi: UoApi               = new UoApi(uoApiService, uoApiMarshaller, wrappingDirective)
+
     val categoryApiService: CategoryApiService = CategoryApiServiceImpl(categorySearchService)
 
     val categoryApi: CategoryApi =
       new CategoryApi(categoryApiService, categoryApiMarshaller, wrappingDirective)
 
     val datasourceApiService: DatasourceApiService =
-      new DatasourceApiServiceImpl(openDataService, institutionWriterService, categoryWriterService)(ec)
+      new DatasourceApiServiceImpl(
+        openDataService,
+        institutionWriterService,
+        aooWriterService,
+        uoWriterService,
+        categoryWriterService
+      )(ec)
     val datasourceApi: DatasourceApi               =
       new DatasourceApi(datasourceApiService, wrappingDirective)
 
@@ -80,6 +96,8 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
       new Controller(
         health = healthApi,
         institution = institutionApi,
+        aoo = aooApi,
+        uo = uoApi,
         category = categoryApi,
         datasource = datasourceApi,
         validationExceptionToRoute = Some(report => {
@@ -115,7 +133,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
   "Asking for institutions" should {
 
-    "work successfully searching for Institution text using default value (page=1,limit=10)" in {
+    "work Rightfully searching for Institution text using default value (page=1,limit=10)" in {
 
       val searchTxt = "Institution"
       val page      = 1
@@ -126,7 +144,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (institutionSearchService.searchByText _)
         .expects(DESCRIPTION.value, searchTxt, page, limit)
-        .returning(Success(luceneResponse -> luceneResponse.size.toLong))
+        .returning(Right(luceneResponse -> luceneResponse.size.toLong))
         .once()
 
       val response =
@@ -137,7 +155,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
-    "work successfully searching for Institution text with page = 1 and limit = 1" in {
+    "work Rightfully searching for Institution text with page = 1 and limit = 1" in {
 
       val searchTxt = "Institution"
       val page      = 1
@@ -148,7 +166,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (institutionSearchService.searchByText _)
         .expects(DESCRIPTION.value, searchTxt, page, limit)
-        .returning(Success(luceneResponse -> luceneResponse.size.toLong))
+        .returning(Right(luceneResponse -> luceneResponse.size.toLong))
         .once()
 
       val response =
@@ -161,7 +179,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
-    "work successfully searching for Institution text with page = 2 and limit = 1" in {
+    "work Rightfully searching for Institution text with page = 2 and limit = 1" in {
 
       val searchTxt = "Institution"
       val page      = 2
@@ -172,7 +190,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (institutionSearchService.searchByText _)
         .expects(*, searchTxt, page, limit)
-        .returning(Success(luceneResponse -> luceneResponse.size.toLong))
+        .returning(Right(luceneResponse -> luceneResponse.size.toLong))
         .once()
 
       val response =
@@ -185,7 +203,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
-    "work successfully searching for Institution text with page = 1 and limit = 4" in {
+    "work Rightfully searching for Institution text with page = 1 and limit = 4" in {
 
       val searchTxt = "Institution"
       val page      = 1
@@ -196,7 +214,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (institutionSearchService.searchByText _)
         .expects(*, searchTxt, page, limit)
-        .returning(Success(luceneResponse -> luceneResponse.size.toLong))
+        .returning(Right(luceneResponse -> luceneResponse.size.toLong))
         .once()
 
       val response =
@@ -209,7 +227,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
-    "work successfully searching for Institution text with page = 2 and limit = 2" in {
+    "work Rightfully searching for Institution text with page = 2 and limit = 2" in {
 
       val searchTxt = "Institution"
       val page      = 2
@@ -220,7 +238,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (institutionSearchService.searchByText _)
         .expects(*, searchTxt, page, limit)
-        .returning(Success(searchResponse -> searchResponse.size.toLong))
+        .returning(Right(searchResponse -> searchResponse.size.toLong))
         .once()
 
       val response =
@@ -241,7 +259,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (institutionSearchService.searchByText _)
         .expects(*, searchTxt, *, *)
-        .returning(Success(searchResponse -> searchResponse.size.toLong))
+        .returning(Right(searchResponse -> searchResponse.size.toLong))
         .once()
 
       val body = makeRequest[Institutions](s"institutions?search=$searchTxt&page=1&limit=1")
@@ -274,16 +292,16 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
-    "fail using with limit > 100" in {
+    "fail using with limit > 1000" in {
 
       val searchTxt = "Institution"
-      val limit     = 101
+      val limit     = 1001
 
       val response = makeRequest[Problem](s"institutions?search=$searchTxt&limit=${limit.toString}")
 
       response.status shouldBe StatusCodes.BadRequest
 
-      response.body.errors.head.detail shouldBe "limit is not valid - Numeric instance is greater than the required maximum (maximum: 100, found: 101)"
+      response.body.errors.head.detail shouldBe "limit is not valid - Numeric instance is greater than the required maximum (maximum: 1000, found: 1001)"
 
     }
 
@@ -304,11 +322,11 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
     }
 
-    "fail using with page < 1 and limit > 100" in {
+    "fail using with page < 1 and limit > 1000" in {
 
       val searchTxt = "Institution"
       val page      = 0
-      val limit     = 101
+      val limit     = 1001
 
       val response =
         makeRequest[Problem](s"institutions?search=$searchTxt&page=${page.toString}&limit=${limit.toString}")
@@ -316,7 +334,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
       response.status shouldBe StatusCodes.BadRequest
       response.body.errors.map(_.detail) should contain allOf (
         "page is not valid - Numeric instance is lower than the required minimum (minimum: 1, found: 0)",
-        "limit is not valid - Numeric instance is greater than the required maximum (maximum: 100, found: 101)"
+        "limit is not valid - Numeric instance is greater than the required maximum (maximum: 1000, found: 1001)"
       )
 
     }
@@ -328,7 +346,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (categorySearchService.getAllItems _)
         .expects(*, *, *)
-        .returning(Success(categories -> categories.size.toLong))
+        .returning(Right(categories -> categories.size.toLong))
         .once()
 
       val response = makeRequest[Categories](s"categories")
@@ -345,7 +363,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
       (categorySearchService.getAllItems _)
         .expects(*, page, limit)
         .returning(
-          Success(
+          Right(
             categories.slice(page - 1, page + limit - 1) -> categories.slice(page - 1, page + limit - 1).size.toLong
           )
         )
@@ -373,7 +391,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
       (categorySearchService.getAllItems _)
         .expects(*, page, limit)
         .returning(
-          Success(
+          Right(
             categories.slice(page - 1, page + limit - 1) -> categories.slice(page - 1, page + limit - 1).size.toLong
           )
         )
@@ -400,7 +418,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (categorySearchService.getAllItems _)
         .expects(*, page, limit)
-        .returning(Success(categories -> categories.size.toLong))
+        .returning(Right(categories -> categories.size.toLong))
         .once()
 
       val response = makeRequest[Categories](s"categories?page=$page&limit=$limit")
@@ -421,7 +439,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (categorySearchService.getAllItems _)
         .expects(*, *, *)
-        .returning(Success(categories.filter(_.origin == originOne) -> categories.count(_.origin == originOne).toLong))
+        .returning(Right(categories.filter(_.origin == originOne) -> categories.count(_.origin == originOne).toLong))
         .once()
 
       val response = makeRequest[Categories](s"categories?origin=$originOne")
@@ -439,7 +457,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (categorySearchService.getAllItems _)
         .expects(*, *, *)
-        .returning(Success(List.empty -> 0))
+        .returning(Right(List.empty -> 0))
         .once()
 
       val response = makeRequest[Categories](s"categories?origin=$originThree")
@@ -515,7 +533,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (categorySearchService.searchById _)
         .expects(createCategoryId(originOne, categoryCodeOne))
-        .returning(Success(Some(categoryOne)))
+        .returning(Right(Some(categoryOne)))
         .once()
 
       val response = makeRequest[Category](s"origins/$originOne/categories/$categoryCodeOne")
@@ -528,7 +546,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (categorySearchService.searchById _)
         .expects(createCategoryId(originOne, categoryCodeFour))
-        .returning(Success(categories.find(_.code == categoryCodeFour)))
+        .returning(Right(categories.find(_.code == categoryCodeFour)))
         .once()
 
       val response = makeRequest[CommonProblem](s"origins/$originOne/categories/$categoryCodeFour")
@@ -541,7 +559,7 @@ class PartyRegistryProxySpec extends ScalaTestWithActorTestKit with AnyWordSpecL
 
       (categorySearchService.searchById _)
         .expects(createCategoryId(originThree, categoryCodeOne))
-        .returning(Success(categories.find(_.origin == originThree)))
+        .returning(Right(categories.find(_.origin == originThree)))
         .once()
 
       val response = makeRequest[CommonProblem](s"origins/$originThree/categories/$categoryCodeOne")
@@ -566,7 +584,8 @@ object ServiceSpecSupport {
     address = "address1",
     zipCode = "zipCode1",
     origin = "origin",
-    kind = "Pubbliche Amministrazioni"
+    kind = "Pubbliche Amministrazioni",
+    classification = Classification.AGENCY
   )
 
   final lazy val institutionTwo = Institution(
@@ -579,7 +598,8 @@ object ServiceSpecSupport {
     address = "address2",
     zipCode = "zipCode2",
     origin = "origin",
-    kind = "Pubbliche Amministrazioni"
+    kind = "Pubbliche Amministrazioni",
+    classification = Classification.AGENCY
   )
 
   final lazy val institutionThree = Institution(
@@ -592,7 +612,8 @@ object ServiceSpecSupport {
     address = "address3",
     zipCode = "zipCode3",
     origin = "origin",
-    kind = "Pubbliche Amministrazioni"
+    kind = "Pubbliche Amministrazioni",
+    classification = Classification.AGENCY
   )
 
   final lazy val institutionFour = Institution(
@@ -605,7 +626,8 @@ object ServiceSpecSupport {
     address = "address4",
     zipCode = "zipCode4",
     origin = "origin",
-    kind = "Pubbliche Amministrazioni"
+    kind = "Pubbliche Amministrazioni",
+    classification = Classification.AGENCY
   )
 
   final lazy val institutions = List(institutionOne, institutionTwo, institutionThree, institutionFour)

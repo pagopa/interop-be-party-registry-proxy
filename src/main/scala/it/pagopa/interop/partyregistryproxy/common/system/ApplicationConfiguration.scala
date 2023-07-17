@@ -14,6 +14,10 @@ object ApplicationConfiguration {
 
   val institutionsIndexDir: String = config.getString("party-registry-proxy.index.institutions.folder")
 
+  val aooIndexDir: String = config.getString("party-registry-proxy.index.aoo.folder")
+
+  val uooIndexDir: String = config.getString("party-registry-proxy.index.uo.folder")
+
   val categoriesIndexDir: String = config.getString("party-registry-proxy.index.categories.folder")
 
   val institutionsIpaOpenDataUrl: String =
