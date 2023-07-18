@@ -14,6 +14,8 @@ object DataSourceOps {
   def loadOpenData(
     openDataService: OpenDataService,
     institutionsIndexWriterService: IndexWriterService[Institution],
+    aooWriterService: IndexWriterService[Institution],
+    uoWriterService: IndexWriterService[Institution],
     categoriesIndexWriterService: IndexWriterService[Category],
     blockingEc: ExecutionContext
   )(implicit logger: LoggerTakingImplicit[ContextFieldsToLog], contexts: Seq[(String, String)]): Future[Unit] = {
@@ -22,9 +24,11 @@ object DataSourceOps {
     val result: Future[Unit]          = for {
       institutions <- openDataService.getAllInstitutions(Map.empty, Agency)
       institutionsDetails = institutions.map(i => i.originId -> InstitutionDetails(i.category, i.kind)).toMap
+      _          <- loadInstitutions(institutionsIndexWriterService, institutions)
       aoo        <- openDataService.getAllInstitutions(institutionsDetails, AOO)
+      _          <- loadInstitutions(aooWriterService, aoo)
       uo         <- openDataService.getAllInstitutions(institutionsDetails, UO)
-      _          <- loadInstitutions(institutionsIndexWriterService, institutions ++ aoo ++ uo)
+      _          <- loadInstitutions(uoWriterService, uo)
       categories <- openDataService.getAllCategories
       _          <- loadCategories(categoriesIndexWriterService, categories)
     } yield ()
@@ -38,24 +42,24 @@ object DataSourceOps {
   }
 
   private def loadInstitutions(
-    institutionsIndexWriterService: IndexWriterService[Institution],
+    indexWriterService: IndexWriterService[Institution],
     institutions: List[Institution]
   )(implicit logger: LoggerTakingImplicit[ContextFieldsToLog], contexts: Seq[(String, String)]): Future[Unit] =
     Future.fromTry {
       logger.info("Loading institutions index from iPA")
-      institutionsIndexWriterService.resource { writer =>
-        institutionsIndexWriterService.adds(institutions)(writer).map(_ => logger.info(s"Institutions inserted"))
+      indexWriterService.resource { writer =>
+        indexWriterService.adds(institutions)(writer).map(_ => logger.info(s"Institutions inserted"))
       }
     }
 
-  private def loadCategories(
-    categoriesIndexWriterService: IndexWriterService[Category],
-    categories: List[Category]
-  )(implicit logger: LoggerTakingImplicit[ContextFieldsToLog], contexts: Seq[(String, String)]): Future[Unit] =
+  private def loadCategories(indexWriterService: IndexWriterService[Category], categories: List[Category])(implicit
+    logger: LoggerTakingImplicit[ContextFieldsToLog],
+    contexts: Seq[(String, String)]
+  ): Future[Unit] =
     Future.fromTry {
       logger.info("Loading categories index from iPA")
-      categoriesIndexWriterService.resource { writer =>
-        categoriesIndexWriterService.adds(categories)(writer).map(_ => logger.info(s"Categories inserted"))
+      indexWriterService.resource { writer =>
+        indexWriterService.adds(categories)(writer).map(_ => logger.info(s"Categories inserted"))
       }
     }
 

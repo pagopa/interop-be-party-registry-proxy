@@ -4,7 +4,6 @@ import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.server.Route
 import com.typesafe.scalalogging.{Logger, LoggerTakingImplicit}
 import it.pagopa.interop.commons.logging.{CanLogContextFields, ContextFieldsToLog}
-import it.pagopa.interop.commons.utils.TypeConversions.OptionOps
 import it.pagopa.interop.partyregistryproxy.api.CategoryApiService
 import it.pagopa.interop.partyregistryproxy.api.impl.CategoryApiResponseHandlers._
 import it.pagopa.interop.partyregistryproxy.common.util.CategoryField.ORIGIN
@@ -12,8 +11,6 @@ import it.pagopa.interop.partyregistryproxy.common.util.{SearchField, createCate
 import it.pagopa.interop.partyregistryproxy.errors.PartyRegistryProxyErrors._
 import it.pagopa.interop.partyregistryproxy.model._
 import it.pagopa.interop.partyregistryproxy.service.IndexSearchService
-
-import scala.util.Try
 
 final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchService[Category])
     extends CategoryApiService {
@@ -29,8 +26,8 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
     val operationLabel = s"Retrieving categories for Origin ${origin.getOrElse("-")} Page $page Limit $limit"
     logger.info(operationLabel)
 
-    val filters: Map[SearchField, String] = getCategoryFilters(origin)
-    val categories: Try[Categories]       =
+    val filters: Map[SearchField, String]         = getCategoryFilters(origin)
+    val categories: Either[Throwable, Categories] =
       categoriesSearchService
         .getAllItems(filters, page, limit)
         .map { case (items, totalCount) => Categories(items, totalCount) }
@@ -52,7 +49,8 @@ final case class CategoryApiServiceImpl(categoriesSearchService: IndexSearchServ
 
     val id: String = createCategoryId(origin = origin, code = code)
 
-    val category: Try[Category] = categoriesSearchService.searchById(id).flatMap(_.toTry(CategoryNotFound(code)))
+    val category: Either[Throwable, Category] =
+      categoriesSearchService.searchById(id).flatMap(_.toRight(CategoryNotFound(code)))
 
     getCategoryResponse[Category](operationLabel)(getCategory200)(category)
   }

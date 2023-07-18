@@ -8,9 +8,9 @@ import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.store.FSDirectory
 
 import java.nio.file.Paths
-case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institution] {
+case object UoIndexSearchServiceImpl extends IndexSearchService[Institution] {
 
-  private val dir: FSDirectory            = FSDirectory.open(Paths.get(ApplicationConfiguration.institutionsIndexDir))
+  private val dir: FSDirectory            = FSDirectory.open(Paths.get(ApplicationConfiguration.uooIndexDir))
   private val mainReader: DirectoryReader = DirectoryReader.open(dir)
 
   override def searchById(id: String): Either[Throwable, Option[Institution]] =
@@ -26,7 +26,6 @@ case object InstitutionIndexSearchServiceImpl extends IndexSearchService[Institu
     limit: Int
   ): Either[Throwable, (List[Institution], Long)] =
     InstitutionUtils.searchByText(searchingField, searchText, page, limit)(mainReader)
-
   override def getAllItems(
     filters: Map[SearchField, String],
     page: Int,

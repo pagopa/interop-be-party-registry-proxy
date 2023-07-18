@@ -12,23 +12,31 @@ import it.pagopa.interop.commons.jwt.{KID, PublicKeysHolder, SerializedKey}
 import it.pagopa.interop.commons.logging.{CanLogContextFields, ContextFieldsToLog}
 import it.pagopa.interop.commons.utils.AkkaUtils
 import it.pagopa.interop.partyregistryproxy.api.impl.{
+  AooApiMarshallerImpl,
+  AooApiServiceImpl,
   CategoryApiMarshallerImpl,
   CategoryApiServiceImpl,
   DatasourceApiServiceImpl,
   HealthApiMarshallerImpl,
   HealthApiServiceImpl,
   InstitutionApiMarshallerImpl,
-  InstitutionApiServiceImpl
+  InstitutionApiServiceImpl,
+  UoApiMarshallerImpl,
+  UoApiServiceImpl
 }
-import it.pagopa.interop.partyregistryproxy.api.{CategoryApi, DatasourceApi, HealthApi, InstitutionApi}
+import it.pagopa.interop.partyregistryproxy.api.{AooApi, CategoryApi, DatasourceApi, HealthApi, InstitutionApi, UoApi}
 import it.pagopa.interop.partyregistryproxy.common.system.ApplicationConfiguration
 import it.pagopa.interop.partyregistryproxy.model.{Category, Institution}
 import it.pagopa.interop.partyregistryproxy.service.impl.{
+  AooIndexSearchServiceImpl,
+  AooIndexWriterServiceImpl,
   CategoryIndexSearchServiceImpl,
   CategoryIndexWriterServiceImpl,
   IPAOpenDataServiceImpl,
   InstitutionIndexSearchServiceImpl,
-  InstitutionIndexWriterServiceImpl
+  InstitutionIndexWriterServiceImpl,
+  UoIndexSearchServiceImpl,
+  UoIndexWriterServiceImpl
 }
 import it.pagopa.interop.partyregistryproxy.service.{IndexWriterService, OpenDataService}
 
@@ -49,6 +57,8 @@ trait Dependencies {
   )
 
   val institutionsWriterService: IndexWriterService[Institution] = InstitutionIndexWriterServiceImpl
+  val aooWriterService: IndexWriterService[Institution]          = AooIndexWriterServiceImpl
+  val uoWriterService: IndexWriterService[Institution]           = UoIndexWriterServiceImpl
   val categoriesWriterService: IndexWriterService[Category]      = CategoryIndexWriterServiceImpl
   def getOpenDataService()(implicit ec: ExecutionContext, actorSystem: ActorSystem[_]): OpenDataService =
     IPAOpenDataServiceImpl(http())
@@ -59,6 +69,15 @@ trait Dependencies {
     jwtReader.OAuth2JWTValidatorAsContexts
   )
 
+  def aooApi()(implicit jwtReader: JWTReader): AooApi = new AooApi(
+    AooApiServiceImpl(AooIndexSearchServiceImpl),
+    AooApiMarshallerImpl,
+    jwtReader.OAuth2JWTValidatorAsContexts
+  )
+
+  def uoApi()(implicit jwtReader: JWTReader): UoApi =
+    new UoApi(UoApiServiceImpl(UoIndexSearchServiceImpl), UoApiMarshallerImpl, jwtReader.OAuth2JWTValidatorAsContexts)
+
   def categoryApi()(implicit jwtReader: JWTReader): CategoryApi = new CategoryApi(
     CategoryApiServiceImpl(CategoryIndexSearchServiceImpl),
     CategoryApiMarshallerImpl,
@@ -68,9 +87,17 @@ trait Dependencies {
   def datasourceApi(
     openDataService: OpenDataService,
     institutionsWriterService: IndexWriterService[Institution],
+    aooWriterService: IndexWriterService[Institution],
+    uoWriterService: IndexWriterService[Institution],
     categoriesWriterService: IndexWriterService[Category]
   )(blockingEc: ExecutionContext): DatasourceApi = new DatasourceApi(
-    new DatasourceApiServiceImpl(openDataService, institutionsWriterService, categoriesWriterService)(blockingEc),
+    new DatasourceApiServiceImpl(
+      openDataService,
+      institutionsWriterService,
+      aooWriterService,
+      uoWriterService,
+      categoriesWriterService
+    )(blockingEc),
     SecurityDirectives.authenticateOAuth2("SecurityRealm", AkkaUtils.PassThroughAuthenticator)
   )
 
