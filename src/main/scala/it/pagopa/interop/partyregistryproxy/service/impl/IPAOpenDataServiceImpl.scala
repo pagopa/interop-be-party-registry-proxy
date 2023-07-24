@@ -49,19 +49,34 @@ final case class IPAOpenDataServiceImpl(http: HttpExt)(implicit system: ActorSys
 object IPAOpenDataServiceImpl {
 
   private object InstitutionsFields {
-    final val originId       = "Codice_IPA"
-    final val description    = "Denominazione_ente"
-    final val taxCode        = "Codice_fiscale_ente"
-    final val category       = "Codice_Categoria"
-    final val digitalAddress = "Mail1"
-    final val address        = "Indirizzo"
-    final val zipCode        = "CAP"
-    final val kind           = "Tipologia"
-    final val aooId          = "Codice_uni_aoo"
-    final val uoId           = "Codice_uni_uo"
+    final val originId          = "Codice_IPA"
+    final val agencyDescription = "Denominazione_ente"
+    final val aooDescription    = "Denominazione_aoo"
+    final val uoDescription     = "Descrizione_uo"
+    final val taxCode           = "Codice_fiscale_ente"
+    final val category          = "Codice_Categoria"
+    final val digitalAddress    = "Mail1"
+    final val address           = "Indirizzo"
+    final val zipCode           = "CAP"
+    final val kind              = "Tipologia"
+    final val aooId             = "Codice_uni_aoo"
+    final val uoId              = "Codice_uni_uo"
 
     final val fields: Set[String] =
-      Set(originId, description, taxCode, category, digitalAddress, address, zipCode, kind, aooId, uoId)
+      Set(
+        originId,
+        agencyDescription,
+        aooDescription,
+        uoDescription,
+        taxCode,
+        category,
+        digitalAddress,
+        address,
+        zipCode,
+        kind,
+        aooId,
+        uoId
+      )
   }
 
   private object CategoriesFields {
@@ -88,7 +103,7 @@ object IPAOpenDataServiceImpl {
         originId       <- getOriginId(institutionKind, mapped, record)
         taxCode        <- mapped.get(InstitutionsFields.taxCode).flatMap(idx => record(idx).select[String])
         category       <- getCategory(institutionKind, mapped, record, institutionsDetails)
-        description    <- record(mapped(InstitutionsFields.description)).select[String]
+        description    <- getDescription(institutionKind, mapped, record)
         digitalAddress <- mapped.get(InstitutionsFields.digitalAddress).flatMap(idx => record(idx).select[String])
         address        <- mapped.get(InstitutionsFields.address).flatMap(idx => record(idx).select[String])
         zipCode        <- mapped.get(InstitutionsFields.zipCode).flatMap(idx => record(idx).select[String])
@@ -109,6 +124,13 @@ object IPAOpenDataServiceImpl {
     }
 
   }
+
+  private def getDescription(institutionKind: InstitutionKind, mapped: Map[String, Int], record: List[RecordValue]) =
+    institutionKind match {
+      case InstitutionKind.Agency => record(mapped(InstitutionsFields.agencyDescription)).select[String]
+      case InstitutionKind.AOO    => record(mapped(InstitutionsFields.aooDescription)).select[String]
+      case InstitutionKind.UO     => record(mapped(InstitutionsFields.uoDescription)).select[String]
+    }
 
   private def getOriginId(institutionKind: InstitutionKind, mapped: Map[String, Int], record: List[RecordValue]) =
     institutionKind match {
