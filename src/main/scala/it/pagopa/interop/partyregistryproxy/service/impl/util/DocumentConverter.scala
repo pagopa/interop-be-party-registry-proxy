@@ -25,7 +25,11 @@ object DocumentConverter {
         zipCode = document.get(InstitutionField.ZIP_CODE.value),
         origin = document.get(InstitutionField.ORIGIN.value),
         kind = document.get(InstitutionField.KIND.value),
-        classification = classification
+        classification = classification,
+        parentName = classification match {
+          case Classification.AGENCY => None
+          case _                     => Some(document.get(InstitutionField.DESCRIPTION.value))
+        }
       )
     }
 

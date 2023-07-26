@@ -27,7 +27,8 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
           zipCode = "00187",
           origin = INTEROP_ORIGIN,
           kind = "Privato",
-          classification = Classification.AGENCY
+          classification = Classification.AGENCY,
+          parentName = None
         ),
         Institution(
           id = "TestANPR",
@@ -40,7 +41,8 @@ object PagopaOpenDataServiceImpl extends OpenDataService {
           zipCode = "00184",
           origin = INTEROP_ORIGIN,
           kind = "Pubbliche Amministrazioni",
-          classification = Classification.AGENCY
+          classification = Classification.AGENCY,
+          parentName = None
         )
       )
     )

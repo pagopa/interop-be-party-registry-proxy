@@ -557,7 +557,9 @@ components:
           description: describes which is the source of Institution data
         kind:
           type: string
-          description: describes which is the kind of Institution data  
+          description: describes which is the kind of Institution data
+        parentName:
+          type: string
       required:
         - id
         - originId

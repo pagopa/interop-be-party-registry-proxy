@@ -585,7 +585,8 @@ object ServiceSpecSupport {
     zipCode = "zipCode1",
     origin = "origin",
     kind = "Pubbliche Amministrazioni",
-    classification = Classification.AGENCY
+    classification = Classification.AGENCY,
+    parentName = None
   )
 
   final lazy val institutionTwo = Institution(
@@ -599,7 +600,8 @@ object ServiceSpecSupport {
     zipCode = "zipCode2",
     origin = "origin",
     kind = "Pubbliche Amministrazioni",
-    classification = Classification.AGENCY
+    classification = Classification.AGENCY,
+    parentName = None
   )
 
   final lazy val institutionThree = Institution(
@@ -613,7 +615,8 @@ object ServiceSpecSupport {
     zipCode = "zipCode3",
     origin = "origin",
     kind = "Pubbliche Amministrazioni",
-    classification = Classification.AGENCY
+    classification = Classification.AGENCY,
+    parentName = None
   )
 
   final lazy val institutionFour = Institution(
@@ -627,7 +630,8 @@ object ServiceSpecSupport {
     zipCode = "zipCode4",
     origin = "origin",
     kind = "Pubbliche Amministrazioni",
-    classification = Classification.AGENCY
+    classification = Classification.AOO,
+    parentName = Some("Institution Four")
   )
 
   final lazy val institutions = List(institutionOne, institutionTwo, institutionThree, institutionFour)

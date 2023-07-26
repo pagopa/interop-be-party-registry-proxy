@@ -108,6 +108,7 @@ object IPAOpenDataServiceImpl {
         address        <- mapped.get(InstitutionsFields.address).flatMap(idx => record(idx).select[String])
         zipCode        <- mapped.get(InstitutionsFields.zipCode).flatMap(idx => record(idx).select[String])
         kind           <- getKind(institutionKind, mapped, record, institutionsDetails)
+        parentName     <- getParentName(institutionKind, mapped, record)
       } yield Institution(
         id = id,
         originId = originId,
@@ -119,11 +120,18 @@ object IPAOpenDataServiceImpl {
         zipCode = zipCode,
         origin = ApplicationConfiguration.ipaOrigin,
         kind = kind,
-        classification = getClassification(institutionKind)
+        classification = getClassification(institutionKind),
+        parentName = parentName
       )
     }
 
   }
+
+  private def getParentName(institutionKind: InstitutionKind, mapped: Map[String, Int], record: List[RecordValue]) =
+    institutionKind match {
+      case InstitutionKind.Agency => None
+      case _                      => Some(record(mapped(InstitutionsFields.agencyDescription)).select[String])
+    }
 
   private def getDescription(institutionKind: InstitutionKind, mapped: Map[String, Int], record: List[RecordValue]) =
     institutionKind match {
