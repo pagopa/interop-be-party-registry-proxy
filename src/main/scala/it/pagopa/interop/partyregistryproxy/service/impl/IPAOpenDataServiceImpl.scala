@@ -130,10 +130,10 @@ object IPAOpenDataServiceImpl {
       case InstitutionKind.Agency => record(mapped(InstitutionsFields.agencyDescription)).select[String]
       case InstitutionKind.AOO    =>
         Some(s"${record(mapped(InstitutionsFields.aooDescription))
-            .select[String]} - ${record(mapped(InstitutionsFields.agencyDescription)).select[String]}")
+            .select[String].getOrElse("")} - ${record(mapped(InstitutionsFields.agencyDescription)).select[String].getOrElse("")}")
       case InstitutionKind.UO     =>
         Some(s"${record(mapped(InstitutionsFields.uoDescription))
-            .select[String]} - ${record(mapped(InstitutionsFields.agencyDescription)).select[String]}")
+            .select[String].getOrElse("")} - ${record(mapped(InstitutionsFields.agencyDescription)).select[String].getOrElse("")}")
     }
 
   private def getOriginId(institutionKind: InstitutionKind, mapped: Map[String, Int], record: List[RecordValue]) =
