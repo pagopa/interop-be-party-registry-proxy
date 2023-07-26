@@ -108,7 +108,6 @@ object IPAOpenDataServiceImpl {
         address        <- mapped.get(InstitutionsFields.address).flatMap(idx => record(idx).select[String])
         zipCode        <- mapped.get(InstitutionsFields.zipCode).flatMap(idx => record(idx).select[String])
         kind           <- getKind(institutionKind, mapped, record, institutionsDetails)
-        parentName     <- getParentName(institutionKind, mapped, record)
       } yield Institution(
         id = id,
         originId = originId,
@@ -120,24 +119,21 @@ object IPAOpenDataServiceImpl {
         zipCode = zipCode,
         origin = ApplicationConfiguration.ipaOrigin,
         kind = kind,
-        classification = getClassification(institutionKind),
-        parentName = parentName
+        classification = getClassification(institutionKind)
       )
     }
 
   }
 
-  private def getParentName(institutionKind: InstitutionKind, mapped: Map[String, Int], record: List[RecordValue]) =
-    institutionKind match {
-      case InstitutionKind.Agency => None
-      case _                      => Some(record(mapped(InstitutionsFields.agencyDescription)).select[String])
-    }
-
   private def getDescription(institutionKind: InstitutionKind, mapped: Map[String, Int], record: List[RecordValue]) =
     institutionKind match {
       case InstitutionKind.Agency => record(mapped(InstitutionsFields.agencyDescription)).select[String]
-      case InstitutionKind.AOO    => record(mapped(InstitutionsFields.aooDescription)).select[String]
-      case InstitutionKind.UO     => record(mapped(InstitutionsFields.uoDescription)).select[String]
+      case InstitutionKind.AOO    =>
+        Some(s"${record(mapped(InstitutionsFields.aooDescription))
+            .select[String]} - ${record(mapped(InstitutionsFields.agencyDescription)).select[String]}")
+      case InstitutionKind.UO     =>
+        Some(s"${record(mapped(InstitutionsFields.uoDescription))
+            .select[String]} - ${record(mapped(InstitutionsFields.agencyDescription)).select[String]}")
     }
 
   private def getOriginId(institutionKind: InstitutionKind, mapped: Map[String, Int], record: List[RecordValue]) =

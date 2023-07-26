@@ -558,8 +558,6 @@ components:
         kind:
           type: string
           description: describes which is the kind of Institution data
-        parentName:
-          type: string
       required:
         - id
         - originId
