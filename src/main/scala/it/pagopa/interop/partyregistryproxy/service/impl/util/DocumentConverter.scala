@@ -4,9 +4,6 @@ import it.pagopa.interop.partyregistryproxy.common.util.CategoryField
 import it.pagopa.interop.partyregistryproxy.common.util.InstitutionField
 import it.pagopa.interop.partyregistryproxy.model.{Category, Classification, Institution}
 import org.apache.lucene.document.Document
-import it.pagopa.interop.partyregistryproxy.model.Classification.AGENCY
-import it.pagopa.interop.partyregistryproxy.model.Classification.AOO
-import it.pagopa.interop.partyregistryproxy.model.Classification.UO
 
 trait DocumentConverter[A] {
   def to(document: Document): Either[Throwable, A]
@@ -22,12 +19,7 @@ object DocumentConverter {
         originId = document.get(InstitutionField.ORIGIN_ID.value),
         taxCode = document.get(InstitutionField.TAX_CODE.value),
         category = document.get(InstitutionField.CATEGORY.value),
-        description = classification match {
-          case AGENCY => document.get(InstitutionField.DESCRIPTION.value)
-          case AOO    =>
-            s"${document.get(InstitutionField.AOO.value)} - ${document.get(InstitutionField.DESCRIPTION.value)}"
-          case UO => s"${document.get(InstitutionField.OU.value)} - ${document.get(InstitutionField.DESCRIPTION.value)}"
-        },
+        description = document.get(InstitutionField.DESCRIPTION.value),
         digitalAddress = document.get(InstitutionField.DIGITAL_ADDRESS.value),
         address = document.get(InstitutionField.ADDRESS.value),
         zipCode = document.get(InstitutionField.ZIP_CODE.value),
