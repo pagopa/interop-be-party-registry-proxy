@@ -627,7 +627,7 @@ object ServiceSpecSupport {
     zipCode = "zipCode4",
     origin = "origin",
     kind = "Pubbliche Amministrazioni",
-    classification = Classification.AGENCY
+    classification = Classification.AOO
   )
 
   final lazy val institutions = List(institutionOne, institutionTwo, institutionThree, institutionFour)

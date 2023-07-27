@@ -128,8 +128,16 @@ object IPAOpenDataServiceImpl {
   private def getDescription(institutionKind: InstitutionKind, mapped: Map[String, Int], record: List[RecordValue]) =
     institutionKind match {
       case InstitutionKind.Agency => record(mapped(InstitutionsFields.agencyDescription)).select[String]
-      case InstitutionKind.AOO    => record(mapped(InstitutionsFields.aooDescription)).select[String]
-      case InstitutionKind.UO     => record(mapped(InstitutionsFields.uoDescription)).select[String]
+      case InstitutionKind.AOO    =>
+        for {
+          aoo    <- record(mapped(InstitutionsFields.aooDescription)).select[String]
+          agency <- record(mapped(InstitutionsFields.agencyDescription)).select[String]
+        } yield s"$aoo - $agency"
+      case InstitutionKind.UO     =>
+        for {
+          uo     <- record(mapped(InstitutionsFields.uoDescription)).select[String]
+          agency <- record(mapped(InstitutionsFields.agencyDescription)).select[String]
+        } yield s"$uo - $agency"
     }
 
   private def getOriginId(institutionKind: InstitutionKind, mapped: Map[String, Int], record: List[RecordValue]) =
