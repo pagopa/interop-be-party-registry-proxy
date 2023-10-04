@@ -27,7 +27,7 @@ final case class UoApiServiceImpl(uoSearchService: IndexSearchService[Institutio
     val result: Either[Throwable, Institution] =
       uoSearchService
         .searchByExternalId(origin, originId)
-        .flatMap(_.toRight(InstitutionByExternalNotFound(origin, originId)))
+        .flatMap(_.toRight(UOByExternalNotFound(origin, originId)))
 
     getUOByExternalIdResponse[Institution](operationLabel)(getUOByExternalId200)(result)
   }
@@ -41,7 +41,7 @@ final case class UoApiServiceImpl(uoSearchService: IndexSearchService[Institutio
     logger.info(operationLabel)
 
     val result: Either[Throwable, Institution] =
-      uoSearchService.searchById(aooId).flatMap(_.toRight(InstitutionNotFound(aooId)))
+      uoSearchService.searchById(aooId).flatMap(_.toRight(UONotFound(aooId)))
 
     getUOByIdResponse[Institution](operationLabel)(getUOById200)(result)
   }
